@@ -1,6 +1,6 @@
 """
 ScrapSetu: A Digital Bridge to Sustainable Recycling
-Enhanced Live Streamlit Web Edition
+Streamlit Cloud Live Edition - Role-Gated Authentication & Dedicated Dashboards
 """
 
 import streamlit as st
@@ -18,7 +18,7 @@ import math
 # 1. Page Configuration & Custom CSS
 # -------------------------------------------------------------
 st.set_page_config(
-    page_title="ScrapSetu | Digital Recycling Bridge",
+    page_title="ScrapSetu | Login & Dynamic Dashboards",
     page_icon="♻️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -33,136 +33,109 @@ st.markdown("""
         font-family: 'Plus Jakarta Sans', 'Noto Sans Devanagari', sans-serif;
     }
 
-    /* Top Brand Banner */
-    .hero-banner {
-        background: linear-gradient(135deg, #064e3b 0%, #065f46 50%, #047857 100%);
-        padding: 2.2rem 2.5rem;
+    /* Auth Gateway Box */
+    .auth-card {
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
         border-radius: 1.5rem;
-        color: white;
-        margin-bottom: 1.8rem;
-        box-shadow: 0 20px 25px -5px rgba(6, 78, 59, 0.25), 0 8px 10px -6px rgba(6, 78, 59, 0.2);
-        position: relative;
-        overflow: hidden;
+        padding: 2.5rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+        margin: 1.5rem auto;
+        max-width: 680px;
     }
-    .hero-banner::after {
-        content: "♻️";
-        position: absolute;
-        right: 20px;
-        bottom: -20px;
-        font-size: 8rem;
-        opacity: 0.08;
-        pointer-events: none;
+    .auth-header {
+        text-align: center;
+        margin-bottom: 2rem;
     }
-    .hero-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(8px);
-        padding: 0.35rem 0.9rem;
-        border-radius: 9999px;
-        font-size: 0.78rem;
-        font-weight: 700;
-        letter-spacing: 0.05em;
-        text-transform: uppercase;
-        color: #a7f3d0;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        margin-bottom: 0.8rem;
-    }
-    .hero-title {
-        font-size: 2.3rem;
-        font-weight: 800;
-        line-height: 1.15;
+    .auth-logo {
+        font-size: 3.5rem;
         margin-bottom: 0.5rem;
-        letter-spacing: -0.02em;
+        display: inline-block;
     }
-    .hero-subtitle {
-        color: #d1fae5;
-        font-size: 0.98rem;
-        max-width: 780px;
-        line-height: 1.5;
-        opacity: 0.95;
+    .auth-title {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #064e3b;
+        letter-spacing: -0.02em;
+        margin-bottom: 0.25rem;
+    }
+    .auth-subtitle {
+        color: #64748b;
+        font-size: 0.95rem;
     }
 
-    /* Modern KPI Cards */
+    /* Dedicated Top Nav Bar */
+    .top-user-bar {
+        background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+        color: white;
+        padding: 1rem 1.75rem;
+        border-radius: 1.25rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.8rem;
+        box-shadow: 0 10px 15px -3px rgba(6, 78, 59, 0.15);
+    }
+    .user-badge {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #a7f3d0;
+    }
+
+    /* KPI Cards */
     .kpi-card {
         background: #ffffff;
         border: 1px solid #e2e8f0;
         border-radius: 1.25rem;
-        padding: 1.35rem 1.25rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04), 0 2px 4px -2px rgba(0, 0, 0, 0.03);
-        transition: transform 0.2s ease, box-shadow 0.2s ease;
-        position: relative;
-        overflow: hidden;
-    }
-    .kpi-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.1);
-        border-color: #a7f3d0;
-    }
-    .kpi-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 0.5rem;
-    }
-    .kpi-icon {
-        width: 2.2rem;
-        height: 2.2rem;
-        border-radius: 0.75rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.1rem;
+        padding: 1.25rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+        margin-bottom: 1rem;
     }
     .kpi-val {
-        font-size: 1.9rem;
+        font-size: 1.85rem;
         font-weight: 800;
         color: #0f172a;
         line-height: 1.1;
     }
     .kpi-lbl {
-        font-size: 0.78rem;
-        font-weight: 600;
+        font-size: 0.75rem;
+        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         color: #64748b;
         margin-top: 0.35rem;
     }
-    .kpi-sub {
-        font-size: 0.75rem;
-        font-weight: 600;
-        margin-top: 0.4rem;
-        display: inline-block;
-        padding: 0.15rem 0.5rem;
-        border-radius: 0.5rem;
-    }
 
-    /* Digital Receipt Container */
+    /* Digital Receipt Box */
     .receipt-container {
         background: #ffffff;
         border: 2px dashed #059669;
         border-radius: 1.25rem;
         padding: 1.5rem;
         font-family: 'Courier New', Courier, monospace;
-        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        margin-top: 1rem;
         color: #1e293b;
     }
     .receipt-header {
         text-align: center;
         border-bottom: 2px dashed #cbd5e1;
-        padding-bottom: 1rem;
-        margin-bottom: 1rem;
+        padding-bottom: 0.8rem;
+        margin-bottom: 0.8rem;
     }
     .receipt-row {
         display: flex;
         justify-content: space-between;
         margin-bottom: 0.4rem;
-        font-size: 0.9rem;
+        font-size: 0.88rem;
     }
     .receipt-total {
         border-top: 2px dashed #cbd5e1;
-        margin-top: 1rem;
+        margin-top: 0.8rem;
         padding-top: 0.8rem;
         display: flex;
         justify-content: space-between;
@@ -170,157 +143,35 @@ st.markdown("""
         font-size: 1.15rem;
         color: #064e3b;
     }
-    .receipt-hash {
-        background: #f8fafc;
-        padding: 0.6rem;
-        border-radius: 0.5rem;
-        font-size: 0.7rem;
-        color: #64748b;
-        word-break: break-all;
-        margin-top: 1rem;
-        border: 1px solid #e2e8f0;
-    }
-
-    /* Role Quick Selector Pill */
-    .role-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        padding: 0.4rem 0.85rem;
-        border-radius: 9999px;
-        font-weight: 700;
-        font-size: 0.82rem;
-        border: 1px solid #e2e8f0;
-        background: #ffffff;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    /* AI Confidence Meter */
-    .ai-badge {
-        background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-        border: 1px solid #bfdbfe;
-        color: #1e40af;
-        border-radius: 0.75rem;
-        padding: 0.75rem 1rem;
-        font-size: 0.82rem;
-        margin-top: 0.6rem;
-    }
 </style>
 """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# 2. Session State Initialization & Data Models
+# 2. Session State Initialization
 # -------------------------------------------------------------
-if "lang" not in st.session_state:
-    st.session_state.lang = "en"
+if "is_logged_in" not in st.session_state:
+    st.session_state.is_logged_in = False
 if "current_role" not in st.session_state:
     st.session_state.current_role = "HOUSEHOLD"
 if "user_name" not in st.session_state:
     st.session_state.user_name = "Pooja Verma"
+if "user_email" not in st.session_state:
+    st.session_state.user_email = "household@scrapsetu.in"
+if "lang" not in st.session_state:
+    st.session_state.lang = "en"
 
-# Seeded Material Catalog
+# Material Catalog
 if "categories" not in st.session_state:
     st.session_state.categories = [
-        {
-            "id": "c1",
-            "name": "Paper & Cardboard",
-            "hindi": "कागज़ और गत्ता",
-            "slug": "paper-cardboard",
-            "rate": 14.0,
-            "min_rate": 12.0,
-            "max_rate": 16.0,
-            "unit": "kg",
-            "co2_factor": 1.35,
-            "trees_factor": 0.017,
-            "water_factor": 26.0,
-            "source": "MRAI Mandi Benchmark",
-            "icon": "📦",
-            "color": "#3b82f6"
-        },
-        {
-            "id": "c2",
-            "name": "Rigid Plastics (PET / HDPE)",
-            "hindi": "सख्त प्लास्टिक (PET / HDPE)",
-            "slug": "rigid-plastics",
-            "rate": 18.0,
-            "min_rate": 15.0,
-            "max_rate": 22.0,
-            "unit": "kg",
-            "co2_factor": 1.80,
-            "trees_factor": 0.0,
-            "water_factor": 20.0,
-            "source": "Plastics Federation Index",
-            "icon": "🧴",
-            "color": "#10b981"
-        },
-        {
-            "id": "c3",
-            "name": "Ferrous Metals (Iron & Steel)",
-            "hindi": "लोहा और इस्पात",
-            "slug": "ferrous-metals",
-            "rate": 28.0,
-            "min_rate": 26.0,
-            "max_rate": 31.0,
-            "unit": "kg",
-            "co2_factor": 1.50,
-            "trees_factor": 0.0,
-            "water_factor": 18.0,
-            "source": "Mandi Steel Bulletin",
-            "icon": "🔩",
-            "color": "#f59e0b"
-        },
-        {
-            "id": "c4",
-            "name": "Non-Ferrous (Aluminium, Brass, Copper)",
-            "hindi": "अल्युमिनियम, पीतल और तांबा",
-            "slug": "non-ferrous-metals",
-            "rate": 115.0,
-            "min_rate": 105.0,
-            "max_rate": 130.0,
-            "unit": "kg",
-            "co2_factor": 9.10,
-            "trees_factor": 0.0,
-            "water_factor": 45.0,
-            "source": "Metal Traders Index",
-            "icon": "✨",
-            "color": "#ea580c"
-        },
-        {
-            "id": "c5",
-            "name": "Glass Bottles & Culinary Glass",
-            "hindi": "कांच की बोतलें और जार",
-            "slug": "glass",
-            "rate": 3.5,
-            "min_rate": 2.5,
-            "max_rate": 4.5,
-            "unit": "kg",
-            "co2_factor": 0.31,
-            "trees_factor": 0.0,
-            "water_factor": 5.0,
-            "source": "Bottler Recycler Rate",
-            "icon": "🍾",
-            "color": "#06b6d4"
-        },
-        {
-            "id": "c6",
-            "name": "Electronic Waste (E-Waste)",
-            "hindi": "ई-कचरा (इलेक्ट्रॉनिक्स)",
-            "slug": "e-waste",
-            "rate": 45.0,
-            "min_rate": 35.0,
-            "max_rate": 65.0,
-            "unit": "kg",
-            "co2_factor": 3.20,
-            "trees_factor": 0.0,
-            "water_factor": 35.0,
-            "source": "Authorized Dismantlers",
-            "icon": "💻",
-            "color": "#8b5cf6"
-        },
+        {"id": "c1", "name": "Paper & Cardboard", "hindi": "कागज़ और गत्ता", "rate": 14.0, "min": 12.0, "max": 16.0, "unit": "kg", "co2": 1.35, "icon": "📦"},
+        {"id": "c2", "name": "Rigid Plastics (PET / HDPE)", "hindi": "सख्त प्लास्टिक", "rate": 18.0, "min": 15.0, "max": 22.0, "unit": "kg", "co2": 1.80, "icon": "🧴"},
+        {"id": "c3", "name": "Ferrous Metals (Iron & Steel)", "hindi": "लोहा और इस्पात", "rate": 28.0, "min": 26.0, "max": 31.0, "unit": "kg", "co2": 1.50, "icon": "🔩"},
+        {"id": "c4", "name": "Non-Ferrous (Copper, Brass, Al)", "hindi": "तांबा और अल्युमिनियम", "rate": 115.0, "min": 105.0, "max": 130.0, "unit": "kg", "co2": 9.10, "icon": "✨"},
+        {"id": "c5", "name": "Glass Bottles & Jars", "hindi": "कांच की बोतलें", "rate": 3.5, "min": 2.5, "max": 4.5, "unit": "kg", "co2": 0.31, "icon": "🍾"},
+        {"id": "c6", "name": "Electronic Waste (E-Waste)", "hindi": "ई-कचरा", "rate": 45.0, "min": 35.0, "max": 65.0, "unit": "kg", "co2": 3.20, "icon": "💻"},
     ]
 
-# Seeded Pickup Requests
+# Seeded Pickup Orders
 if "pickups" not in st.session_state:
     st.session_state.pickups = [
         {
@@ -375,23 +226,23 @@ if "pickups" not in st.session_state:
         },
     ]
 
-# Recycler Offers
+# Recycler Buying Offers
 if "recycler_offers" not in st.session_state:
     st.session_state.recycler_offers = [
-        {"mill": "Aravalli Paper Pulp Plant 1", "cat": "Paper & Cardboard", "rate": 11.5, "min_lot": 50, "location": "Mansarovar RIICO", "verified": True},
-        {"mill": "Aravalli Polymer Flaking Division", "cat": "Rigid Plastics (PET / HDPE)", "rate": 20.5, "min_lot": 30, "location": "Mansarovar RIICO", "verified": True},
-        {"mill": "Aravalli Induction Foundry", "cat": "Ferrous Metals (Iron & Steel)", "rate": 30.0, "min_lot": 100, "location": "Mansarovar RIICO", "verified": True},
+        {"mill": "Aravalli Paper Mills", "cat": "Paper & Cardboard", "rate": 11.5, "min_lot": 50, "location": "Mansarovar RIICO"},
+        {"mill": "Aravalli Polymer Flakes", "cat": "Rigid Plastics (PET / HDPE)", "rate": 20.5, "min_lot": 30, "location": "Mansarovar RIICO"},
+        {"mill": "Aravalli Induction Foundry", "cat": "Ferrous Metals (Iron & Steel)", "rate": 30.0, "min_lot": 100, "location": "Mansarovar RIICO"},
     ]
 
-# Audit Logs
+# Audit Trail
 if "audit_logs" not in st.session_state:
     st.session_state.audit_logs = [
-        {"action": "VERIFY_USER", "user": "Admin", "details": "Approved Ramkishan Sahu (Collector KYC RJ-14)", "time": "2026-10-10 14:20"},
-        {"action": "COMPLETE_TRANSACTION", "user": "Mohammad Farooq", "details": "Issued Digital Receipt REC-2026-JP-00192 (₹3,442.50)", "time": "2026-10-09 13:45"},
-        {"action": "UPDATE_MANDI_RATE", "user": "Admin", "details": "Adjusted PET baseline rate to ₹18.00/kg", "time": "2026-10-08 10:00"},
+        {"action": "VERIFY_USER", "user": "Admin", "details": "Approved Ramkishan Sahu (Collector KYC)", "time": "2026-10-10 14:20"},
+        {"action": "COMPLETE_TRANSACTION", "user": "Mohammad Farooq", "details": "Issued Receipt REC-2026-JP-00192 (₹3,442.50)", "time": "2026-10-09 13:45"},
+        {"action": "UPDATE_MANDI_RATE", "user": "Admin", "details": "Adjusted PET baseline to ₹18.00/kg", "time": "2026-10-08 10:00"},
     ]
 
-# Helper Distance & Hash Functions
+# Helper Distance & Hash
 def haversine_km(lat1, lon1, lat2, lon2):
     R = 6371.0
     dlat = math.radians(lat2 - lat1)
@@ -404,549 +255,523 @@ def generate_receipt_hash(rec_no, user, collector, total, weight, ts):
     payload = f"{rec_no}|{user}|{collector}|{total}|{weight}|{ts}"
     return hashlib.sha256(payload.encode()).hexdigest()
 
-# -------------------------------------------------------------
-# 3. Sidebar: Language & 1-Click Role Switcher
-# -------------------------------------------------------------
-with st.sidebar:
-    st.markdown("### 🌐 ScrapSetu Navigation")
-    lang_choice = st.radio("Language / भाषा", ["English", "हिंदी"], horizontal=True)
-    st.session_state.lang = "en" if lang_choice == "English" else "hi"
-    is_hi = st.session_state.lang == "hi"
+# Preset demo accounts
+DEMO_ROLES = {
+    "HOUSEHOLD": {"name": "Pooja Verma", "email": "household@scrapsetu.in", "role": "HOUSEHOLD"},
+    "BUSINESS": {"name": "GreenLeaf Logistics & Cafe", "email": "business@scrapsetu.in", "role": "BUSINESS"},
+    "COLLECTOR": {"name": "Ramkishan Sahu", "email": "collector@scrapsetu.in", "role": "COLLECTOR"},
+    "RECYCLER": {"name": "Aravalli Ecocycle Mills", "email": "recycler@scrapsetu.in", "role": "RECYCLER"},
+    "ADMIN": {"name": "Vikramaditya Sharma", "email": "admin@scrapsetu.in", "role": "ADMIN"},
+}
 
-    st.divider()
+def login_as(role_key):
+    acc = DEMO_ROLES[role_key]
+    st.session_state.is_logged_in = True
+    st.session_state.current_role = acc["role"]
+    st.session_state.user_name = acc["name"]
+    st.session_state.user_email = acc["email"]
 
-    st.markdown("### ⚡ SIH Demo Quick Switcher")
-    st.caption("Click any role to test its live dashboard immediately:")
+# =============================================================
+# SCENARIO A: AUTHENTICATION GATEWAY (LOGIN & REGISTER FIRST)
+# =============================================================
+if not st.session_state.is_logged_in:
+    # Sidebar Language Selector
+    with st.sidebar:
+        st.markdown("### 🌐 Language / भाषा")
+        l_opt = st.radio("Select Language", ["English", "हिंदी"], horizontal=True)
+        st.session_state.lang = "en" if l_opt == "English" else "hi"
+        
+        st.divider()
+        st.markdown("### ⚡ SIH Evaluator Fast-Track")
+        st.caption("One-Click Login for demonstration:")
+        if st.button("🛡️ 1-Click Admin Access", type="primary", use_container_width=True):
+            login_as("ADMIN")
+            st.rerun()
+        if st.button("🏠 1-Click Household", use_container_width=True):
+            login_as("HOUSEHOLD")
+            st.rerun()
+        if st.button("🏢 1-Click Commercial Business", use_container_width=True):
+            login_as("BUSINESS")
+            st.rerun()
+        if st.button("🛺 1-Click Kabadiwala (Collector)", use_container_width=True):
+            login_as("COLLECTOR")
+            st.rerun()
+        if st.button("🏭 1-Click Recycler Mill", use_container_width=True):
+            login_as("RECYCLER")
+            st.rerun()
 
-    c_r1, c_r2 = st.columns(2)
-    with c_r1:
-        if st.button("🏠 Household", use_container_width=True):
-            st.session_state.current_role = "HOUSEHOLD"
-            st.session_state.user_name = "Pooja Verma"
-            st.rerun()
-        if st.button("🛺 Kabadiwala", use_container_width=True):
-            st.session_state.current_role = "COLLECTOR"
-            st.session_state.user_name = "Ramkishan Sahu"
-            st.rerun()
-        if st.button("🛡️ Admin", use_container_width=True):
-            st.session_state.current_role = "ADMIN"
-            st.session_state.user_name = "Vikramaditya Sharma"
-            st.rerun()
-    with c_r2:
-        if st.button("🏢 Business", use_container_width=True):
-            st.session_state.current_role = "BUSINESS"
-            st.session_state.user_name = "GreenLeaf Logistics & Cafe"
-            st.rerun()
-        if st.button("🏭 Recycler", use_container_width=True):
-            st.session_state.current_role = "RECYCLER"
-            st.session_state.user_name = "Aravalli Ecocycle Mills"
-            st.rerun()
+    # Main Gateway UI
+    st.markdown("""
+    <div style="text-align:center; padding-top:1.5rem;">
+        <span style="font-size:3.5rem;">♻️</span>
+        <h1 style="color:#064e3b; font-weight:800; font-size:2.4rem; margin-bottom:0.2rem;">ScrapSetu</h1>
+        <p style="color:#047857; font-size:1rem; font-weight:600;">A Digital Bridge to Sustainable Recycling</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-    st.divider()
-    st.markdown(f"**Logged In:** `{st.session_state.user_name}`")
-    st.markdown(f"**Role:** `{st.session_state.current_role}`")
-    st.caption("📍 Pilot Mandi: Jaipur (Malviya Nagar & Mansarovar)")
+    auth_tab_login, auth_tab_register = st.tabs(["🔐 Sign In to ScrapSetu (लॉग इन)", "📝 Create New Account (पंजीकरण)"])
 
-# -------------------------------------------------------------
-# 4. Premium Top Hero Banner & Live Platform Counters
-# -------------------------------------------------------------
+    # ---------------- LOGIN FORM ----------------
+    with auth_tab_login:
+        col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
+        with col_l2:
+            st.markdown("#### Enter Your Credentials")
+            with st.form("login_form"):
+                in_email = st.text_input("Email Address", placeholder="name@example.com")
+                in_pass = st.text_input("Password", type="password", placeholder="••••••••")
+                
+                login_btn = st.form_submit_button("Sign In (प्रवेश करें)", type="primary", use_container_width=True)
+                if login_btn:
+                    # Match against demo emails or fallback
+                    matched = False
+                    for k, acc in DEMO_ROLES.items():
+                        if in_email.lower().strip() == acc["email"].lower():
+                            login_as(k)
+                            matched = True
+                            st.success(f"Welcome back, {acc['name']}!")
+                            st.rerun()
+                            break
+                    if not matched:
+                        if in_email and in_pass:
+                            st.session_state.is_logged_in = True
+                            st.session_state.user_name = in_email.split('@')[0].capitalize()
+                            st.session_state.user_email = in_email
+                            st.session_state.current_role = "HOUSEHOLD"
+                            st.success(f"Welcome, {st.session_state.user_name}!")
+                            st.rerun()
+                        else:
+                            st.error("Please enter email and password.")
+
+            st.divider()
+            st.markdown("##### 🚀 Fast Evaluation Login")
+            st.caption("Click any persona below to log in immediately:")
+            fb1, fb2, fb3 = st.columns(3)
+            with fb1:
+                if st.button("🏠 Household", use_container_width=True):
+                    login_as("HOUSEHOLD")
+                    st.rerun()
+            with fb2:
+                if st.button("🛺 Kabadiwala", use_container_width=True):
+                    login_as("COLLECTOR")
+                    st.rerun()
+            with fb3:
+                if st.button("🛡️ Admin Console", type="primary", use_container_width=True):
+                    login_as("ADMIN")
+                    st.rerun()
+
+    # ---------------- REGISTER FORM (DYNAMIC ROLE SELECTION) ----------------
+    with auth_tab_register:
+        col_r1, col_r2, col_r3 = st.columns([1, 2, 1])
+        with col_r2:
+            st.markdown("#### Register Dynamic Account")
+            st.caption("Select your role in the dropdown to dynamically customize registration fields:")
+            
+            with st.form("registration_form"):
+                # DYNAMIC ROLE DROPDOWN
+                reg_role_label = st.selectbox(
+                    "📌 Registering As: (भूमिका चुनें)",
+                    [
+                        "🏠 Household User (Residential Scrap Generator)",
+                        "🏢 Commercial Business / Office (Bulk Generator)",
+                        "🛺 Waste Collector / Kabadiwala (Doorstep Scrap Collector)",
+                        "🏭 Recycling Plant / Mill (Industrial Processing Facility)"
+                    ]
+                )
+
+                # Determine selected role key
+                if "Household" in reg_role_label:
+                    chosen_role = "HOUSEHOLD"
+                elif "Commercial" in reg_role_label:
+                    chosen_role = "BUSINESS"
+                elif "Collector" in reg_role_label:
+                    chosen_role = "COLLECTOR"
+                else:
+                    chosen_role = "RECYCLER"
+
+                c_n, c_p = st.columns(2)
+                with c_n:
+                    reg_name = st.text_input("Full Name / Primary Contact", placeholder="Ramesh Sharma")
+                with c_p:
+                    reg_phone = st.text_input("Phone Number", placeholder="+91 98290 00000")
+
+                c_e, c_pw = st.columns(2)
+                with c_e:
+                    reg_email = st.text_input("Email Address", placeholder="user@scrapsetu.in")
+                with c_pw:
+                    reg_pass = st.text_input("Create Password", type="password", placeholder="••••••••")
+
+                # DYNAMIC ROLE-SPECIFIC FIELDS
+                if chosen_role == "HOUSEHOLD":
+                    st.info("🏡 Residential Profile: Doorstep scrap scheduling with certified digital scales.")
+                    reg_address = st.text_input("Home Street Address", "Plot 42, Malviya Nagar, Jaipur")
+                    reg_pincode = st.text_input("Pincode", "302017")
+
+                elif chosen_role == "BUSINESS":
+                    st.info("🏢 Commercial Bulk Profile: Recurring pickup contracts & GST invoices.")
+                    reg_biz_name = st.text_input("Company / Business Name", "GreenLeaf Enterprises Pvt Ltd")
+                    reg_gst = st.text_input("GSTIN Number", "08AAACG1234F1Z8")
+                    reg_address = st.text_input("Commercial Facility / Bay Address", "Industrial Bay 7, Sitapura, Jaipur")
+
+                elif chosen_role == "COLLECTOR":
+                    st.info("🛺 Kabadiwala Partner Profile: Mobile-first job terminal with verified digital scale.")
+                    c_v1, c_v2 = st.columns(2)
+                    with c_v1:
+                        reg_veh = st.selectbox("Vehicle Type", ["Three-Wheeler Tempo", "Mini Truck", "Cycle Rickshaw", "Hand Cart"])
+                    with c_v2:
+                        reg_veh_no = st.text_input("Vehicle Registration No.", "RJ 14 TB 4921")
+                    reg_cap = st.slider("Daily Capacity (kg)", 50, 1000, 250)
+
+                elif chosen_role == "RECYCLER":
+                    st.info("🏭 Recycler Facility Profile: Publish wholesale buying rate sheets & weighbridge slips.")
+                    reg_facility = st.text_input("Processing Plant Name", "Aravalli Ecocycle Mills Ltd")
+                    reg_cpcb = st.text_input("CPCB / SPCB Registration No.", "RJ/PWM/2026/0491")
+                    reg_location = st.text_input("Industrial Area Location", "RIICO Industrial Area, Mansarovar, Jaipur")
+
+                reg_submit = st.form_submit_button("Complete Registration & Enter Dashboard", type="primary", use_container_width=True)
+                
+                if reg_submit:
+                    if reg_name and reg_email:
+                        st.session_state.is_logged_in = True
+                        st.session_state.current_role = chosen_role
+                        st.session_state.user_name = reg_name
+                        st.session_state.user_email = reg_email
+                        st.session_state.audit_logs.append({
+                            "action": "USER_REGISTER",
+                            "user": reg_name,
+                            "details": f"Registered as {chosen_role}",
+                            "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+                        })
+                        st.success(f"🎉 Registration complete! Welcome to your {chosen_role} Dashboard.")
+                        st.rerun()
+                    else:
+                        st.error("Please fill in your name and email.")
+
+    st.stop()
+
+
+# =============================================================
+# SCENARIO B: LOGGED-IN DEDICATED ROLE DASHBOARD
+# =============================================================
+
+# Top Global Header with User Info & 1-CLICK ADMIN ACCESS
 st.markdown(f"""
-<div class="hero-banner">
-    <div class="hero-badge">
-        <span>🌱 SDG 11 & 12 • Smart India Hackathon Live Edition</span>
+<div class="top-user-bar">
+    <div>
+        <span style="font-size:1.15rem; font-weight:800;">ScrapSetu</span> • 
+        <b>{st.session_state.user_name}</b> 
+        <span class="user-badge" style="margin-left:0.5rem;">{st.session_state.current_role} DASHBOARD</span>
     </div>
-    <div class="hero-title">
-        {"कबाड़ का सही दाम। कबाड़ीवालों का डिजिटल सम्मान।" if is_hi else "Turn Scrap Into Value. Empower Informal Collectors."}
-    </div>
-    <div class="hero-subtitle">
-        {"घरों, दुकानों, स्थानीय कबाड़ीवालों और प्रमाणित रीसाइक्लिंग मिलों को निष्पक्ष दरों, डिजिटल कांटों और सुरक्षित रसीदों से जोड़ने वाला डिजिटल सेतु।" if is_hi else "India's first inclusive digital recycling bridge connecting waste generators, doorstep kabadiwalas, and accredited recycling plants with fair prices and verifiable environmental accounting."}
+    <div style="font-size:0.85rem; color:#d1fae5;">
+        Session: <code>{st.session_state.user_email}</code>
     </div>
 </div>
 """, unsafe_allow_html=True)
 
-# Compute live KPIs
-completed_pickups = [p for p in st.session_state.pickups if p["status"] == "COMPLETED"]
-total_kg = sum(p["est_weight"] for p in completed_pickups)
-total_payout = sum(p["est_val"] for p in completed_pickups)
-total_co2 = round(total_kg * 1.41, 1)
-total_trees = round(total_kg * 0.017, 1)
+# Top Action Row: 1-Click Admin Access Switch + Logout
+t_col1, t_col2, t_col3 = st.columns([2, 1, 1])
+with t_col1:
+    if st.session_state.current_role != "ADMIN":
+        if st.button("⚡ Switch to Admin Dashboard (One-Click)", type="primary"):
+            st.session_state.current_role = "ADMIN"
+            st.session_state.user_name = "Vikramaditya Sharma"
+            st.session_state.user_email = "admin@scrapsetu.in"
+            st.rerun()
+    else:
+        st.success("🛡️ You are currently viewing the Administrator Regulatory Console.")
 
-kp1, kp2, kp3, kp4 = st.columns(4)
-with kp1:
-    st.markdown(f"""
-    <div class="kpi-card">
-        <div class="kpi-header">
-            <span class="kpi-lbl">Total Diverted</span>
-            <div class="kpi-icon" style="background:#dcfce7; color:#15803d;">⚖️</div>
-        </div>
-        <div class="kpi-val">{total_kg:.1f} kg</div>
-        <div class="kpi-sub" style="background:#f0fdf4; color:#166534;">Verified on Scales ✓</div>
-    </div>
-    """, unsafe_allow_html=True)
+with t_col2:
+    # Quick switch to other roles for demonstration
+    switch_to = st.selectbox(
+        "Quick Switch Role:",
+        ["ADMIN", "HOUSEHOLD", "BUSINESS", "COLLECTOR", "RECYCLER"],
+        index=["ADMIN", "HOUSEHOLD", "BUSINESS", "COLLECTOR", "RECYCLER"].index(st.session_state.current_role)
+    )
+    if switch_to != st.session_state.current_role:
+        login_as(switch_to)
+        st.rerun()
 
-with kp2:
-    st.markdown(f"""
-    <div class="kpi-card">
-        <div class="kpi-header">
-            <span class="kpi-lbl">CO₂ Averted</span>
-            <div class="kpi-icon" style="background:#dbeafe; color:#1e40af;">🌍</div>
-        </div>
-        <div class="kpi-val">{total_co2:.1f} kg</div>
-        <div class="kpi-sub" style="background:#eff6ff; color:#1e3a8a;">EPA WARM Standard</div>
-    </div>
-    """, unsafe_allow_html=True)
+with t_col3:
+    if st.button("🚪 Sign Out (लॉग आउट)", use_container_width=True):
+        st.session_state.is_logged_in = False
+        st.rerun()
 
-with kp3:
-    st.markdown(f"""
-    <div class="kpi-card">
-        <div class="kpi-header">
-            <span class="kpi-lbl">Paid Directly</span>
-            <div class="kpi-icon" style="background:#fef3c7; color:#b45309;">💰</div>
-        </div>
-        <div class="kpi-val">₹{total_payout:,.2f}</div>
-        <div class="kpi-sub" style="background:#fffbeb; color:#92400e;">Instant UPI / Cash</div>
-    </div>
-    """, unsafe_allow_html=True)
+st.divider()
 
-with kp4:
-    st.markdown(f"""
-    <div class="kpi-card">
-        <div class="kpi-header">
-            <span class="kpi-lbl">Mature Trees Saved</span>
-            <div class="kpi-icon" style="background:#f3e8ff; color:#7e22ce;">🌲</div>
-        </div>
-        <div class="kpi-val">{total_trees:.1f} Trees</div>
-        <div class="kpi-sub" style="background:#faf5ff; color:#6b21a8;">Recovered Fiber</div>
-    </div>
-    """, unsafe_allow_html=True)
+current_role = st.session_state.current_role
 
-st.write("")
+# =============================================================
+# 1. 🏠 DEDICATED HOUSEHOLD DASHBOARD
+# =============================================================
+if current_role == "HOUSEHOLD":
+    st.subheader(f"🏠 Household Recycling Dashboard — Welcome, {st.session_state.user_name}!")
+    st.caption("Schedule door-step scrap pickups, track verified collectors on map, and earn fair mandi cash.")
 
-# -------------------------------------------------------------
-# 5. Main Functional Tabs
-# -------------------------------------------------------------
-tab_home, tab_collector, tab_rates, tab_recycler, tab_esg, tab_admin = st.tabs([
-    "🏠 Household & Booking",
-    "🛺 Kabadiwala Terminal",
-    "📈 Mandi Rates & Calculator",
-    "🏭 Recycler Portal",
-    "🌱 ESG Impact Dashboard",
-    "🛡️ Admin Governance"
-])
+    # KPI Row
+    user_pickups = [p for p in st.session_state.pickups if p["role"] == "HOUSEHOLD"]
+    completed_u = [p for p in user_pickups if p["status"] == "COMPLETED"]
+    u_kg = sum(p["est_weight"] for p in completed_u)
+    u_earned = sum(p["est_val"] for p in completed_u)
 
-# -------------------------------------------------------------
-# TAB 1: HOUSEHOLD & BOOKING
-# -------------------------------------------------------------
-with tab_home:
-    st.subheader("Schedule Scrap Pickup & Track Orders" if not is_hi else "कबाड़ पिकअप शेड्यूल करें और ट्रैक करें")
-    
-    col_book, col_track = st.columns([1, 1], gap="large")
-    
-    with col_book:
-        st.markdown("#### 📦 Book Doorstep Pickup")
-        with st.form("booking_form", border=True):
-            user_addr = st.selectbox(
-                "Pickup Address (पिकअप का पता)",
-                [
-                    "Home: Plot 42, Girdhar Marg, Sector 3, Malviya Nagar, Jaipur",
-                    "Commercial Bay: Industrial Plot 7, Sitapura Industrial Area, Jaipur"
-                ]
-            )
+    hk1, hk2, hk3, hk4 = st.columns(4)
+    with hk1:
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">{u_kg} kg</div><div class="kpi-lbl">My Recycled Scrap</div></div>', unsafe_allow_html=True)
+    with hk2:
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">₹{u_earned:,.2f}</div><div class="kpi-lbl">Total Cash/UPI Earned</div></div>', unsafe_allow_html=True)
+    with hk3:
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">{len(user_pickups)}</div><div class="kpi-lbl">Pickups Booked</div></div>', unsafe_allow_html=True)
+    with hk4:
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">{round(u_kg*1.35, 1)} kg</div><div class="kpi-lbl">Personal CO₂ Saved</div></div>', unsafe_allow_html=True)
+
+    h_col1, h_col2 = st.columns([1, 1], gap="large")
+
+    with h_col1:
+        st.markdown("#### 📦 Book Next Doorstep Pickup")
+        with st.form("household_book"):
+            h_cat = st.selectbox("Scrap Material", [f"{c['icon']} {c['name']} (₹{c['rate']}/kg)" for c in st.session_state.categories])
+            h_qty = st.number_input("Estimated Weight (kg)", min_value=1.0, value=20.0)
+            h_slot = st.selectbox("Preferred Time", ["Morning (9 AM - 12 PM)", "Afternoon (12 PM - 3 PM)", "Evening (3 PM - 6 PM)"])
             
-            c_cat, c_qty = st.columns([2, 1])
-            with c_cat:
-                cat_options = [f"{c['icon']} {c['name']} ({c['hindi']})" for c in st.session_state.categories]
-                sel_cat_str = st.selectbox("Scrap Category (कबाड़ की श्रेणी)", cat_options)
-            with c_qty:
-                sel_qty = st.number_input("Est. Qty (kg)", min_value=1.0, value=25.0, step=1.0)
-            
-            # Interactive AI Material Vision Helper
-            st.markdown("##### 🤖 AI Material Vision Helper (कबाड़ पहचान सहायक)")
-            sample_img = st.selectbox(
-                "Simulate camera snap or upload waste picture:",
-                [
-                    "(Select sample to test AI detection...)",
-                    "PET Mineral Water Bottles (Plastic)",
-                    "Corrugated Amazon Cardboard Boxes (Paper)",
-                    "Heavy Scrap Iron Rods & Cookware (Ferrous)",
-                    "Copper Wire Strippings & Brass Fittings (Non-Ferrous)",
-                    "Defunct Laptop PCB & Chargers (E-Waste)"
-                ]
-            )
-            
-            if sample_img != "(Select sample to test AI detection...)":
-                st.markdown(f"""
-                <div class="ai-badge">
-                    <b>✓ AI Vision Model Verified:</b> 95% Confidence match for <i>{sample_img}</i>.<br>
-                    <span style="font-size:0.75rem; color:#475569;">Explanation: Container geometry and surface reflection match high-grade recyclables.</span>
-                </div>
-                """, unsafe_allow_html=True)
-            
-            c_d, c_t = st.columns(2)
-            with c_d:
-                pick_date = st.date_input("Preferred Date", datetime.date.today() + datetime.timedelta(days=1))
-            with c_t:
-                pick_slot = st.selectbox("Time Window", ["Morning (9 AM - 12 PM)", "Afternoon (12 PM - 3 PM)", "Evening (3 PM - 6 PM)"])
-            
-            user_notes = st.text_input("Special Notes / Instructions", "Clean bundles kept near garage, call before ringing.")
-            
-            # Live Calculation Preview
-            base_rate = 14.0
+            # Find rate
+            sel_r = 14.0
             for c in st.session_state.categories:
-                if c["name"] in sel_cat_str:
-                    base_rate = c["rate"]
+                if c["name"] in h_cat:
+                    sel_r = c["rate"]
                     break
-            est_total = round(sel_qty * base_rate, 2)
+            st.info(f"💡 Expected Doorstep Payout: **₹{round(h_qty * sel_r, 2)}** (@ ₹{sel_r}/kg). Verified on digital scale.")
             
-            st.info(f"💡 Indicative Fair Value: **₹{est_total:.2f}** ({sel_qty} kg @ ₹{base_rate}/kg). Mutually finalized on calibrated digital scale.")
-            
-            book_submit = st.form_submit_button("Confirm Booking (पिकअप बुक करें)", type="primary", use_container_width=True)
-            
-            if book_submit:
-                new_id = f"REQ-{len(st.session_state.pickups) + 101}"
+            if st.form_submit_button("Confirm Booking (पिकअप बुक करें)", type="primary", use_container_width=True):
+                nid = f"REQ-{len(st.session_state.pickups)+101}"
                 st.session_state.pickups.append({
-                    "id": new_id,
+                    "id": nid,
                     "user": st.session_state.user_name,
-                    "role": st.session_state.current_role,
+                    "role": "HOUSEHOLD",
                     "phone": "+91 98290 22002",
-                    "area": "Malviya Nagar, Jaipur",
+                    "area": "Malviya Nagar, Sector 3, Jaipur",
                     "lat": 26.8524,
                     "lng": 75.8173,
-                    "materials": f"{sel_cat_str} ({sel_qty}kg)",
-                    "est_weight": sel_qty,
-                    "est_val": est_total,
-                    "slot": pick_slot,
+                    "materials": f"{h_cat} ({h_qty}kg)",
+                    "est_weight": h_qty,
+                    "est_val": round(h_qty * sel_r, 2),
+                    "slot": h_slot,
                     "status": "OPEN",
                     "assigned_collector": None,
-                    "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+                    "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
                 })
-                st.session_state.audit_logs.append({
-                    "action": "CREATE_PICKUP",
-                    "user": st.session_state.user_name,
-                    "details": f"Created {new_id} ({sel_qty} kg)",
-                    "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-                })
-                st.success(f"🎉 Pickup {new_id} booked successfully! Assigned to nearest verified collectors.")
+                st.success(f"Pickup {nid} scheduled! Broadcasted to nearest verified collectors.")
                 st.rerun()
 
-    with col_track:
-        st.markdown("#### 🗺️ Order Status & Privacy-Protected Map")
-        
-        # Interactive Folium Map
-        m = folium.Map(location=[26.8524, 75.8173], zoom_start=12)
-        
-        for p in st.session_state.pickups:
-            color = "green" if p["status"] == "COMPLETED" else "blue" if p["status"] == "ACCEPTED" else "orange"
-            
-            # Privacy-preserving coordinate fuzzing
-            plot_lat = p["lat"] + (0.0035 if p["status"] == "OPEN" else 0.0)
-            plot_lng = p["lng"] + (0.0035 if p["status"] == "OPEN" else 0.0)
-            
-            folium.Marker(
-                [plot_lat, plot_lng],
-                popup=f"<b>{p['id']}</b><br>{p['materials']}<br>Status: {p['status']}",
-                tooltip=f"{p['id']}: {p['status']}",
-                icon=folium.Icon(color=color, icon="recycle", prefix="fa")
-            ).add_to(m)
-            
-            if p["status"] == "OPEN":
-                folium.Circle(
-                    [plot_lat, plot_lng],
-                    radius=400,
-                    color="#10b981",
-                    fill=True,
-                    fill_opacity=0.15,
-                    dash_array="5, 5"
-                ).add_to(m)
-                
-        st_folium(m, height=290, use_container_width=True)
-        st.caption("🔒 Privacy Rule: Public pins are obfuscated by ~400m radius until assigned.")
-        
-        st.markdown("##### My Requests History")
-        for p in reversed(st.session_state.pickups):
-            status_color = "#15803d" if p["status"] == "COMPLETED" else "#1d4ed8" if p["status"] == "ACCEPTED" else "#b45309"
+    with h_col2:
+        st.markdown("#### 🗺️ Order Status & Privacy Map")
+        m = folium.Map(location=[26.8524, 75.8173], zoom_start=13)
+        for p in user_pickups:
+            folium.Marker([p["lat"], p["lng"]], popup=f"{p['id']}: {p['status']}", tooltip=p["id"]).add_to(m)
+        st_folium(m, height=260, use_container_width=True)
+
+        for p in reversed(user_pickups):
             with st.expander(f"{p['id']} - {p['materials']} ({p['status']})"):
                 st.write(f"**Status:** `{p['status']}`")
-                st.write(f"**Estimated Valuation:** ₹{p['est_val']} ({p['est_weight']} kg)")
-                st.write(f"**Preferred Slot:** {p['slot']}")
-                if p.get("assigned_collector"):
-                    st.write(f"**Assigned Collector:** {p['assigned_collector']} (3-Wheeler RJ 14 TB 4921) 🛺")
+                st.write(f"**Estimated Valuation:** ₹{p['est_val']}")
                 if p.get("receipt_number"):
-                    # Render Digital Receipt
-                    st.markdown(f"""
-                    <div class="receipt-container">
-                        <div class="receipt-header">
-                            <b style="font-size:1.1rem; color:#064e3b;">SCRAPSETU DIGITAL RECEIPT</b><br>
-                            Receipt #{p['receipt_number']} • Verified Digital Scale
-                        </div>
-                        <div class="receipt-row"><span>Customer:</span> <b>{p['user']}</b></div>
-                        <div class="receipt-row"><span>Collector:</span> <b>{p.get('assigned_collector', 'Ramkishan Sahu')}</b></div>
-                        <div class="receipt-row"><span>Net Weight:</span> <b>{p['est_weight']} kg</b></div>
-                        <div class="receipt-row"><span>Settlement Mode:</span> <b>UPI Instant</b></div>
-                        <div class="receipt-total"><span>TOTAL PAID:</span> <span>₹{p['est_val']:,.2f}</span></div>
-                        <div class="receipt-hash">SHA-256 Hash: {p['receipt_hash']}</div>
-                    </div>
-                    """, unsafe_allow_html=True)
+                    st.success(f"Receipt #{p['receipt_number']} • SHA-256 Verified")
 
-# -------------------------------------------------------------
-# TAB 2: KABADIWALA TERMINAL
-# -------------------------------------------------------------
-with tab_collector:
-    st.subheader("कबाड़ीवाला जॉब टर्मिनल (Waste Collector Terminal)")
-    st.caption("Designed for low-literacy mobile phones with large touch targets, bilingual cues, and digital scale entry.")
-    
-    # Capacity meter
-    collector_today_kg = 187.5
-    st.markdown(f"**दैनिक वाहन क्षमता (Daily Vehicle Capacity):** {collector_today_kg} / 250 kg (75%)")
-    st.progress(collector_today_kg / 250.0)
-    
-    col_k1, col_k2 = st.columns([1, 1], gap="large")
-    
-    with col_k1:
+# =============================================================
+# 2. 🏢 DEDICATED COMMERCIAL BUSINESS DASHBOARD
+# =============================================================
+elif current_role == "BUSINESS":
+    st.subheader(f"🏢 Commercial Bulk Waste Dashboard — {st.session_state.user_name}")
+    st.caption("Manage industrial packaging scrap, recurring collection contracts, multi-warehouse bays & GST invoices.")
+
+    bk1, bk2, bk3, bk4 = st.columns(4)
+    with bk1:
+        st.markdown('<div class="kpi-card"><div class="kpi-val">187.5 kg</div><div class="kpi-lbl">Total Commercial Tonnage</div></div>', unsafe_allow_html=True)
+    with bk2:
+        st.markdown('<div class="kpi-card"><div class="kpi-val">₹3,442.50</div><div class="kpi-lbl">GST Invoice Settlements</div></div>', unsafe_allow_html=True)
+    with bk3:
+        st.markdown('<div class="kpi-card"><div class="kpi-val">Weekly</div><div class="kpi-lbl">Recurring Contract</div></div>', unsafe_allow_html=True)
+    with bk4:
+        st.markdown('<div class="kpi-card"><div class="kpi-val">2 Facilities</div><div class="kpi-lbl">Active Jaipur Hubs</div></div>', unsafe_allow_html=True)
+
+    b_col1, b_col2 = st.columns([1, 1], gap="large")
+    with b_col1:
+        st.markdown("#### 🏭 Commercial Dispatch Bays")
+        st.dataframe(pd.DataFrame([
+            {"Facility": "Sitapura Central Warehouse Bay 7", "Type": "Logistics & Pallets", "Status": "Active Primary"},
+            {"Facility": "Crystal Court Mall Outlet", "Type": "Retail Packaging", "Status": "Active Branch"},
+        ]), hide_index=True, use_container_width=True)
+
+        with st.form("book_commercial"):
+            st.markdown("##### Schedule Commercial Bulk Intake")
+            b_bay = st.selectbox("Dispatch Location", ["Sitapura Warehouse Bay 7", "Crystal Court Mall Outlet"])
+            b_ton = st.number_input("Estimated Bulk Load (kg)", min_value=50.0, value=150.0, step=10.0)
+            b_recur = st.checkbox("Set as Recurring Weekly Subscription", value=True)
+            if st.form_submit_button("Book Heavy Vehicle Dispatch", type="primary"):
+                st.success(f"Commercial dispatch of {b_ton} kg booked! Assigned to mini-truck collector.")
+
+    with b_col2:
+        st.markdown("#### 🧾 GST Invoices & Weighbridge Records")
+        st.dataframe(pd.DataFrame([
+            {"Invoice #": "REC-2026-JP-00192", "Weight": "187.5 kg", "Amount": "₹3,442.50", "Payment": "UPI Verified", "Date": "2026-10-09"},
+            {"Invoice #": "REC-2026-JP-00114", "Weight": "210.0 kg", "Amount": "₹4,120.00", "Payment": "Bank Transfer", "Date": "2026-09-28"},
+        ]), hide_index=True, use_container_width=True)
+
+# =============================================================
+# 3. 🛺 DEDICATED KABADIWALA (COLLECTOR) DASHBOARD
+# =============================================================
+elif current_role == "COLLECTOR":
+    st.subheader(f"🛺 कबाड़ीवाला जॉब टर्मिनल (Collector Terminal) — {st.session_state.user_name}")
+    st.caption("Mobile-first accessible terminal with digital scale entry, daily capacity meter & TSP route optimization.")
+
+    st.markdown("**दैनिक वाहन क्षमता (Daily Vehicle Limit):** 187.5 / 250 kg (75%)")
+    st.progress(187.5 / 250.0)
+
+    k_col1, k_col2 = st.columns([1, 1], gap="large")
+
+    with k_col1:
         st.markdown("#### 📍 नजदीकी खुले पिकअप (Nearby Open Jobs)")
         open_jobs = [p for p in st.session_state.pickups if p["status"] == "OPEN"]
-        
         if open_jobs:
             for job in open_jobs:
                 dist = haversine_km(26.8501, 75.8155, job["lat"], job["lng"])
                 with st.container(border=True):
-                    c_j1, c_j2 = st.columns([2, 1])
-                    with c_j1:
-                        st.markdown(f"**{job['materials']}**")
-                        st.caption(f"दूरी: **{dist} किमी** • इलाका: {job['area']}")
-                        st.caption(f"समय: {job['slot']}")
-                    with c_j2:
-                        st.metric("Est. Value", f"₹{job['est_val']}")
-                    
-                    if st.button(f"पिकअप स्वीकार करें (Accept {job['id']})", key=f"acc_{job['id']}", type="primary", use_container_width=True):
+                    st.markdown(f"**{job['materials']}**")
+                    st.caption(f"दूरी: **{dist} किमी** • स्थान: {job['area']}")
+                    st.markdown(f"**अनुमानित राशि: ₹{job['est_val']}**")
+                    if st.button(f"पिकअप स्वीकार करें (Accept {job['id']})", key=f"k_acc_{job['id']}", type="primary", use_container_width=True):
                         job["status"] = "ACCEPTED"
-                        job["assigned_collector"] = "Ramkishan Sahu"
-                        st.session_state.audit_logs.append({
-                            "action": "ACCEPT_PICKUP",
-                            "user": "Ramkishan Sahu",
-                            "details": f"Accepted {job['id']}",
-                            "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-                        })
-                        st.success(f"पिकअप {job['id']} स्वीकार कर लिया गया! ग्राहक का पूरा पता अनलॉक हुआ।")
+                        job["assigned_collector"] = st.session_state.user_name
+                        st.success(f"पिकअप {job['id']} स्वीकार कर लिया गया! ग्राहक का फोन और पता अनलॉक हुआ।")
                         st.rerun()
         else:
-            st.info("वर्तमान में कोई खुला पिकअप नहीं है। जैसे ही नया ऑर्डर आएगा, यहां दिखेगा।")
+            st.info("वर्तमान में कोई खुला पिकअप नहीं है।")
 
-    with col_k2:
-        st.markdown("#### ⚖️ तौल दर्ज करें व रसीद बनाएं (Digital Scale Weighing)")
+    with k_col2:
+        st.markdown("#### ⚖️ तौल दर्ज करें व डिजिटल रसीद बनाएं (Digital Weighing Entry)")
         accepted_jobs = [p for p in st.session_state.pickups if p["status"] == "ACCEPTED"]
-        
         if accepted_jobs:
-            sel_acc = st.selectbox("चुनें चालू पिकअप (Active Job):", [p["id"] for p in accepted_jobs])
-            target_p = next(p for p in accepted_jobs if p["id"] == sel_acc)
+            sel_j = st.selectbox("चुनें चालू पिकअप:", [p["id"] for p in accepted_jobs])
+            tgt = next(p for p in accepted_jobs if p["id"] == sel_j)
             
-            with st.container(border=True):
-                st.write(f"**ग्राहक:** {target_p['user']} (📞 {target_p.get('phone', '+91 98290 00000')})")
-                st.write(f"**स्थान:** {target_p['area']}")
+            with st.form("weigh_form"):
+                st.write(f"**ग्राहक:** {tgt['user']} (📞 {tgt.get('phone', '+91 98290 00000')})")
+                w_wt = st.number_input("वास्तविक वजन (Net Weight in kg):", min_value=1.0, value=float(tgt["est_weight"]))
+                w_rt = st.number_input("सहमति दर (Agreed Rate ₹/kg):", min_value=1.0, value=14.0)
+                w_tot = round(w_wt * w_rt, 2)
+                st.markdown(f"### कुल भुगतान: ₹{w_tot:,.2f}")
                 
-                with st.form("weighing_form"):
-                    w_act = st.number_input("कांटे की वास्तविक तौल (Actual Weight in kg):", min_value=1.0, value=float(target_p["est_weight"]))
-                    w_rate = st.number_input("सहमति दर (Agreed Rate ₹/kg):", min_value=1.0, value=14.0)
-                    w_mode = st.radio("भुगतान माध्यम (Payment Mode):", ["UPI Instant", "Cash"], horizontal=True)
-                    
-                    w_total = round(w_act * w_rate, 2)
-                    st.markdown(f"### कुल भुगतान: ₹{w_total:,.2f}")
-                    
-                    complete_sub = st.form_submit_button("⚖️ तौल पक्की करें व रसीद बनाएं (Issue Receipt)", type="primary", use_container_width=True)
-                    if complete_sub:
-                        rec_no = f"REC-2026-JP-{int(time.time()) % 100000}"
-                        rec_hash = generate_receipt_hash(rec_no, target_p["user"], "Ramkishan Sahu", w_total, w_act, str(datetime.datetime.now()))
-                        
-                        target_p["status"] = "COMPLETED"
-                        target_p["est_weight"] = w_act
-                        target_p["est_val"] = w_total
-                        target_p["receipt_number"] = rec_no
-                        target_p["receipt_hash"] = rec_hash
-                        
-                        st.session_state.audit_logs.append({
-                            "action": "COMPLETE_TRANSACTION",
-                            "user": "Ramkishan Sahu",
-                            "details": f"Settled {target_p['id']} for ₹{w_total} (Receipt {rec_no})",
-                            "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-                        })
-                        st.success(f"रसीद #{rec_no} जारी हुई! डिजिटल लेनदेन सुरक्षित।")
-                        st.rerun()
+                if st.form_submit_button("⚖️ रसीद जारी करें व लेनदेन पूरा करें", type="primary", use_container_width=True):
+                    r_no = f"REC-2026-JP-{int(time.time())%100000}"
+                    r_h = generate_receipt_hash(r_no, tgt["user"], st.session_state.user_name, w_tot, w_wt, str(datetime.datetime.now()))
+                    tgt["status"] = "COMPLETED"
+                    tgt["est_weight"] = w_wt
+                    tgt["est_val"] = w_tot
+                    tgt["receipt_number"] = r_no
+                    tgt["receipt_hash"] = r_h
+                    st.success(f"रसीद #{r_no} जारी हुई! भुगतान पूरा हुआ।")
+                    st.rerun()
         else:
-            st.info("कोई चालू पिकअप नहीं है जिसे तौलना हो। बाईं ओर से खुला पिकअप स्वीकार करें।")
+            st.info("कोई चालू पिकअप नहीं है जिसे तौलना हो।")
 
-# -------------------------------------------------------------
-# TAB 3: MANDI RATES & CALCULATOR
-# -------------------------------------------------------------
-with tab_rates:
-    st.subheader("Indicative Mandi Scrap Benchmark Rates")
-    st.caption("Wholesale benchmark surveys across North India (MRAI index). Actual rates mutually finalized on physical scale.")
-    
-    col_r1, col_r2 = st.columns([3, 2], gap="large")
-    
-    with col_r1:
-        rates_df = pd.DataFrame([
-            {
-                "Material": f"{c['icon']} {c['name']}",
-                "Hindi": c["hindi"],
-                "Indicative Rate (₹/kg)": f"₹{c['rate']:.2f}",
-                "Mandi Range": f"₹{c['min_rate']} - ₹{c['max_rate']}",
-                "CO₂ Saved": f"{c['co2_factor']} kg/kg",
-                "Benchmark Source": c["source"]
-            }
-            for c in st.session_state.categories
-        ])
-        st.dataframe(rates_df, hide_index=True, use_container_width=True)
-        
-        st.caption("💡 Rates update weekly in coordination with regional scrap mandi federations.")
+# =============================================================
+# 4. 🏭 DEDICATED RECYCLER DASHBOARD
+# =============================================================
+elif current_role == "RECYCLER":
+    st.subheader(f"🏭 Recycler Facility Portal — {st.session_state.user_name}")
+    st.caption("Publish factory buying rates, issue weighbridge intake slips, and manage circular throughput.")
 
-    with col_r2:
-        st.markdown("#### 🧮 Scrap Valuation Calculator")
-        with st.container(border=True):
-            calc_cat = st.selectbox("Select Material", [c["name"] for c in st.session_state.categories])
-            calc_kg = st.slider("Weight in Kilograms", 5, 200, 35)
-            calc_grade = st.radio("Quality / Segregation Grade", ["Clean & Segregated (+8% bonus)", "Standard Mixed Clean", "Unsorted / Mixed (-10% deduction)"])
-            
-            multiplier = 1.08 if "bonus" in calc_grade else 0.90 if "deduction" in calc_grade else 1.0
-            sel_c = next(c for c in st.session_state.categories if c["name"] == calc_cat)
-            calc_res = round(calc_kg * sel_c["rate"] * multiplier, 2)
-            
-            st.metric("Estimated Cash Payout", f"₹{calc_res:,.2f}", f"Rate: ₹{sel_c['rate']*multiplier:.2f} / kg")
-            st.caption("Formula: Quantity (kg) × Mandi Baseline × Grade Multiplier")
+    rk1, rk2, rk3, rk4 = st.columns(4)
+    with rk1:
+        st.markdown('<div class="kpi-card"><div class="kpi-val">187.5 kg</div><div class="kpi-lbl">Inbound Throughput</div></div>', unsafe_allow_html=True)
+    with rk2:
+        st.markdown('<div class="kpi-card"><div class="kpi-val">₹3,656.25</div><div class="kpi-lbl">Raw Material Outlay</div></div>', unsafe_allow_html=True)
+    with rk3:
+        st.markdown('<div class="kpi-card"><div class="kpi-val">3 Rates</div><div class="kpi-lbl">Active Buying Offers</div></div>', unsafe_allow_html=True)
+    with rk4:
+        st.markdown('<div class="kpi-card"><div class="kpi-val">CPCB Verified</div><div class="kpi-lbl">Licence RJ/PWM/2026</div></div>', unsafe_allow_html=True)
 
-# -------------------------------------------------------------
-# TAB 4: RECYCLER PORTAL
-# -------------------------------------------------------------
-with tab_recycler:
-    st.subheader("Recycling Facility Management Portal")
-    st.caption("Aravalli Ecocycle Mills • CPCB Registration: RJ/PWM/2026/0491 • RIICO Industrial Area, Mansarovar")
-    
-    col_rec1, col_rec2 = st.columns([1, 1], gap="large")
-    
-    with col_rec1:
-        st.markdown("#### Published Factory Buying Rates")
-        offers_df = pd.DataFrame(st.session_state.recycler_offers)
-        st.dataframe(offers_df, hide_index=True, use_container_width=True)
-        
-        with st.form("new_offer_form", border=True):
-            st.markdown("##### + Post New Buying Rate")
-            o_cat = st.selectbox("Material Category", [c["name"] for c in st.session_state.categories], key="o_cat")
-            o_rate = st.number_input("Buying Price (₹/kg)", min_value=1.0, value=12.5)
-            o_min = st.number_input("Min Lot Size (kg)", min_value=10, value=50)
-            if st.form_submit_button("+ Publish Rate to Regional Collectors"):
-                st.session_state.recycler_offers.append({
-                    "mill": "Aravalli Processing Plant",
-                    "cat": o_cat,
-                    "rate": o_rate,
-                    "min_lot": o_min,
-                    "location": "RIICO Mansarovar",
-                    "verified": True
-                })
-                st.success("Buying rate published to regional kabadiwalas!")
+    r_col1, r_col2 = st.columns([1, 1], gap="large")
+    with r_col1:
+        st.markdown("#### Published Factory Buying Rate Sheet")
+        st.dataframe(pd.DataFrame(st.session_state.recycler_offers), hide_index=True, use_container_width=True)
+
+        with st.form("new_rate"):
+            st.markdown("##### + Post New Buying Offer")
+            n_cat = st.selectbox("Category", [c["name"] for c in st.session_state.categories])
+            n_rate = st.number_input("Buying Rate (₹/kg)", min_value=1.0, value=12.5)
+            n_lot = st.number_input("Min Lot Size (kg)", min_value=10, value=50)
+            if st.form_submit_button("+ Publish Rate to Regional Mandis", type="primary"):
+                st.session_state.recycler_offers.append({"mill": "Aravalli Processing Plant", "cat": n_cat, "rate": n_rate, "min_lot": n_lot, "location": "RIICO Mansarovar"})
+                st.success("New buying offer published live!")
                 st.rerun()
 
-    with col_rec2:
+    with r_col2:
         st.markdown("#### Weighbridge Gate Intake Slip Generator")
-        with st.form("intake_slip_form", border=True):
-            sup_name = st.text_input("Supplier / Collector Name", "Mohammad Farooq (Verified Collector)")
-            intake_wt = st.number_input("Scale Net Weight (kg)", min_value=10.0, value=187.5)
-            intake_rate = st.number_input("Purchase Price (₹/kg)", min_value=1.0, value=19.5)
-            slip_total = round(intake_wt * intake_rate, 2)
-            
-            st.markdown(f"### Total Settlement: ₹{slip_total:,.2f}")
-            if st.form_submit_button("Record Inbound Weight Slip", type="primary", use_container_width=True):
-                st.success(f"Weighbridge slip generated for {intake_wt} kg (₹{slip_total:,.2f})! Linked to collector ledger.")
+        with st.form("intake_gen"):
+            s_sup = st.text_input("Supplier / Collector Name", "Mohammad Farooq (Verified Collector)")
+            s_wt = st.number_input("Scale Net Weight (kg)", min_value=10.0, value=187.5)
+            s_rt = st.number_input("Purchase Price (₹/kg)", min_value=1.0, value=19.5)
+            st.write(f"**Total Settlement Outlay:** ₹{round(s_wt * s_rt, 2):,.2f}")
+            if st.form_submit_button("Record Weighbridge Slip", type="primary"):
+                st.success("Inbound weighbridge slip recorded and linked to collector ledger!")
 
-# -------------------------------------------------------------
-# TAB 5: ESG IMPACT DASHBOARD
-# -------------------------------------------------------------
-with tab_esg:
-    st.subheader("Scientific Environmental Accounting (CPCB & EPA WARM Models)")
-    
-    e1, e2 = st.columns(2, gap="large")
-    with e1:
-        # Pie chart of diverted materials
-        pie_data = pd.DataFrame([
-            {"Category": "Paper & Cardboard", "Kg": 125.0},
-            {"Category": "Ferrous Metals (Iron)", "Kg": 87.5},
-            {"Category": "Plastics (PET)", "Kg": 45.0},
-            {"Category": "Glass Bottles", "Kg": 20.0},
-            {"Category": "E-Waste", "Kg": 15.0},
-        ])
-        fig_pie = px.pie(
-            pie_data,
-            values="Kg",
-            names="Category",
-            title="Diverted Material Split (by Weight in kg)",
-            color_discrete_sequence=px.colors.sequential.Greens_r,
-            hole=0.4
-        )
-        st.plotly_chart(fig_pie, use_container_width=True)
+# =============================================================
+# 5. 🛡️ DEDICATED ADMINISTRATOR DASHBOARD
+# =============================================================
+elif current_role == "ADMIN":
+    st.subheader(f"🛡️ Platform Governance & Regulatory Console — {st.session_state.user_name}")
+    st.caption("Regulatory verification queue, mandi benchmark rate governance, dispute center & cryptographic audit logs.")
 
-    with e2:
-        # Bar chart of carbon offset by category
-        bar_data = pd.DataFrame([
-            {"Category": "Paper", "CO2_Saved_kg": 125.0 * 1.35},
-            {"Category": "Metals", "CO2_Saved_kg": 87.5 * 1.50},
-            {"Category": "Plastics", "CO2_Saved_kg": 45.0 * 1.80},
-            {"Category": "Glass", "CO2_Saved_kg": 20.0 * 0.31},
-            {"Category": "E-Waste", "CO2_Saved_kg": 15.0 * 3.20},
-        ])
-        fig_bar = px.bar(
-            bar_data,
-            x="Category",
-            y="CO2_Saved_kg",
-            title="CO₂ Equivalent Offset by Category (kg CO₂e)",
-            color="CO2_Saved_kg",
-            color_continuous_scale="Tealgrn"
-        )
-        st.plotly_chart(fig_bar, use_container_width=True)
+    ak1, ak2, ak3, ak4 = st.columns(4)
+    with ak1:
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">{len(st.session_state.pickups)} Orders</div><div class="kpi-lbl">Total Requests</div></div>', unsafe_allow_html=True)
+    with ak2:
+        st.markdown('<div class="kpi-card"><div class="kpi-val">100%</div><div class="kpi-lbl">Settlement Rate</div></div>', unsafe_allow_html=True)
+    with ak3:
+        st.markdown('<div class="kpi-card"><div class="kpi-val">₹3,442.50</div><div class="kpi-lbl">Total Cashflow Settled</div></div>', unsafe_allow_html=True)
+    with ak4:
+        st.markdown('<div class="kpi-card"><div class="kpi-val">0 Disputes</div><div class="kpi-lbl">Dispute Status: Normal</div></div>', unsafe_allow_html=True)
 
-    # Equivalency Callouts
-    eq1, eq2, eq3 = st.columns(3)
-    with eq1:
-        st.info("🚗 **1,420 km** of petrol car emissions prevented")
-    with eq2:
-        st.info("💧 **18,500 Litres** of groundwater conserved")
-    with eq3:
-        st.info("⚡ **740 kWh** of coal-fired electricity offset")
+    a_tab1, a_tab2, a_tab3 = st.tabs(["📋 KYC Verification Queue", "📈 Mandi Benchmark Rates", "📜 Cryptographic Audit Ledger"])
 
-    st.markdown("""
-    ##### 📚 Documented Calculation Methodology:
-    - **CO₂ Offset:** Calculated per CPCB lifecyle factors (Paper: 1.35 kg/kg, Plastics: 1.80 kg/kg, Iron: 1.50 kg/kg, Non-ferrous: 9.10 kg/kg).
-    - **Forestry Metric:** 17 mature trees saved per 1,000 kg virgin paper substituted.
-    - **Water Conservation:** 26 liters saved per kg of recovered pulp.
-    """)
-
-# -------------------------------------------------------------
-# TAB 6: ADMIN GOVERNANCE
-# -------------------------------------------------------------
-with tab_admin:
-    st.subheader("Platform Governance & Regulatory Audit Console")
-    
-    col_a1, col_a2 = st.columns([1, 1], gap="large")
-    
-    with col_a1:
-        st.markdown("#### User Verification & KYC Approvals")
-        users_table = pd.DataFrame([
-            {"Name": "Ramkishan Sahu", "Role": "COLLECTOR", "Vehicle": "3-Wheeler Tempo", "Status": "APPROVED ✓"},
-            {"Name": "Mohammad Farooq", "Role": "COLLECTOR", "Vehicle": "Mini Truck", "Status": "APPROVED ✓"},
-            {"Name": "Aravalli Ecocycle", "Role": "RECYCLER", "License": "CPCB RJ/PWM", "Status": "APPROVED ✓"},
+    with a_tab1:
+        st.markdown("#### User KYC Verification Approvals")
+        users_df = pd.DataFrame([
+            {"Name": "Ramkishan Sahu", "Role": "COLLECTOR", "Vehicle": "3-Wheeler Tempo RJ 14 TB 4921", "Status": "APPROVED ✓"},
+            {"Name": "Mohammad Farooq", "Role": "COLLECTOR", "Vehicle": "Mini Truck RJ 14 GA 1182", "Status": "APPROVED ✓"},
+            {"Name": "Aravalli Ecocycle", "Role": "RECYCLER", "License": "CPCB RJ/PWM/2026/0491", "Status": "APPROVED ✓"},
             {"Name": "Shyam Sundar", "Role": "COLLECTOR", "Vehicle": "Hand Cart", "Status": "PENDING REVIEW ⏳"},
         ])
-        st.dataframe(users_table, hide_index=True, use_container_width=True)
-        
-        if st.button("Approve Pending Collector (Shyam Sundar)", type="primary"):
-            st.success("Shyam Sundar verified! Service credentials issued.")
+        st.dataframe(users_df, hide_index=True, use_container_width=True)
+        if st.button("Approve Pending KYC: Shyam Sundar", type="primary"):
+            st.success("Shyam Sundar credentials approved! Service credentials activated.")
 
-    with col_a2:
+    with a_tab2:
+        st.markdown("#### Mandi Benchmark Rate Editor")
+        for c in st.session_state.categories:
+            c1, c2, c3 = st.columns([2, 1, 1])
+            with c1:
+                st.write(f"**{c['icon']} {c['name']}** ({c['hindi']})")
+            with c2:
+                new_r = st.number_input(f"Rate for {c['name']}", min_value=1.0, value=float(c['rate']), key=f"ad_{c['id']}")
+            with c3:
+                if st.button(f"Update {c['name']}", key=f"up_{c['id']}"):
+                    c["rate"] = new_r
+                    st.session_state.audit_logs.append({
+                        "action": "UPDATE_MANDI_RATE",
+                        "user": "Admin",
+                        "details": f"Updated {c['name']} to ₹{new_r}/kg",
+                        "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+                    })
+                    st.success(f"{c['name']} benchmark updated!")
+                    st.rerun()
+
+    with a_tab3:
         st.markdown("#### Immutable Cryptographic Audit Ledger")
-        audit_df = pd.DataFrame(st.session_state.audit_logs)
-        st.dataframe(audit_df, hide_index=True, use_container_width=True)
+        st.dataframe(pd.DataFrame(st.session_state.audit_logs), hide_index=True, use_container_width=True)
 
 # Footer
 st.divider()
 st.markdown("""
-<div style="text-align: center; color: #64748b; font-size: 0.85rem; padding-bottom: 2rem;">
+<div style="text-align:center; color:#64748b; font-size:0.85rem; padding-bottom:1.5rem;">
     <b>ScrapSetu</b> © 2026 • Live Streamlit Cloud Ready • Connected to GitHub Repository: <code>Siddiqui-Hammad/ScrapSetu</code>
 </div>
 """, unsafe_allow_html=True)

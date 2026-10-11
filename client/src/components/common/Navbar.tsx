@@ -73,15 +73,20 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, setCurrentTab }) => 
                 BUSINESS: '🏢 Business',
                 COLLECTOR: '🛺 Kabadiwala',
                 RECYCLER: '🏭 Recycler',
-                ADMIN: '🛡️ Admin',
+                ADMIN: '⚡ 1-Click Admin Dashboard',
               };
+              const isAdmin = r === 'ADMIN';
               return (
                 <button
                   key={r}
                   onClick={() => handleRoleSwitch(r)}
                   disabled={isLoading}
                   className={`px-2.5 py-0.5 rounded text-xs transition-all font-medium ${
-                    isCurrent
+                    isAdmin
+                      ? isCurrent
+                        ? 'bg-amber-400 text-stone-950 font-extrabold ring-2 ring-amber-300 shadow-sm'
+                        : 'bg-amber-500 text-stone-950 hover:bg-amber-400 font-bold shadow-xs'
+                      : isCurrent
                       ? 'bg-emerald-500 text-white font-bold ring-2 ring-emerald-300'
                       : 'bg-emerald-900/80 text-emerald-100 hover:bg-emerald-800'
                   }`}
