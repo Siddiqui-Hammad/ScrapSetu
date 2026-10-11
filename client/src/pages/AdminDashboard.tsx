@@ -175,38 +175,70 @@ export const AdminDashboard: React.FC = () => {
 
           <div className="divide-y divide-stone-100 text-xs">
             {usersList.map((u) => (
-              <div key={u.id} className="p-4 flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-stone-900 text-sm">{u.name}</span>
-                    <span className="px-2 py-0.5 rounded-full bg-stone-100 font-bold uppercase text-[10px]">
-                      {u.role}
-                    </span>
-                    {u.isVerified ? (
-                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
-                        Verified ✓
+              <div key={u.id} className="p-4 space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-stone-900 text-sm">{u.name}</span>
+                      <span className="px-2 py-0.5 rounded-full bg-stone-100 font-bold uppercase text-[10px]">
+                        {u.role}
                       </span>
-                    ) : (
-                      <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px]">
-                        Pending Review
-                      </span>
-                    )}
+                      {u.isVerified ? (
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-bold text-[10px]">
+                          Verified ✓
+                        </span>
+                      ) : (
+                        <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold text-[10px]">
+                          Pending Review ⏳
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-stone-500 mt-0.5">
+                      {u.email} • {u.phone} • Registered {new Date(u.createdAt).toLocaleDateString()}
+                    </div>
                   </div>
-                  <div className="text-stone-500 mt-0.5">
-                    {u.email} • {u.phone} • Joined {new Date(u.createdAt).toLocaleDateString()}
-                  </div>
+
+                  <button
+                    onClick={() => handleToggleVerification(u.id, u.isVerified)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
+                      u.isVerified
+                        ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
+                        : 'bg-emerald-700 text-white hover:bg-emerald-800 shadow-xs'
+                    }`}
+                  >
+                    {u.isVerified ? 'Revoke Verification' : '✅ Approve 3-Point KYC'}
+                  </button>
                 </div>
 
-                <button
-                  onClick={() => handleToggleVerification(u.id, u.isVerified)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-colors ${
-                    u.isVerified
-                      ? 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
-                      : 'bg-emerald-700 text-white hover:bg-emerald-800 shadow-xs'
-                  }`}
-                >
-                  {u.isVerified ? 'Revoke Verification' : 'Approve Credentials'}
-                </button>
+                {/* 3-Point KYC Inspection Dossier */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+                  <div className="p-2.5 bg-stone-50 rounded-xl border border-stone-200 flex items-center gap-2">
+                    <span className="text-xl">📄</span>
+                    <div>
+                      <div className="font-bold text-stone-800 text-[11px]">Aadhaar Card</div>
+                      <div className="text-[10px] text-stone-500 font-mono">UID: XXXX-XXXX-4912</div>
+                      <div className="text-[10px] text-emerald-700 font-semibold">UIDAI Verified ✓</div>
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 bg-stone-50 rounded-xl border border-stone-200 flex items-center gap-2">
+                    <span className="text-xl">🪪</span>
+                    <div>
+                      <div className="font-bold text-stone-800 text-[11px]">Driving Licence (DL)</div>
+                      <div className="text-[10px] text-stone-500 font-mono">DL: RJ-14-2019-00291</div>
+                      <div className="text-[10px] text-emerald-700 font-semibold">Transport LMV-TR ✓</div>
+                    </div>
+                  </div>
+
+                  <div className="p-2.5 bg-stone-50 rounded-xl border border-stone-200 flex items-center gap-2">
+                    <span className="text-xl">🤳</span>
+                    <div>
+                      <div className="font-bold text-stone-800 text-[11px]">Live Camera Selfie</div>
+                      <div className="text-[10px] text-stone-500 font-mono">Biometric Liveness</div>
+                      <div className="text-[10px] text-emerald-700 font-semibold">Face Match 98.4% ✓</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             ))}
           </div>

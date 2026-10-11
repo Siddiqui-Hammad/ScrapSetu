@@ -234,10 +234,60 @@ if "recycler_offers" not in st.session_state:
         {"mill": "Aravalli Induction Foundry", "cat": "Ferrous Metals (Iron & Steel)", "rate": 30.0, "min_lot": 100, "location": "Mansarovar RIICO"},
     ]
 
+# KYC Partner Verifications
+if "kyc_records" not in st.session_state:
+    st.session_state.kyc_records = [
+        {
+            "id": "KYC-COL-001",
+            "name": "Ramkishan Sahu",
+            "role": "COLLECTOR",
+            "phone": "+91 98290 11001",
+            "vehicle": "3-Wheeler Tempo RJ 14 TB 4921",
+            "aadhaar_num": "5482-9182-4912",
+            "dl_num": "RJ-14-2019-00291",
+            "aadhaar_status": "Verified UIDAI ✓",
+            "dl_status": "Verified LMV-TR (Transport) ✓",
+            "selfie_status": "Live Biometric Match 98.4% ✓",
+            "status": "APPROVED ✓",
+            "applied_date": "2026-10-10 14:15",
+            "reviewed_by": "Vikramaditya Sharma (Admin)",
+        },
+        {
+            "id": "KYC-COL-002",
+            "name": "Mohammad Farooq",
+            "role": "COLLECTOR",
+            "phone": "+91 98290 22002",
+            "vehicle": "Mini Truck RJ 14 GA 1182",
+            "aadhaar_num": "7821-3391-9182",
+            "dl_num": "RJ-14-2016-00812",
+            "aadhaar_status": "Verified UIDAI ✓",
+            "dl_status": "Verified Heavy LMV ✓",
+            "selfie_status": "Live Biometric Match 99.1% ✓",
+            "status": "APPROVED ✓",
+            "applied_date": "2026-10-09 11:20",
+            "reviewed_by": "Vikramaditya Sharma (Admin)",
+        },
+        {
+            "id": "KYC-COL-003",
+            "name": "Shyam Sundar",
+            "role": "COLLECTOR",
+            "phone": "+91 98290 88008",
+            "vehicle": "E-Rickshaw Loader RJ 14 ER 7721",
+            "aadhaar_num": "4129-6638-6621",
+            "dl_num": "RJ-14-2022-00455",
+            "aadhaar_status": "Uploaded (Doc UIDAI verified)",
+            "dl_status": "Uploaded (Commercial E-Cart)",
+            "selfie_status": "Live Camera Snapshot Captured",
+            "status": "PENDING REVIEW ⏳",
+            "applied_date": "2026-10-11 11:30",
+            "reviewed_by": None,
+        },
+    ]
+
 # Audit Trail
 if "audit_logs" not in st.session_state:
     st.session_state.audit_logs = [
-        {"action": "VERIFY_USER", "user": "Admin", "details": "Approved Ramkishan Sahu (Collector KYC)", "time": "2026-10-10 14:20"},
+        {"action": "VERIFY_USER", "user": "Admin", "details": "Approved Ramkishan Sahu (Collector KYC: Aadhaar+DL+Selfie)", "time": "2026-10-10 14:20"},
         {"action": "COMPLETE_TRANSACTION", "user": "Mohammad Farooq", "details": "Issued Receipt REC-2026-JP-00192 (₹3,442.50)", "time": "2026-10-09 13:45"},
         {"action": "UPDATE_MANDI_RATE", "user": "Admin", "details": "Adjusted PET baseline to ₹18.00/kg", "time": "2026-10-08 10:00"},
     ]
@@ -621,55 +671,123 @@ elif current_role == "COLLECTOR":
     st.subheader(f"🛺 कबाड़ीवाला जॉब टर्मिनल (Collector Terminal) — {st.session_state.user_name}")
     st.caption("Mobile-first accessible terminal with digital scale entry, daily capacity meter & TSP route optimization.")
 
-    st.markdown("**दैनिक वाहन क्षमता (Daily Vehicle Limit):** 187.5 / 250 kg (75%)")
-    st.progress(187.5 / 250.0)
+    col_tab1, col_tab2 = st.tabs(["📍 पिकअप ऑर्डर्स व डिजिटल तौल (Daily Jobs & Digital Scale)", "🪪 पार्टनर KYC सत्यापन (Aadhaar + DL + Live Selfie)"])
 
-    k_col1, k_col2 = st.columns([1, 1], gap="large")
+    with col_tab1:
+        st.markdown("**दैनिक वाहन क्षमता (Daily Vehicle Limit):** 187.5 / 250 kg (75%)")
+        st.progress(187.5 / 250.0)
 
-    with k_col1:
-        st.markdown("#### 📍 नजदीकी खुले पिकअप (Nearby Open Jobs)")
-        open_jobs = [p for p in st.session_state.pickups if p["status"] == "OPEN"]
-        if open_jobs:
-            for job in open_jobs:
-                dist = haversine_km(26.8501, 75.8155, job["lat"], job["lng"])
-                with st.container(border=True):
-                    st.markdown(f"**{job['materials']}**")
-                    st.caption(f"दूरी: **{dist} किमी** • स्थान: {job['area']}")
-                    st.markdown(f"**अनुमानित राशि: ₹{job['est_val']}**")
-                    if st.button(f"पिकअप स्वीकार करें (Accept {job['id']})", key=f"k_acc_{job['id']}", type="primary", use_container_width=True):
-                        job["status"] = "ACCEPTED"
-                        job["assigned_collector"] = st.session_state.user_name
-                        st.success(f"पिकअप {job['id']} स्वीकार कर लिया गया! ग्राहक का फोन और पता अनलॉक हुआ।")
-                        st.rerun()
-        else:
-            st.info("वर्तमान में कोई खुला पिकअप नहीं है।")
+        k_col1, k_col2 = st.columns([1, 1], gap="large")
 
-    with k_col2:
-        st.markdown("#### ⚖️ तौल दर्ज करें व डिजिटल रसीद बनाएं (Digital Weighing Entry)")
-        accepted_jobs = [p for p in st.session_state.pickups if p["status"] == "ACCEPTED"]
-        if accepted_jobs:
-            sel_j = st.selectbox("चुनें चालू पिकअप:", [p["id"] for p in accepted_jobs])
-            tgt = next(p for p in accepted_jobs if p["id"] == sel_j)
-            
-            with st.form("weigh_form"):
-                st.write(f"**ग्राहक:** {tgt['user']} (📞 {tgt.get('phone', '+91 98290 00000')})")
-                w_wt = st.number_input("वास्तविक वजन (Net Weight in kg):", min_value=1.0, value=float(tgt["est_weight"]))
-                w_rt = st.number_input("सहमति दर (Agreed Rate ₹/kg):", min_value=1.0, value=14.0)
-                w_tot = round(w_wt * w_rt, 2)
-                st.markdown(f"### कुल भुगतान: ₹{w_tot:,.2f}")
+        with k_col1:
+            st.markdown("#### 📍 नजदीकी खुले पिकअप (Nearby Open Jobs)")
+            open_jobs = [p for p in st.session_state.pickups if p["status"] == "OPEN"]
+            if open_jobs:
+                for job in open_jobs:
+                    dist = haversine_km(26.8501, 75.8155, job["lat"], job["lng"])
+                    with st.container(border=True):
+                        st.markdown(f"**{job['materials']}**")
+                        st.caption(f"दूरी: **{dist} किमी** • स्थान: {job['area']}")
+                        st.markdown(f"**अनुमानित राशि: ₹{job['est_val']}**")
+                        if st.button(f"पिकअप स्वीकार करें (Accept {job['id']})", key=f"k_acc_{job['id']}", type="primary", use_container_width=True):
+                            job["status"] = "ACCEPTED"
+                            job["assigned_collector"] = st.session_state.user_name
+                            st.success(f"पिकअप {job['id']} स्वीकार कर लिया गया! ग्राहक का फोन और पता अनलॉक हुआ।")
+                            st.rerun()
+            else:
+                st.info("वर्तमान में कोई खुला पिकअप नहीं है।")
+
+        with k_col2:
+            st.markdown("#### ⚖️ तौल दर्ज करें व डिजिटल रसीद बनाएं (Digital Weighing Entry)")
+            accepted_jobs = [p for p in st.session_state.pickups if p["status"] == "ACCEPTED"]
+            if accepted_jobs:
+                sel_j = st.selectbox("चुनें चालू पिकअप:", [p["id"] for p in accepted_jobs])
+                tgt = next(p for p in accepted_jobs if p["id"] == sel_j)
                 
-                if st.form_submit_button("⚖️ रसीद जारी करें व लेनदेन पूरा करें", type="primary", use_container_width=True):
-                    r_no = f"REC-2026-JP-{int(time.time())%100000}"
-                    r_h = generate_receipt_hash(r_no, tgt["user"], st.session_state.user_name, w_tot, w_wt, str(datetime.datetime.now()))
-                    tgt["status"] = "COMPLETED"
-                    tgt["est_weight"] = w_wt
-                    tgt["est_val"] = w_tot
-                    tgt["receipt_number"] = r_no
-                    tgt["receipt_hash"] = r_h
-                    st.success(f"रसीद #{r_no} जारी हुई! भुगतान पूरा हुआ।")
-                    st.rerun()
+                with st.form("weigh_form"):
+                    st.write(f"**ग्राहक:** {tgt['user']} (📞 {tgt.get('phone', '+91 98290 00000')})")
+                    w_wt = st.number_input("वास्तविक वजन (Net Weight in kg):", min_value=1.0, value=float(tgt["est_weight"]))
+                    w_rt = st.number_input("सहमति दर (Agreed Rate ₹/kg):", min_value=1.0, value=14.0)
+                    w_tot = round(w_wt * w_rt, 2)
+                    st.markdown(f"### कुल भुगतान: ₹{w_tot:,.2f}")
+                    
+                    if st.form_submit_button("⚖️ रसीद जारी करें व लेनदेन पूरा करें", type="primary", use_container_width=True):
+                        r_no = f"REC-2026-JP-{int(time.time())%100000}"
+                        r_h = generate_receipt_hash(r_no, tgt["user"], st.session_state.user_name, w_tot, w_wt, str(datetime.datetime.now()))
+                        tgt["status"] = "COMPLETED"
+                        tgt["est_weight"] = w_wt
+                        tgt["est_val"] = w_tot
+                        tgt["receipt_number"] = r_no
+                        tgt["receipt_hash"] = r_h
+                        st.success(f"रसीद #{r_no} जारी हुई! भुगतान पूरा हुआ।")
+                        st.rerun()
+            else:
+                st.info("कोई चालू पिकअप नहीं है जिसे तौलना हो।")
+
+    with col_tab2:
+        st.markdown("#### 🪪 3-Point KYC Identity & Document Verification")
+        st.caption("To prevent stolen scrap transactions and guarantee household safety, all collectors must verify Aadhaar, Driving Licence, and Live Selfie.")
+
+        my_kyc = next((k for k in st.session_state.kyc_records if k["name"] == st.session_state.user_name), None)
+
+        if my_kyc and my_kyc["status"] == "APPROVED ✓":
+            st.success(f"🟢 **KYC स्थिति: APPROVED (सत्यापित कबाड़ीवाला साथी ✓)**")
+            kc1, kc2, kc3 = st.columns(3)
+            with kc1:
+                st.info(f"📄 **Aadhaar Card:**\n`{my_kyc['aadhaar_num']}`\n\nStatus: {my_kyc['aadhaar_status']}")
+            with kc2:
+                st.info(f"🪪 **Driving Licence:**\n`{my_kyc['dl_num']}`\n\nStatus: {my_kyc['dl_status']}")
+            with kc3:
+                st.info(f"🤳 **Live Face Selfie:**\nBiometric Match: 98.4%\n\nStatus: {my_kyc['selfie_status']}")
         else:
-            st.info("कोई चालू पिकअप नहीं है जिसे तौलना हो।")
+            st.warning("⏳ **KYC स्थिति: दस्तावेज सत्यापन आवश्यक (Verification Required)** — कृपया आधार, ड्राइविंग लाइसेंस और लाइव सेल्फी जमा करें।")
+
+        with st.expander("📤 Update or Submit New KYC Documents", expanded=(not my_kyc or my_kyc["status"] != "APPROVED ✓")):
+            with st.form("kyc_submit_form"):
+                st.markdown("##### 1. 📄 Government Aadhaar Card (आधार कार्ड)")
+                u_aadh_no = st.text_input("Aadhaar Number (12 Digits)", "5482-9182-4912")
+                u_aadh_file = st.file_uploader("Upload Aadhaar Card (Front & Back Photo / PDF)", type=["png", "jpg", "jpeg", "pdf"], key="up_aadh")
+
+                st.markdown("##### 2. 🪪 Driving Licence / Commercial Permit (ड्राइविंग लाइसेंस)")
+                u_dl_no = st.text_input("Driving Licence Number", "RJ-14-2022-00455")
+                u_dl_file = st.file_uploader("Upload Driving Licence Scan", type=["png", "jpg", "jpeg", "pdf"], key="up_dl")
+
+                st.markdown("##### 3. 🤳 Live Selfie Verification (लाइव सेल्फी / फेस मैच)")
+                st.caption("Take an instant selfie using device camera to confirm your identity matches the photo on your Aadhaar card.")
+                u_selfie_cam = st.camera_input("Take Live Camera Selfie:")
+                u_selfie_file = st.file_uploader("Or Upload Clear Portrait Selfie:", type=["png", "jpg", "jpeg"], key="up_selfie")
+
+                if st.form_submit_button("🚀 Submit KYC Documents for Admin Verification", type="primary"):
+                    new_kyc_entry = {
+                        "id": f"KYC-COL-{len(st.session_state.kyc_records)+1:03d}",
+                        "name": st.session_state.user_name,
+                        "role": "COLLECTOR",
+                        "phone": "+91 98290 88008",
+                        "vehicle": "E-Rickshaw Loader RJ 14 ER 7721",
+                        "aadhaar_num": u_aadh_no,
+                        "dl_num": u_dl_no,
+                        "aadhaar_status": "Uploaded (Pending Inspection)",
+                        "dl_status": "Uploaded (Pending Inspection)",
+                        "selfie_status": "Selfie Photo Captured",
+                        "status": "PENDING REVIEW ⏳",
+                        "applied_date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+                        "reviewed_by": None,
+                    }
+                    # Update or add
+                    existing_idx = next((i for i, k in enumerate(st.session_state.kyc_records) if k["name"] == st.session_state.user_name), None)
+                    if existing_idx is not None:
+                        st.session_state.kyc_records[existing_idx] = new_kyc_entry
+                    else:
+                        st.session_state.kyc_records.append(new_kyc_entry)
+
+                    st.session_state.audit_logs.append({
+                        "action": "SUBMIT_KYC",
+                        "user": st.session_state.user_name,
+                        "details": f"Submitted Aadhaar ({u_aadh_no}) + DL ({u_dl_no}) + Live Selfie for KYC",
+                        "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+                    })
+                    st.success("✅ आपके KYC दस्तावेज सफलतापूर्वक जमा हो गए हैं! एडमिन सत्यापन के बाद आपका अकाउंट सक्रिय हो जाएगा।")
+                    st.rerun()
 
 # =============================================================
 # 4. 🏭 DEDICATED RECYCLER DASHBOARD
@@ -730,19 +848,118 @@ elif current_role == "ADMIN":
     with ak4:
         st.markdown('<div class="kpi-card"><div class="kpi-val">0 Disputes</div><div class="kpi-lbl">Dispute Status: Normal</div></div>', unsafe_allow_html=True)
 
-    a_tab1, a_tab2, a_tab3 = st.tabs(["📋 KYC Verification Queue", "📈 Mandi Benchmark Rates", "📜 Cryptographic Audit Ledger"])
+    a_tab1, a_tab2, a_tab3 = st.tabs(["📋 KYC Verification Queue (Aadhaar + DL + Selfie)", "📈 Mandi Benchmark Rates", "📜 Cryptographic Audit Ledger"])
 
     with a_tab1:
-        st.markdown("#### User KYC Verification Approvals")
-        users_df = pd.DataFrame([
-            {"Name": "Ramkishan Sahu", "Role": "COLLECTOR", "Vehicle": "3-Wheeler Tempo RJ 14 TB 4921", "Status": "APPROVED ✓"},
-            {"Name": "Mohammad Farooq", "Role": "COLLECTOR", "Vehicle": "Mini Truck RJ 14 GA 1182", "Status": "APPROVED ✓"},
-            {"Name": "Aravalli Ecocycle", "Role": "RECYCLER", "License": "CPCB RJ/PWM/2026/0491", "Status": "APPROVED ✓"},
-            {"Name": "Shyam Sundar", "Role": "COLLECTOR", "Vehicle": "Hand Cart", "Status": "PENDING REVIEW ⏳"},
+        st.markdown("#### 📋 3-Point KYC Verification Queue")
+        st.caption("Review uploaded Government Aadhaar Cards, Driving Licences, and Live Biometric Selfies to authorize doorstep collection partners.")
+
+        kyc_df = pd.DataFrame([
+            {
+                "ID": k["id"],
+                "Partner Name": k["name"],
+                "Role": k["role"],
+                "Vehicle": k.get("vehicle", "N/A"),
+                "Aadhaar Number": k["aadhaar_num"],
+                "DL Number": k["dl_num"],
+                "Selfie Status": k["selfie_status"],
+                "Verification Status": k["status"]
+            }
+            for k in st.session_state.kyc_records
         ])
-        st.dataframe(users_df, hide_index=True, use_container_width=True)
-        if st.button("Approve Pending KYC: Shyam Sundar", type="primary"):
-            st.success("Shyam Sundar credentials approved! Service credentials activated.")
+        st.dataframe(kyc_df, hide_index=True, use_container_width=True)
+
+        st.divider()
+        st.markdown("#### 🔍 Interactive KYC Document Dossier Inspector")
+        pending_candidates = [k for k in st.session_state.kyc_records if "PENDING" in k["status"]]
+        all_candidates = st.session_state.kyc_records
+
+        target_name = st.selectbox(
+            "Select Applicant Dossier to Review:",
+            [k["name"] for k in all_candidates],
+            index=next((i for i, k in enumerate(all_candidates) if "PENDING" in k["status"]), 0)
+        )
+        cand = next(k for k in all_candidates if k["name"] == target_name)
+
+        # 3-Card Inspection View
+        doc_col1, doc_col2, doc_col3 = st.columns(3)
+        with doc_col1:
+            st.markdown("""
+            <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:12px; text-align:center;">
+                <div style="font-size:24px;">📄</div>
+                <b>Government Aadhaar Card</b>
+                <div style="font-size:11px; color:#475569; margin:4px 0;">UIDAI Verified ID Proof</div>
+                <div style="background:#e2e8f0; border-radius:6px; padding:6px; font-family:monospace; font-size:12px;">
+            """ + f"UID: {cand['aadhaar_num']}" + """
+                </div>
+                <div style="margin-top:6px; font-size:11px; color:#059669; font-weight:bold;">
+            """ + f"Status: {cand['aadhaar_status']}" + """
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with doc_col2:
+            st.markdown("""
+            <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:12px; text-align:center;">
+                <div style="font-size:24px;">🪪</div>
+                <b>Driving Licence (DL)</b>
+                <div style="font-size:11px; color:#475569; margin:4px 0;">Ministry of Road Transport (Parivahan)</div>
+                <div style="background:#e2e8f0; border-radius:6px; padding:6px; font-family:monospace; font-size:12px;">
+            """ + f"DL No: {cand['dl_num']}" + """
+                </div>
+                <div style="margin-top:6px; font-size:11px; color:#059669; font-weight:bold;">
+            """ + f"Status: {cand['dl_status']}" + """
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with doc_col3:
+            st.markdown("""
+            <div style="background:#f8fafc; border:1px solid #cbd5e1; border-radius:12px; padding:12px; text-align:center;">
+                <div style="font-size:24px;">🤳</div>
+                <b>Live Biometric Selfie</b>
+                <div style="font-size:11px; color:#475569; margin:4px 0;">Live Camera Anti-Spoofing Match</div>
+                <div style="background:#e2e8f0; border-radius:6px; padding:6px; font-family:monospace; font-size:12px;">
+                    Face Match: 98.2% Similarity
+                </div>
+                <div style="margin-top:6px; font-size:11px; color:#059669; font-weight:bold;">
+            """ + f"Status: {cand['selfie_status']}" + """
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        st.write("")
+        d_b1, d_b2 = st.columns([1, 1])
+        with d_b1:
+            if cand["status"] != "APPROVED ✓":
+                if st.button(f"✅ Approve KYC for {cand['name']} (Issue Green Badge)", type="primary", use_container_width=True):
+                    cand["status"] = "APPROVED ✓"
+                    cand["reviewed_by"] = st.session_state.user_name
+                    cand["aadhaar_status"] = "Verified UIDAI ✓"
+                    cand["dl_status"] = "Verified RTO ✓"
+                    cand["selfie_status"] = "Face Match 98.8% ✓"
+                    st.session_state.audit_logs.append({
+                        "action": "VERIFY_USER",
+                        "user": st.session_state.user_name,
+                        "details": f"Approved 3-point KYC for {cand['name']} (Aadhaar: {cand['aadhaar_num']}, DL: {cand['dl_num']})",
+                        "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+                    })
+                    st.success(f"🎉 {cand['name']} KYC has been APPROVED! Partner is now authorized for doorstep scrap pickups.")
+                    st.rerun()
+            else:
+                st.info(f"✅ {cand['name']} is already APPROVED and holding an active verified partner credential.")
+
+        with d_b2:
+            if st.button(f"❌ Reject / Request Re-upload for {cand['name']}", use_container_width=True):
+                cand["status"] = "REJECTED (Re-upload requested)"
+                st.session_state.audit_logs.append({
+                    "action": "REJECT_KYC",
+                    "user": st.session_state.user_name,
+                    "details": f"Requested document re-upload for {cand['name']}",
+                    "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+                })
+                st.warning(f"Notification sent to {cand['name']} to re-upload clear Aadhaar/DL photos.")
+                st.rerun()
 
     with a_tab2:
         st.markdown("#### Mandi Benchmark Rate Editor")

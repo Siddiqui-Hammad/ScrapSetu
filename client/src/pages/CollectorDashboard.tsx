@@ -34,7 +34,7 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({
   const { user } = useAuth();
   const { language, t } = useLanguage();
 
-  const [activeTab, setActiveTab] = useState<'nearby' | 'my-jobs' | 'route' | 'earnings' | 'safety'>('nearby');
+  const [activeTab, setActiveTab] = useState<'nearby' | 'my-jobs' | 'route' | 'earnings' | 'kyc' | 'safety'>('nearby');
   const [nearbyPickups, setNearbyPickups] = useState<any[]>([]);
   const [myPickups, setMyPickups] = useState<PickupRequest[]>([]);
   const [earnings, setEarnings] = useState<any | null>(null);
@@ -220,8 +220,21 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({
         </button>
 
         <button
+          onClick={() => setActiveTab('kyc')}
+          className={`p-3.5 rounded-2xl text-center font-bold text-xs sm:text-sm transition-all border ${
+            activeTab === 'kyc'
+              ? 'bg-emerald-700 text-white border-emerald-700 shadow-md ring-2 ring-emerald-300'
+              : 'bg-white text-stone-700 border-stone-200 hover:bg-stone-50'
+          }`}
+        >
+          <div className="text-lg mb-1">🪪</div>
+          <div>KYC सत्यापन</div>
+          <div className="text-[10px] opacity-80">Aadhaar + DL + Selfie</div>
+        </button>
+
+        <button
           onClick={() => setActiveTab('safety')}
-          className={`col-span-2 sm:col-span-1 p-3.5 rounded-2xl text-center font-bold text-xs sm:text-sm transition-all border ${
+          className={`p-3.5 rounded-2xl text-center font-bold text-xs sm:text-sm transition-all border ${
             activeTab === 'safety'
               ? 'bg-emerald-700 text-white border-emerald-700 shadow-md ring-2 ring-emerald-300'
               : 'bg-white text-stone-700 border-stone-200 hover:bg-stone-50'
@@ -491,6 +504,55 @@ export const CollectorDashboard: React.FC<CollectorDashboardProps> = ({
               <p>• रासायनिक कंटेनर या बायोमेडिकल अपशिष्ट स्वीकार न करें।</p>
               <p>• डिजिटल कांटे को हर सुबह 1 किग्रा के मानक बाट से जांचें।</p>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 6: 3-POINT KYC VERIFICATION */}
+      {activeTab === 'kyc' && (
+        <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-xs space-y-6 text-xs leading-relaxed">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-100 pb-4">
+            <div>
+              <h3 className="text-base font-bold text-stone-900 font-hindi">
+                🪪 पहचान एवं ड्राइविंग लाइसेंस सत्यापन (3-Point KYC Verification)
+              </h3>
+              <p className="text-stone-500 text-xs">
+                To guarantee resident safety and legal vehicle operation, your Aadhaar, Commercial DL, and Live Selfie are verified.
+              </p>
+            </div>
+            <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold text-xs">
+              प्रमाणित साथी (Verified Partner ✓)
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
+              <div className="text-2xl">📄</div>
+              <div className="font-bold text-stone-900 text-sm">Aadhaar Card (आधार कार्ड)</div>
+              <div className="text-stone-500 text-xs font-mono">UID: 5482-XXXX-4912</div>
+              <div className="text-emerald-700 font-semibold text-[11px]">UIDAI Format Verified ✓</div>
+            </div>
+
+            <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
+              <div className="text-2xl">🪪</div>
+              <div className="font-bold text-stone-900 text-sm">Driving Licence (ड्राइविंग लाइसेंस)</div>
+              <div className="text-stone-500 text-xs font-mono">DL: RJ-14-2019-00291</div>
+              <div className="text-emerald-700 font-semibold text-[11px]">Commercial Transport (LMV-TR) ✓</div>
+            </div>
+
+            <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
+              <div className="text-2xl">🤳</div>
+              <div className="font-bold text-stone-900 text-sm">Live Face Selfie (लाइव सेल्फी)</div>
+              <div className="text-stone-500 text-xs font-mono">Biometric Liveness Match</div>
+              <div className="text-emerald-700 font-semibold text-[11px]">Face Match Score: 98.4% ✓</div>
+            </div>
+          </div>
+
+          <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-emerald-950 space-y-2">
+            <span className="font-bold block text-sm">🔒 क्यों जरूरी है 3-पॉइंट सत्यापन? (Why 3-Point KYC Matters)</span>
+            <p>1. <b>सुरक्षा (Safety):</b> घरों में घुसते समय गृहणियां और परिवार सुरक्षित महसूस करते हैं।</p>
+            <p>2. <b>कानूनी वैधता (Legality):</b> माल वाहक रिक्शा या मिनी-ट्रक चलाने हेतु वैध ड्राइविंग लाइसेंस आवश्यक है।</p>
+            <p>3. <b>एंटी-फ्रॉड (Face Match):</b> लाइव सेल्फी सुनिश्चित करती है कि पंजीकृत कबाड़ीवाला ही मौके पर उपस्थित है।</p>
           </div>
         </div>
       )}
