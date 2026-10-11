@@ -1,0 +1,371 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String         @id @default(uuid())
+  name            String
+  email           String         @unique
+  passwordHash    String
+  phone           String
+  role            String         // HOUSEHOLD, BUSINESS, COLLECTOR, RECYCLER, ADMIN
+  languagePref    String         @default("en") // en, hi
+  isVerified      Boolean        @default(false)
+  avatarUrl       String?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  profile         UserProfile?
+  addresses       Address[]
+  verifications   VerificationDocument[]
+  requests        PickupRequest[]        @relation("RequesterPickups")
+  assignedPickups CollectorAssignment[]
+  transactionsAsCollector Transaction[]   @relation("CollectorTransactions")
+  transactionsAsRequester Transaction[]   @relation("RequesterTransactions")
+  recyclerOffers  RecyclerOffer[]
+  recyclerIntakes RecyclerIntake[]
+  ratingsGiven    RatingFeedback[]       @relation("RatingsGiven")
+  ratingsReceived RatingFeedback[]       @relation("RatingsReceived")
+  notifications   Notification[]
+  complaintsFiled ComplaintDispute[]     @relation("Complainant")
+  auditLogs       AuditLog[]
+
+  @@index([role])
+  @@index([email])
+}
+
+model UserProfile {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  businessName        String?
+  businessType        String?  // RESTAURANT, OFFICE, RETAIL, APARTMENT_COMPLEX, MANUFACTURING
+  gstNumber           String?
+  idDocumentNumber    String?  // Masked or hashed
+  vehicleType         String?  // THREE_WHEELER, CYCLE_RICKSHAW, MINI_TRUCK, HAND_CART
+  vehicleNumber       String?
+  serviceAreaRadiusKm Float    @default(5.0)
+  dailyCapacityKg     Float    @default(100.0)
+  acceptedCategories  String?  // JSON string array of category slugs
+  operatingHours      String?
+  bankUpiId           String?
+  isAvailable         Boolean  @default(true)
+  totalPickupsCompleted Int    @default(0)
+  reliabilityRating   Float    @default(5.0)
+}
+
+model Address {
+  id            String          @id @default(uuid())
+  userId        String
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label         String          @default("Home") // Home, Warehouse, Factory, Shop
+  streetAddress String
+  area          String?
+  city          String          @default("Jaipur")
+  state         String          @default("Rajasthan")
+  pincode       String
+  lat           Float           @default(26.9124)
+  lng           Float           @default(75.7873)
+  isDefault     Boolean         @default(false)
+  createdAt     DateTime        @default(now())
+
+  pickupRequests PickupRequest[]
+
+  @@index([userId])
+}
+
+model VerificationDocument {
+  id              String   @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documentType    String   // AADHAAR, PAN, GST_CERT, RECYCLER_LICENSE, CPCB_REGISTRATION
+  documentNumber  String?
+  documentUrl     String
+  status          String   @default("PENDING") // PENDING, APPROVED, REJECTED
+  reviewerNotes   String?
+  reviewerId      String?
+  submittedAt     DateTime @default(now())
+  reviewedAt      DateTime?
+
+  @@index([userId])
+  @@index([status])
+}
+
+model MaterialCategory {
+  id                String          @id @default(uuid())
+  name              String          @unique
+  hindiName         String
+  slug              String          @unique
+  description       String
+  hindiDescription  String
+  icon              String          @default("Recycle")
+  defaultUnit       String          @default("kg") // kg, piece
+  carbonFactorKg    Float           @default(1.2) // CO2e kg saved per kg recycled
+  treeFactorKg      Float           @default(0.0) // trees saved per kg paper
+  waterFactorL      Float           @default(15.0) // litres of water saved per kg
+  energyFactorKwh   Float           @default(3.5) // kWh saved per kg
+  createdAt         DateTime        @default(now())
+
+  prices            MaterialPrice[]
+  pickupItems       PickupItem[]
+  recyclerOffers    RecyclerOffer[]
+  actualCollected   ActualCollectedItem[]
+}
+
+model MaterialPrice {
+  id                String           @id @default(uuid())
+  categoryId        String
+  category          MaterialCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  grade             String           @default("Standard") // Standard, High-grade, Clean, Mixed
+  unit              String           @default("kg")
+  indicativePrice   Float            // Indicative baseline price per unit (INR)
+  minPrice          Float
+  maxPrice          Float
+  region            String           @default("North India (Jaipur/Delhi-NCR)")
+  source            String           @default("Demonstration Benchmark (MRAI & Local Mandi Index)")
+  isDemo            Boolean          @default(true)
+  effectiveDate     DateTime         @default(now())
+  lastUpdated       DateTime         @updatedAt
+
+  @@index([categoryId])
+  @@index([region])
+}
+
+model RecyclerOffer {
+  id                String           @id @default(uuid())
+  recyclerId        String
+  recycler          User             @relation(fields: [recyclerId], references: [id], onDelete: Cascade)
+  categoryId        String
+  category          MaterialCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  facilityName      String
+  facilityAddress   String
+  lat               Float            @default(26.9124)
+  lng               Float            @default(75.7873)
+  buyingPricePerKg  Float
+  minQuantityKg     Float            @default(25.0)
+  gradeAccepted     String           @default("Any clean grade")
+  notes             String?
+  isActive          Boolean          @default(true)
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  recyclerIntakes   RecyclerIntake[]
+
+  @@index([recyclerId])
+  @@index([categoryId])
+}
+
+model PickupRequest {
+  id                     String                 @id @default(uuid())
+  requesterId            String
+  requester              User                   @relation("RequesterPickups", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressId              String
+  address                Address                @relation(fields: [addressId], references: [id])
+  preferredDate          String
+  preferredTimeSlot      String                 // Morning (9 AM - 12 PM), Afternoon (12 PM - 3 PM), Evening (3 PM - 6 PM)
+  notes                  String?
+  status                 String                 @default("OPEN") // OPEN, ACCEPTED, IN_PROGRESS, COMPLETED, CANCELLED, DISPUTED
+  estimatedTotalWeightKg Float                  @default(0)
+  estimatedTotalValue    Float                  @default(0)
+  isRecurring            Boolean                @default(false)
+  recurringFrequency     String?                // WEEKLY, BIWEEKLY, MONTHLY
+  assignedCollectorId    String?
+  cancelledReason        String?
+  disputeReason          String?
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+
+  items                  PickupItem[]
+  assignments            CollectorAssignment[]
+  statusHistory          PickupStatusHistory[]
+  actualCollected        ActualCollectedItem[]
+  transaction            Transaction?
+  ratings                RatingFeedback[]
+  complaints             ComplaintDispute[]
+
+  @@index([requesterId])
+  @@index([status])
+  @@index([assignedCollectorId])
+}
+
+model PickupItem {
+  id                    String           @id @default(uuid())
+  pickupRequestId       String
+  pickupRequest         PickupRequest    @relation(fields: [pickupRequestId], references: [id], onDelete: Cascade)
+  categoryId            String
+  category              MaterialCategory @relation(fields: [categoryId], references: [id])
+  estimatedQty          Float
+  unit                  String           @default("kg")
+  photoUrl              String?
+  aiPredictedCategory   String?
+  aiConfidence          Float?
+  userConfirmedCategory Boolean          @default(true)
+  gradeNotes            String?
+
+  @@index([pickupRequestId])
+  @@index([categoryId])
+}
+
+model CollectorAssignment {
+  id               String        @id @default(uuid())
+  pickupRequestId  String
+  pickupRequest    PickupRequest @relation(fields: [pickupRequestId], references: [id], onDelete: Cascade)
+  collectorId      String
+  collector        User          @relation(fields: [collectorId], references: [id], onDelete: Cascade)
+  status           String        @default("ACCEPTED") // OFFERED, ACCEPTED, REJECTED, EN_ROUTE, ARRIVED, COMPLETED, CANCELLED
+  distanceKm       Float         @default(1.5)
+  matchScore       Float         @default(90.0)
+  matchExplanation String?       // Distance: 1.2km | Material match: Paper, Iron | Rating: 4.9★
+  assignedAt       DateTime      @default(now())
+  acceptedAt       DateTime?
+  arrivedAt        DateTime?
+  completedAt      DateTime?
+
+  @@index([pickupRequestId])
+  @@index([collectorId])
+}
+
+model PickupStatusHistory {
+  id              String        @id @default(uuid())
+  pickupRequestId String
+  pickupRequest   PickupRequest @relation(fields: [pickupRequestId], references: [id], onDelete: Cascade)
+  fromStatus      String
+  toStatus        String
+  changedById     String
+  changeReason    String?
+  timestamp       DateTime      @default(now())
+
+  @@index([pickupRequestId])
+}
+
+model ActualCollectedItem {
+  id                 String           @id @default(uuid())
+  pickupRequestId    String
+  pickupRequest      PickupRequest    @relation(fields: [pickupRequestId], references: [id], onDelete: Cascade)
+  categoryId         String
+  category           MaterialCategory @relation(fields: [categoryId], references: [id])
+  actualQty          Float
+  agreedPricePerUnit Float
+  itemTotal          Float
+  weighingProofUrl   String?
+  gradeRecorded      String?
+
+  @@index([pickupRequestId])
+  @@index([categoryId])
+}
+
+model Transaction {
+  id               String               @id @default(uuid())
+  pickupRequestId  String               @unique
+  pickupRequest    PickupRequest        @relation(fields: [pickupRequestId], references: [id], onDelete: Cascade)
+  collectorId      String
+  collector        User                 @relation("CollectorTransactions", fields: [collectorId], references: [id])
+  requesterId      String
+  requester        User                 @relation("RequesterTransactions", fields: [requesterId], references: [id])
+  recyclerId       String?
+  totalWeightKg    Float                @default(0)
+  totalAmount      Float
+  paymentMode      String               @default("CASH") // CASH, UPI, BANK_TRANSFER
+  paymentStatus    String               @default("PAID") // PENDING, PAID, DISPUTED
+  receiptNumber    String               @unique
+  receiptHash      String               // SHA256 checksum for tamper-evident digital receipt
+  notes            String?
+  transactionDate  DateTime             @default(now())
+  recyclerIntake   RecyclerIntake?
+
+  @@index([collectorId])
+  @@index([requesterId])
+  @@index([receiptNumber])
+}
+
+model RecyclerIntake {
+  id                 String         @id @default(uuid())
+  transactionId      String?        @unique
+  transaction        Transaction?   @relation(fields: [transactionId], references: [id])
+  recyclerId         String
+  recycler           User           @relation(fields: [recyclerId], references: [id], onDelete: Cascade)
+  offerId            String?
+  offer              RecyclerOffer? @relation(fields: [offerId], references: [id])
+  supplierName       String         // Collector or bulk seller name
+  materialGrade      String
+  netWeightKg        Float
+  purchaseRatePerKg  Float
+  totalPurchaseAmount Float
+  intakeSlipNumber   String         @unique
+  receiptHash        String
+  createdAt          DateTime       @default(now())
+
+  @@index([recyclerId])
+}
+
+model RatingFeedback {
+  id                     String        @id @default(uuid())
+  pickupRequestId        String
+  pickupRequest          PickupRequest @relation(fields: [pickupRequestId], references: [id], onDelete: Cascade)
+  fromUserId             String
+  fromUser               User          @relation("RatingsGiven", fields: [fromUserId], references: [id], onDelete: Cascade)
+  toUserId               String
+  toUser                 User          @relation("RatingsReceived", fields: [toUserId], references: [id], onDelete: Cascade)
+  rating                 Int           // 1 to 5
+  reviewText             String?
+  categoryAccuracyRating Int?          // 1 to 5
+  punctualityRating      Int?          // 1 to 5
+  createdAt              DateTime      @default(now())
+
+  @@index([pickupRequestId])
+  @@index([toUserId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   @default("INFO") // INFO, PICKUP_UPDATE, PAYMENT, VERIFICATION, ALERT
+  link      String?
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
+
+model ComplaintDispute {
+  id              String        @id @default(uuid())
+  pickupRequestId String?
+  pickupRequest   PickupRequest? @relation(fields: [pickupRequestId], references: [id], onDelete: SetNull)
+  complainantId   String
+  complainant     User          @relation("Complainant", fields: [complainantId], references: [id], onDelete: Cascade)
+  respondentId    String?
+  subject         String
+  description     String
+  status          String        @default("OPEN") // OPEN, UNDER_REVIEW, RESOLVED, DISMISSED
+  resolution      String?
+  resolvedById    String?
+  createdAt       DateTime      @default(now())
+  resolvedAt      DateTime?
+
+  @@index([complainantId])
+  @@index([status])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String   // CREATE_PICKUP, ACCEPT_PICKUP, COMPLETE_TRANSACTION, VERIFY_USER, UPDATE_PRICE, RESOLVE_DISPUTE
+  resource   String
+  resourceId String?
+  details    String?  // JSON string
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
