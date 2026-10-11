@@ -30,3 +30,8 @@ yarn-error.log*
 Thumbs.db
 .vscode/
 .idea/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
