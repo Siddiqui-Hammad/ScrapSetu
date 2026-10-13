@@ -44,13 +44,28 @@ npx tsx watch src/server.ts
 ```
 Backend runs at `http://localhost:5000` with health check at `http://localhost:5000/api/health`.
 
-### 2. Start Frontend Web Client
+### 2. Start Next.js 2.0 Advanced Frontend (Recommended)
+```bash
+cd frontend
+npm install
+npm run dev
+```
+Next.js 2.0 App Router frontend runs at `http://localhost:3000` with instant reverse-proxy to the backend API (`http://localhost:5000/api`).
+
+### 3. Start Streamlit 2.0 Edition (All-in-One Cloud Demo)
+```bash
+pip install -r requirements.txt
+streamlit run streamlit_app.py
+```
+Streamlit app runs at `http://localhost:8501` featuring dynamic role registration, 3-point KYC upload, free cloud DB bus (Supabase/MongoDB/Neon), and 1-click admin access.
+
+### 4. Start Legacy Vite Web Client (Preserved)
 ```bash
 cd client
 npm install
 npx vite
 ```
-Frontend runs at `http://localhost:5173`.
+Vite frontend runs at `http://localhost:5173`.
 
 ---
 

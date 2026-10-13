@@ -6,11 +6,14 @@
   "scripts": {
     "dev:server": "npm --prefix server run dev",
     "dev:client": "npm --prefix client run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
     "build:server": "npm --prefix server run build",
     "build:client": "npm --prefix client run build",
+    "build:frontend": "npm --prefix frontend run build",
     "test:server": "npm --prefix server test",
     "test:client": "npm --prefix client test",
-    "seed": "npm --prefix server run db:seed"
+    "seed": "npm --prefix server run db:seed",
+    "streamlit": "streamlit run streamlit_app.py"
   },
   "keywords": ["recycling", "sustainability", "kabadiwala", "circular-economy", "scrapsetu"],
   "author": "ScrapSetu Team",
