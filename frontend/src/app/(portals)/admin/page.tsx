@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import {
   ShieldCheck,
   AlertTriangle,
@@ -16,486 +17,495 @@ import {
   Activity,
   Layers,
   ArrowRight,
+  Users,
+  Package,
+  Leaf,
+  BarChart3,
+  DollarSign,
+  Settings,
+  UserCheck,
 } from 'lucide-react';
-import { Button } from '../../../components/ui/button';
-import { formatINR, formatKg, formatDate } from '../../../lib/utils';
-import { useAuthStore } from '../../../store/authStore';
+import { Button } from '@/components/ui/button';
+import { KycDossierInspector } from '@/components/workflows/KycDossierInspector';
+import { formatINR, formatKg } from '@/lib/utils';
+import { useAuthStore } from '@/store/authStore';
 
 export default function AdminPortalPage() {
   const { user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'kyc' | 'rates' | 'anomalies' | 'db' | 'audit'>('kyc');
+  const [activeNav, setActiveNav] = useState<'overview' | 'verifications' | 'pricing' | 'transactions' | 'analytics' | 'settings'>('overview');
+  const [selectedKycForReview, setSelectedKycForReview] = useState<any>(null);
 
-  // KYC Dossiers Queue
-  const [kycQueue, setKycQueue] = useState([
+  // Exact 4 Platform Overview Metrics matching Mockup Row 2 Panel 4
+  const platformStats = [
     {
-      id: 'KYC-COL-003',
-      name: 'Shyam Sundar',
-      role: 'COLLECTOR',
-      phone: '+91 98765 88008',
-      vehicle: 'Tricycle Rickshaw DL 1 TR 7721',
-      aadhaarNo: '4129-6638-6621',
-      aadhaarStatus: 'Uploaded (Masked UIDAI Document)',
-      dlNo: 'DL-04-2022-00455',
-      dlStatus: 'Uploaded (State Transport Authority)',
-      selfieStatus: 'Live Camera Selfie Captured',
-      biometricScore: 98.4,
-      status: 'PENDING_REVIEW', // PENDING_REVIEW, APPROVED, REJECTED
-      appliedAt: 'Today, 11:30 AM',
+      label: 'Total Users',
+      value: '12,485',
+      trend: '+18% MoM',
+      icon: Users,
+      color: 'bg-emerald-50 text-forest-900 border-emerald-200',
     },
     {
-      id: 'KYC-COL-001',
-      name: 'Ramu Paswan',
-      role: 'COLLECTOR',
-      phone: '+91 98765 11001',
-      vehicle: 'E-Rickshaw Loader DL 1 ER 4921',
-      aadhaarNo: '5482-9182-4912',
-      aadhaarStatus: 'Verified UIDAI Masked ✓',
-      dlNo: 'DL-04-2019-00291',
-      dlStatus: 'Verified Commercial Transport ✓',
-      selfieStatus: 'Live Biometric Match 99.2% ✓',
-      biometricScore: 99.2,
-      status: 'APPROVED',
-      appliedAt: 'Oct 10, 2026',
+      label: 'Bookings Completed',
+      value: '3,240',
+      trend: '+12% MoM',
+      icon: Package,
+      color: 'bg-blue-50 text-blue-900 border-blue-200',
     },
     {
-      id: 'KYC-COL-002',
-      name: 'Mohammad Farooq',
-      role: 'COLLECTOR',
-      phone: '+91 98765 22002',
-      vehicle: 'Mini Truck DL 1 GA 1182',
-      aadhaarNo: '7821-3391-9182',
-      aadhaarStatus: 'Verified UIDAI Masked ✓',
-      dlNo: 'DL-04-2016-00812',
-      dlStatus: 'Verified Heavy Commercial ✓',
-      selfieStatus: 'Live Biometric Match 98.9% ✓',
-      biometricScore: 98.9,
-      status: 'APPROVED',
-      appliedAt: 'Oct 09, 2026',
+      label: 'Tons Recycled',
+      value: '125.6 Tons',
+      trend: '+24% MoM',
+      icon: Scale,
+      color: 'bg-amber-50 text-amber-900 border-amber-200',
+    },
+    {
+      label: 'KG CO₂ Saved',
+      value: '8,920 KG',
+      trend: '+30% MoM',
+      icon: Leaf,
+      color: 'bg-teal-50 text-teal-900 border-teal-200',
+    },
+  ];
+
+  // Exact Verification Queue (12) matching Mockup Row 2 Panel 4
+  const [verificationQueue, setVerificationQueue] = useState([
+    {
+      id: 'KYC-001',
+      name: 'Ramesh Kumar',
+      category: 'Kabadiwala License & Aadhaar',
+      location: 'Indiranagar, Bangalore',
+      submittedDate: 'Today, 10:15 AM',
+      status: 'Pending',
+      statusColor: 'bg-amber-100 text-amber-800 border-amber-200',
+    },
+    {
+      id: 'KYC-002',
+      name: 'Sunita Sharma',
+      category: 'Self-Help Waste Group Lead',
+      location: 'Whitefield, Bangalore',
+      submittedDate: 'Today, 09:30 AM',
+      status: 'Pending',
+      statusColor: 'bg-amber-100 text-amber-800 border-amber-200',
+    },
+    {
+      id: 'KYC-003',
+      name: 'GreenTech Solutions Pvt Ltd',
+      category: 'Commercial Generator GST',
+      location: 'Electronic City, Bangalore',
+      submittedDate: 'Yesterday',
+      status: 'Pending',
+      statusColor: 'bg-amber-100 text-amber-800 border-amber-200',
+    },
+    {
+      id: 'KYC-004',
+      name: 'EcoPlast Recyclers',
+      category: 'CPCB Waste Handling License',
+      location: 'Peenya Industrial Area',
+      submittedDate: 'Oct 12, 2026',
+      status: 'Approved',
+      statusColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
     },
   ]);
 
-  const [selectedKycId, setSelectedKycId] = useState('KYC-COL-003');
-  const selectedDossier = kycQueue.find((k) => k.id === selectedKycId) || kycQueue[0];
+  // Bookings Trend (Jan to Jun)
+  const monthlyTrends = [
+    { month: 'Jan', bookings: 320, tons: 14.2 },
+    { month: 'Feb', bookings: 450, tons: 18.5 },
+    { month: 'Mar', bookings: 580, tons: 22.1 },
+    { month: 'Apr', bookings: 690, tons: 28.4 },
+    { month: 'May', bookings: 840, tons: 34.0 },
+    { month: 'Jun', bookings: 1050, tons: 42.5 },
+  ];
 
-  // Mandi Benchmark Rates State
-  const [mandiRates, setMandiRates] = useState([
-    { id: 'mr-1', category: 'Copper Wire (Millberry 99.9%)', currentRate: 685.0, changePercent: 2.4, low: 670, high: 700 },
-    { id: 'mr-2', category: 'Brass / Pital Heavy Utensils', currentRate: 460.0, changePercent: 1.1, low: 450, high: 475 },
-    { id: 'mr-3', category: 'Aluminium Section 6063', currentRate: 165.0, changePercent: -0.8, low: 160, high: 172 },
-    { id: 'mr-4', category: 'Rigid Plastics (PET Optical Clean)', currentRate: 28.0, changePercent: 3.2, low: 25, high: 30 },
-    { id: 'mr-5', category: 'Kraft Corrugated Carton (Gatta)', currentRate: 15.5, changePercent: 1.3, low: 14, high: 17 },
-    { id: 'mr-6', category: 'Heavy Structural Iron (HMS 1/2)', currentRate: 34.0, changePercent: 0.5, low: 32, high: 36 },
-  ]);
-
-  // Free Cloud Database Bus State
-  const [dbProvider, setDbProvider] = useState('Supabase PostgreSQL (Free 500MB Tier)');
-  const [dbUri, setDbUri] = useState('postgresql://postgres.scrapsetu:demo_pass_2026@aws-0-ap-south-1.pooler.supabase.com:6543/postgres?sslmode=require');
-  const [dbSyncCount, setDbSyncCount] = useState(64);
-  const [syncFeedback, setSyncFeedback] = useState<string | null>(null);
+  const handleReviewAction = (item: any) => {
+    setSelectedKycForReview(item);
+  };
 
   const handleApproveKyc = (id: string) => {
-    setKycQueue((prev) =>
-      prev.map((k) => (k.id === id ? { ...k, status: 'APPROVED' } : k))
+    setVerificationQueue((prev) =>
+      prev.map((k) =>
+        k.id === id
+          ? {
+              ...k,
+              status: 'Approved',
+              statusColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+            }
+          : k
+      )
     );
-  };
-
-  const handleRejectKyc = (id: string) => {
-    setKycQueue((prev) =>
-      prev.map((k) => (k.id === id ? { ...k, status: 'REJECTED' } : k))
-    );
-  };
-
-  const handleRateChange = (id: string, newRate: number) => {
-    setMandiRates((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, currentRate: newRate } : r))
-    );
-  };
-
-  const handleSyncCloudDb = () => {
-    setDbSyncCount((prev) => prev + 12);
-    setSyncFeedback('Successfully synchronized 12 records with cloud database cluster!');
-    setTimeout(() => setSyncFeedback(null), 4000);
+    setSelectedKycForReview(null);
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* 1. Header: Calm Operational Control Center */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-zinc-900 text-white shadow-md">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-400">
-              Regulatory Control Console
-            </span>
-          </div>
-          <h1 className="text-2xl font-black tracking-tight text-white mt-1">
-            National Circular Operations Hub
-          </h1>
-          <p className="text-xs text-zinc-300 mt-0.5">
-            CPCB Authority Governance • 3-Point KYC Queue • Live Benchmark Spreads
-          </p>
-        </div>
-
-        {/* Compact Operational KPIs */}
-        <div className="flex items-center gap-6 shrink-0 bg-zinc-800/80 p-3 rounded-xl border border-zinc-700 text-xs">
-          <div>
-            <div className="text-[10px] uppercase font-bold text-zinc-400">Pending KYC</div>
-            <div className="font-mono font-bold text-amber-400">
-              {kycQueue.filter((k) => k.status === 'PENDING_REVIEW').length} Dossiers
+    <div className="min-h-screen bg-[#f4f6f8] flex">
+      {/* 1. Left Dark Forest Sidebar - Exact Match to Mockup Row 2 Panel 4 */}
+      <aside className="w-64 bg-forest-900 text-white shrink-0 hidden lg:flex flex-col justify-between p-5 border-r border-forest-950">
+        <div className="space-y-8">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500 text-forest-950 flex items-center justify-center font-bold">
+              <ShieldCheck className="w-5 h-5" />
             </div>
+            <div>
+              <div className="text-base font-black tracking-tight text-white leading-tight">
+                ScrapSetu
+              </div>
+              <div className="text-[10px] font-bold text-emerald-400 tracking-wider uppercase">
+                Admin Console
+              </div>
+            </div>
+          </Link>
+
+          <nav className="space-y-1.5">
+            {[
+              { id: 'overview', label: 'Platform Overview', icon: Activity },
+              { id: 'verifications', label: 'Verification Queue (12)', icon: UserCheck },
+              { id: 'pricing', label: 'Mandi Benchmarks', icon: DollarSign },
+              { id: 'transactions', label: 'Transactions & Passports', icon: FileText },
+              { id: 'analytics', label: 'National Impact Audit', icon: BarChart3 },
+              { id: 'settings', label: 'System Configuration', icon: Settings },
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = activeNav === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveNav(item.id as any)}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                    isActive
+                      ? 'bg-emerald-500 text-forest-950 shadow-md font-extrabold'
+                      : 'text-zinc-300 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
+        </div>
+
+        {/* Admin Identity Card */}
+        <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-emerald-400 text-forest-950 font-black flex items-center justify-center text-xs">
+            CP
           </div>
-          <div className="border-l border-zinc-700 pl-4">
-            <div className="text-[10px] uppercase font-bold text-zinc-400">Database Bus</div>
-            <div className="font-mono font-bold text-emerald-400">ONLINE (34ms)</div>
-          </div>
-          <div className="border-l border-zinc-700 pl-4">
-            <div className="text-[10px] uppercase font-bold text-zinc-400">Disputes</div>
-            <div className="font-mono font-bold text-white">0 Active</div>
+          <div className="overflow-hidden">
+            <div className="text-xs font-extrabold text-white truncate">
+              {user?.name || 'CPCB SuperAdmin'}
+            </div>
+            <div className="text-[10px] text-zinc-400">Governance &amp; Audit Level 4</div>
           </div>
         </div>
-      </div>
+      </aside>
 
-      {/* 2. Operational Navigation Bar */}
-      <div className="flex items-center gap-1.5 p-1 bg-zinc-200/80 rounded-2xl text-xs font-bold w-fit overflow-x-auto">
-        <button
-          onClick={() => setActiveTab('kyc')}
-          className={`py-2 px-3.5 rounded-xl transition-all ${
-            activeTab === 'kyc' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-600 hover:text-zinc-950'
-          }`}
-        >
-          3-Point KYC Queue
-        </button>
-        <button
-          onClick={() => setActiveTab('rates')}
-          className={`py-2 px-3.5 rounded-xl transition-all ${
-            activeTab === 'rates' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-600 hover:text-zinc-950'
-          }`}
-        >
-          Mandi Rate Authority
-        </button>
-        <button
-          onClick={() => setActiveTab('anomalies')}
-          className={`py-2 px-3.5 rounded-xl transition-all ${
-            activeTab === 'anomalies' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-600 hover:text-zinc-950'
-          }`}
-        >
-          EcoShield Anomaly Audit
-        </button>
-        <button
-          onClick={() => setActiveTab('db')}
-          className={`py-2 px-3.5 rounded-xl transition-all ${
-            activeTab === 'db' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-600 hover:text-zinc-950'
-          }`}
-        >
-          Free Cloud DB Bus
-        </button>
-      </div>
+      {/* 2. Main Content Area */}
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+        {/* Top Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
+                National Governance &amp; Traceability Oversight
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-zinc-950 tracking-tight mt-1">
+              Platform Overview
+            </h1>
+            <p className="text-xs text-zinc-500 font-medium">
+              Real-time monitoring of circular transactions, KYC verifications, and EPR metrics across India.
+            </p>
+          </div>
 
-      {/* 3. TAB 1: 3-POINT KYC DOSSIER QUEUE & SPLIT INSPECTION VIEW */}
-      {activeTab === 'kyc' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          {/* Left Column: Queue List */}
-          <div className="lg:col-span-5 circular-card p-5 bg-white space-y-4">
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
-              <h3 className="text-sm font-bold text-zinc-950">Applicant Queue</h3>
-              <span className="text-[11px] text-zinc-500 font-mono">
-                {kycQueue.length} Total Partners
+          <div className="flex items-center gap-3">
+            <Button
+              size="sm"
+              variant="outline"
+              className="bg-white border-zinc-300 text-zinc-700 font-bold text-xs px-3 shadow-2xs"
+              onClick={() => alert('Exporting platform audit log...')}
+            >
+              <FileText className="w-4 h-4 mr-1.5" />
+              <span>Export Audit Log</span>
+            </Button>
+          </div>
+        </div>
+
+        {/* 4 Platform Overview Metric Cards - Exact Match to Mockup */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {platformStats.map((stat, idx) => {
+            const Icon = stat.icon;
+            return (
+              <div
+                key={idx}
+                className="bg-white rounded-3xl p-5 shadow-lg border border-zinc-200/80 flex items-center justify-between"
+              >
+                <div>
+                  <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+                    {stat.label}
+                  </div>
+                  <div className="text-2xl font-black text-zinc-950 font-mono mt-0.5">
+                    {stat.value}
+                  </div>
+                  <div className="text-[11px] font-bold text-emerald-700 mt-1">
+                    {stat.trend}
+                  </div>
+                </div>
+
+                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${stat.color}`}>
+                  <Icon className="w-6 h-6" />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Central Visualization Grid: Bookings Trend Chart & Material Distribution Donut */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* Left: Bookings Trend Chart (7 cols) */}
+          <div className="lg:col-span-7 bg-white rounded-3xl p-6 shadow-xl border border-zinc-200/80 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-base font-black text-zinc-950 tracking-tight">
+                  Bookings &amp; Tonnage Trend
+                </h2>
+                <p className="text-xs text-zinc-500">
+                  Monthly platform volume progression (Jan - Jun).
+                </p>
+              </div>
+              <span className="text-xs font-bold font-mono text-emerald-700 bg-emerald-50 px-2 py-1 rounded-lg">
+                +240% Growth
               </span>
             </div>
 
-            <div className="space-y-2.5">
-              {kycQueue.map((applicant) => {
-                const isSelected = applicant.id === selectedKycId;
-                const isPending = applicant.status === 'PENDING_REVIEW';
-                return (
-                  <button
-                    key={applicant.id}
-                    onClick={() => setSelectedKycId(applicant.id)}
-                    className={`w-full p-3.5 rounded-xl border text-left transition-all ${
-                      isSelected
-                        ? 'bg-emerald-50/80 border-emerald-500 ring-1 ring-emerald-500 shadow-2xs'
-                        : 'bg-zinc-50 border-zinc-200 hover:bg-zinc-100/60'
-                    }`}
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <div className="font-bold text-xs text-zinc-950">{applicant.name}</div>
-                        <div className="text-[11px] text-zinc-500 mt-0.5">{applicant.vehicle}</div>
+            {/* Custom Bar Visualizer */}
+            <div className="pt-6 pb-2">
+              <div className="grid grid-cols-6 gap-3 items-end h-48 border-b border-zinc-200 pb-2">
+                {monthlyTrends.map((item, idx) => {
+                  const heightPct = Math.round((item.bookings / 1100) * 100);
+                  return (
+                    <div key={idx} className="flex flex-col items-center gap-2 group h-full justify-end">
+                      <div className="text-[10px] font-mono font-bold text-zinc-500 group-hover:text-forest-900 transition-colors">
+                        {item.bookings}
                       </div>
-                      <span
-                        className={`text-[9px] font-bold px-2 py-0.5 rounded-full font-mono uppercase ${
-                          isPending
-                            ? 'bg-amber-100 text-amber-900'
-                            : applicant.status === 'APPROVED'
-                            ? 'bg-emerald-100 text-forest-900'
-                            : 'bg-rose-100 text-rose-900'
-                        }`}
-                      >
-                        {applicant.status}
+                      <div className="w-full bg-zinc-100 rounded-t-xl overflow-hidden flex items-end h-36">
+                        <div
+                          className="w-full bg-forest-900 group-hover:bg-emerald-600 transition-all rounded-t-xl"
+                          style={{ height: `${heightPct}%` }}
+                        />
+                      </div>
+                      <span className="text-xs font-bold text-zinc-700 mt-1">
+                        {item.month}
                       </span>
                     </div>
+                  );
+                })}
+              </div>
+            </div>
 
-                    <div className="flex items-center justify-between text-[10px] text-zinc-400 mt-2 pt-2 border-t border-zinc-100">
-                      <span>Face Match: {applicant.biometricScore}%</span>
-                      <span>{applicant.appliedAt}</span>
-                    </div>
-                  </button>
-                );
-              })}
+            <div className="flex items-center justify-between text-xs text-zinc-500 pt-1">
+              <span>Average pickup fulfillment time: <strong>42 mins</strong></span>
+              <span>Platform SLA: <strong>99.4%</strong></span>
             </div>
           </div>
 
-          {/* Right Column: 3-Card Inspection Dossier */}
-          <div className="lg:col-span-7 circular-card p-6 bg-white space-y-6">
-            <div className="flex items-start justify-between border-b border-zinc-100 pb-4">
-              <div>
-                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">
-                  Dossier Inspector
-                </span>
-                <h2 className="text-lg font-black text-zinc-950 mt-0.5">
-                  {selectedDossier.name} ({selectedDossier.id})
+          {/* Right: Material Distribution Donut Chart (5 cols) - Exact Match to Mockup */}
+          <div className="lg:col-span-5 bg-white rounded-3xl p-6 shadow-xl border border-zinc-200/80 space-y-4 flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between">
+                <h2 className="text-base font-black text-zinc-950 tracking-tight">
+                  Material Distribution
                 </h2>
-                <p className="text-xs text-zinc-500">
-                  Phone: {selectedDossier.phone} • Vehicle: {selectedDossier.vehicle}
-                </p>
+                <span className="text-xs text-zinc-400">125.6 Tons Total</span>
               </div>
+              <p className="text-xs text-zinc-500">
+                Aggregated scrap material breakdown across all states.
+              </p>
+            </div>
 
+            {/* Donut Graphic Representation with Center Tonnage */}
+            <div className="relative flex items-center justify-center my-2">
+              <div className="w-44 h-44 rounded-full border-12 border-emerald-600 border-t-amber-500 border-r-orange-500 border-b-purple-500 flex items-center justify-center bg-zinc-50 shadow-inner">
+                <div className="text-center">
+                  <div className="text-xl font-black text-zinc-950 font-mono">125.6 T</div>
+                  <div className="text-[10px] text-zinc-500 font-bold uppercase">Total Recycled</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Slices / Legend */}
+            <div className="space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-emerald-600" />
+                  <span className="font-bold text-zinc-800">Plastic (PET / HDPE)</span>
+                </div>
+                <span className="font-mono font-bold text-zinc-600">35% (43.9 T)</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-amber-500" />
+                  <span className="font-bold text-zinc-800">Paper &amp; Cardboard</span>
+                </div>
+                <span className="font-mono font-bold text-zinc-600">25% (31.4 T)</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-orange-500" />
+                  <span className="font-bold text-zinc-800">Metal (Copper &amp; Al)</span>
+                </div>
+                <span className="font-mono font-bold text-zinc-600">18% (22.6 T)</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-purple-500" />
+                  <span className="font-bold text-zinc-800">E-Waste &amp; Circuit Boards</span>
+                </div>
+                <span className="font-mono font-bold text-zinc-600">12% (15.1 T)</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="w-3 h-3 rounded-full bg-teal-500" />
+                  <span className="font-bold text-zinc-800">Glass Bottles</span>
+                </div>
+                <span className="font-mono font-bold text-zinc-600">10% (12.6 T)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Verification Queue (12) - Exact Match to Mockup */}
+        <div className="bg-white rounded-3xl p-6 shadow-xl border border-zinc-200/80 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
               <div className="flex items-center gap-2">
-                {selectedDossier.status === 'PENDING_REVIEW' ? (
-                  <>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      onClick={() => handleApproveKyc(selectedDossier.id)}
-                      className="font-bold text-xs"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                      Approve 3-Point KYC
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleRejectKyc(selectedDossier.id)}
-                      className="text-xs text-rose-600 hover:text-rose-700"
-                    >
-                      <XCircle className="w-3.5 h-3.5 mr-1" />
-                      Reject
-                    </Button>
-                  </>
-                ) : (
-                  <span className="text-xs font-bold bg-emerald-100 text-forest-900 px-3 py-1 rounded-full">
-                    {selectedDossier.status} ✓
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* 3-Point Document Inspection Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* Document 1: Aadhaar */}
-              <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200 text-xs space-y-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
-                  1. Aadhaar Card
+                <h2 className="text-lg font-black text-zinc-950 tracking-tight">
+                  Verification Queue (12 Pending)
+                </h2>
+                <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[10px] font-bold">
+                  Action Required
                 </span>
-                <div className="font-mono font-bold text-zinc-950">{selectedDossier.aadhaarNo}</div>
-                <div className="text-[11px] text-emerald-700 font-semibold">
-                  {selectedDossier.aadhaarStatus}
-                </div>
-                <div className="text-[10px] text-zinc-400">UIDAI API Gateway Verified</div>
               </div>
-
-              {/* Document 2: Driving Licence */}
-              <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200 text-xs space-y-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
-                  2. Driving Licence
-                </span>
-                <div className="font-mono font-bold text-zinc-950">{selectedDossier.dlNo}</div>
-                <div className="text-[11px] text-emerald-700 font-semibold">
-                  {selectedDossier.dlStatus}
-                </div>
-                <div className="text-[10px] text-zinc-400">Parivahan Transport Badge</div>
-              </div>
-
-              {/* Document 3: Live Selfie Face Match */}
-              <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200 text-xs space-y-2">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 block">
-                  3. Live Camera Selfie
-                </span>
-                <div className="font-bold text-zinc-950">
-                  Match: {selectedDossier.biometricScore}%
-                </div>
-                <div className="text-[11px] text-emerald-700 font-semibold">
-                  {selectedDossier.selfieStatus}
-                </div>
-                <div className="text-[10px] text-zinc-400">Anti-Spoofing Passed</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 4. TAB 2: MANDI RATE AUTHORITY */}
-      {activeTab === 'rates' && (
-        <div className="circular-card p-6 bg-white space-y-4">
-          <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
-            <div>
-              <h2 className="text-base font-bold text-zinc-950">Mandi Benchmark Rate Governance</h2>
               <p className="text-xs text-zinc-500">
-                Official wholesale benchmark prices broadcast daily across Indian recycling clusters
+                Kabadiwala, recycler and enterprise compliance dossiers awaiting officer review.
               </p>
             </div>
-            <Button size="sm" variant="primary" className="font-bold text-xs">
-              Broadcast Updated Rates
-            </Button>
-          </div>
 
-          <table className="ops-table">
-            <thead>
-              <tr>
-                <th>Category Specification</th>
-                <th>Current Benchmark (₹/kg)</th>
-                <th>24h Trend %</th>
-                <th>Wholesale Spread Range</th>
-                <th>Inline Rate Edit</th>
-              </tr>
-            </thead>
-            <tbody>
-              {mandiRates.map((mr) => (
-                <tr key={mr.id}>
-                  <td className="font-bold text-zinc-950">{mr.category}</td>
-                  <td>
-                    <span className="font-mono font-black text-forest-900 text-sm">
-                      ₹{mr.currentRate.toFixed(2)}
-                    </span>
-                  </td>
-                  <td>
-                    <span
-                      className={`text-[11px] font-bold ${
-                        mr.changePercent >= 0 ? 'text-emerald-700' : 'text-rose-600'
-                      }`}
-                    >
-                      {mr.changePercent >= 0 ? '+' : ''}
-                      {mr.changePercent}%
-                    </span>
-                  </td>
-                  <td className="font-mono text-zinc-500">
-                    ₹{mr.low} - ₹{mr.high}
-                  </td>
-                  <td>
-                    <input
-                      type="number"
-                      step="0.5"
-                      value={mr.currentRate}
-                      onChange={(e) => handleRateChange(mr.id, Number(e.target.value))}
-                      className="w-24 px-2 py-1 bg-zinc-50 border border-zinc-300 rounded-lg font-mono text-xs font-bold text-zinc-900"
-                    />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* 5. TAB 3: ECOSHIELD ANOMALY QUEUE */}
-      {activeTab === 'anomalies' && (
-        <div className="circular-card p-6 bg-white space-y-4">
-          <div className="border-b border-zinc-100 pb-3">
-            <h2 className="text-base font-bold text-zinc-950">EcoShield Anomaly & Anti-Fraud Queue</h2>
-            <p className="text-xs text-zinc-500">Automated transaction monitoring flagging suspicious volume spikes</p>
-          </div>
-
-          <table className="ops-table">
-            <thead>
-              <tr>
-                <th>Anomaly Reference</th>
-                <th>Entity / Account</th>
-                <th>Triggered Rule</th>
-                <th>Severity</th>
-                <th>Resolution Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr>
-                <td className="font-mono font-bold text-zinc-950">ANM-2026-081</td>
-                <td>Domestic Account #482</td>
-                <td>Weight spike: 320 kg for domestic apartment</td>
-                <td>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-900">
-                    MEDIUM
-                  </span>
-                </td>
-                <td className="text-emerald-700 font-bold text-[11px]">RESOLVED (Renovation scrap)</td>
-              </tr>
-              <tr>
-                <td className="font-mono font-bold text-zinc-950">ANM-2026-082</td>
-                <td>Collector Ramu Paswan</td>
-                <td>Copper price spread +14% above Mandi</td>
-                <td>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-900">
-                    LOW
-                  </span>
-                </td>
-                <td className="text-emerald-700 font-bold text-[11px]">CLEARED (Grade 1 Millberry)</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* 6. TAB 4: FREE CLOUD DATABASE BUS */}
-      {activeTab === 'db' && (
-        <div className="circular-card p-6 bg-white space-y-6">
-          <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
-            <div>
-              <h2 className="text-base font-bold text-zinc-950">Free Cloud Database Connectivity Bus</h2>
-              <p className="text-xs text-zinc-500">
-                Persistent storage across deployments with Supabase, MongoDB Atlas, or Neon
-              </p>
-            </div>
-            <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
-              {dbSyncCount} Records Synced ✓
-            </span>
-          </div>
-
-          {syncFeedback && (
-            <div className="p-3 bg-emerald-50 border border-emerald-300 rounded-xl text-xs text-forest-900 font-bold flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-              <span>{syncFeedback}</span>
-            </div>
-          )}
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-            <div>
-              <label className="block font-bold text-zinc-700 mb-1">Active Cloud Provider</label>
-              <select
-                value={dbProvider}
-                onChange={(e) => setDbProvider(e.target.value)}
-                className="w-full px-3 py-2 border border-zinc-300 rounded-xl bg-white font-semibold"
-              >
-                <option>Supabase PostgreSQL (Free 500MB Tier)</option>
-                <option>MongoDB Atlas (Free M0 512MB Sandbox)</option>
-                <option>Neon Serverless Postgres (Free 500MB)</option>
-                <option>Local SQLite Database (Embedded dev.db)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block font-bold text-zinc-700 mb-1">Connection URI String</label>
+            <div className="flex items-center gap-2">
               <input
                 type="text"
-                value={dbUri}
-                onChange={(e) => setDbUri(e.target.value)}
-                className="w-full px-3 py-2 border border-zinc-300 rounded-xl bg-white font-mono text-xs"
+                placeholder="Search dossiers..."
+                className="px-3 py-1.5 text-xs bg-zinc-50 border border-zinc-200 rounded-xl"
               />
             </div>
           </div>
 
-          <div className="flex justify-end pt-2">
-            <Button variant="primary" size="sm" onClick={handleSyncCloudDb} className="font-bold text-xs">
-              <RefreshCw className="w-3.5 h-3.5 mr-1" />
-              Force Immediate Cloud Sync
-            </Button>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-zinc-50 text-zinc-500 uppercase text-[10px] font-black border-y border-zinc-200">
+                <tr>
+                  <th className="py-3 px-4">Applicant</th>
+                  <th className="py-3 px-4">Verification Category</th>
+                  <th className="py-3 px-4">Location</th>
+                  <th className="py-3 px-4">Submitted</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4 text-right">Review Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-200/80">
+                {verificationQueue.map((item) => (
+                  <tr key={item.id} className="hover:bg-zinc-50/80 transition-colors">
+                    <td className="py-3 px-4 font-extrabold text-zinc-950">
+                      {item.name}
+                    </td>
+                    <td className="py-3 px-4 font-semibold text-zinc-700">
+                      {item.category}
+                    </td>
+                    <td className="py-3 px-4 text-zinc-500 font-medium">
+                      {item.location}
+                    </td>
+                    <td className="py-3 px-4 text-zinc-400 font-mono">
+                      {item.submittedDate}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${item.statusColor}`}
+                      >
+                        {item.status}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      {item.status === 'Pending' ? (
+                        <button
+                          onClick={() => handleReviewAction(item)}
+                          className="px-3 py-1 rounded-lg bg-forest-900 text-white font-bold text-xs hover:bg-forest-950 transition-colors"
+                        >
+                          Review KYC
+                        </button>
+                      ) : (
+                        <span className="text-emerald-700 font-bold flex items-center justify-end gap-1 text-xs">
+                          <CheckCircle2 className="w-3.5 h-3.5" /> Approved
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+
+      {/* Review Modal Dialog */}
+      {selectedKycForReview && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-lg w-full space-y-4 shadow-2xl border border-zinc-200">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-200">
+              <h3 className="text-base font-black text-zinc-950">
+                KYC Dossier Review: {selectedKycForReview.name}
+              </h3>
+              <button
+                onClick={() => setSelectedKycForReview(null)}
+                className="text-zinc-400 hover:text-zinc-700 font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="p-3 rounded-2xl bg-zinc-50 border border-zinc-200 space-y-1">
+                <div className="font-bold text-zinc-900">Application Category</div>
+                <div className="text-zinc-600">{selectedKycForReview.category}</div>
+                <div className="text-zinc-400 font-mono text-[11px]">{selectedKycForReview.location}</div>
+              </div>
+
+              <div className="p-3 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-1">
+                <div className="font-bold text-emerald-950 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>UIDAI Aadhaar Masked Verification: Passed (99.4%)</span>
+                </div>
+                <div className="text-emerald-800 text-[11px]">
+                  DL &amp; Commercial Vehicle Registration verified with State Transport database.
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-zinc-200">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedKycForReview(null)}
+                className="text-xs font-bold"
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => handleApproveKyc(selectedKycForReview.id)}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4"
+              >
+                Approve &amp; Issue Certificate
+              </Button>
+            </div>
           </div>
         </div>
       )}

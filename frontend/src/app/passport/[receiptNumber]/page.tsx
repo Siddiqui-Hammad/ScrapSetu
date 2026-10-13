@@ -30,37 +30,38 @@ import { formatINR, formatKg, formatDate, truncateHash } from '@/lib/utils';
 
 export default function WastePassportDetailPage() {
   const params = useParams();
-  const receiptNumber = (params?.receiptNumber as string) || 'RCP-2026-DEL-0894';
+  const rawParam = params?.receiptNumber as string;
+  const receiptNumber = rawParam && rawParam !== 'default' ? rawParam : 'WP-2024-00124';
   const [copied, setCopied] = useState(false);
 
-  // Mock passport record for demo verification
+  // Mock passport record for demo verification matching Mockup Row 3 Panel 4
   const passportData = {
     receiptNumber: receiptNumber,
-    materialCategory: 'Rigid Plastics (PET / HDPE)',
-    weightKg: 24.8,
-    payoutAmount: 644.8,
+    materialCategory: 'Plastic (Grade A PET)',
+    weightKg: 15.0,
+    payoutAmount: 375.0,
     sha256Hash: '9e7b28fc083a3d5b0018a1a310bb2447d25e0a9437d8fca02d13bb22283a0058',
-    generatedAt: '2026-10-12T14:45:00Z',
-    status: 'TRANSFERRED_TO_RECYCLER',
-    carbonSavedKg: 37.2,
-    treesEquivalent: 1.8,
-    waterSavedLiters: 124,
+    generatedAt: '2026-10-14T10:45:00Z',
+    status: 'BALED_AND_PELLETED',
+    carbonSavedKg: 12.5,
+    treesEquivalent: 3.0,
+    waterSavedLiters: 95,
     generator: {
       type: 'HOUSEHOLD',
-      name: 'Pooja Sharma',
-      location: 'South Extension II, New Delhi - 110049',
+      name: 'Priya Sharma',
+      location: '12th Main, Indiranagar, Bangalore - 560038',
     },
     collector: {
-      name: 'Ramu Paswan (Kavach Certified)',
+      name: 'Ramesh Kumar (Kavach Certified #DL1ER4921)',
       scaleModel: 'TrustWeigh BT-Scale v2.1 (Calibrated)',
-      scaleTolerance: '± 0.05 kg',
+      scaleTolerance: '± 0.02 kg',
     },
     recycler: {
-      name: 'EcoPlast Reclaimers Pvt Ltd',
-      cpcbLicense: 'CPCB/PWM/DEL-2024/092',
-      facilityLocation: 'Okhla Industrial Area Phase-I, New Delhi',
+      name: 'EcoTransform Recycling Facility #BLR-04',
+      cpcbLicense: 'CPCB/PWM/BLR-2024/092',
+      facilityLocation: 'Peenya Industrial Area, Bangalore',
       outputGrade: 'Grade A rPET Flakes (Food Contact Grade)',
-      batchLotNumber: 'LOT-2026-OCT-7712',
+      batchLotNumber: 'LOT-2026-OCT-001',
     },
   };
 

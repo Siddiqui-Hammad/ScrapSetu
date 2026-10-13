@@ -160,22 +160,21 @@ if "is_logged_in" not in st.session_state:
 if "current_role" not in st.session_state:
     st.session_state.current_role = "HOUSEHOLD"
 if "user_name" not in st.session_state:
-    st.session_state.user_name = "Pooja Verma"
+    st.session_state.user_name = "Priya Sharma"
 if "user_email" not in st.session_state:
-    st.session_state.user_email = "household@scrapsetu.in"
+    st.session_state.user_email = "priya@scrapsetu.in"
 if "lang" not in st.session_state:
     st.session_state.lang = "en"
 
-# Material Catalog
+# Material Catalog - Exact 6 Materials Matching ScrapSetu 2.0 Mockup
 if "categories" not in st.session_state:
     st.session_state.categories = [
-        {"id": "c1", "name": "Paper & Cardboard (Gatta)", "hindi": "कागज़ और गत्ता", "rate": 15.5, "min": 13.0, "max": 18.0, "unit": "kg", "co2": 1.35, "icon": "📦"},
-        {"id": "c2", "name": "Rigid Plastics (PET / HDPE)", "hindi": "सख्त प्लास्टिक", "rate": 28.0, "min": 24.0, "max": 32.0, "unit": "kg", "co2": 1.80, "icon": "🧴"},
-        {"id": "c3", "name": "Ferrous Metals (Iron / Loha)", "hindi": "लोहा और इस्पात", "rate": 34.0, "min": 30.0, "max": 38.0, "unit": "kg", "co2": 1.50, "icon": "🔩"},
-        {"id": "c4", "name": "Copper Wire (Millberry)", "hindi": "तांबा (कॉपर वायर)", "rate": 685.0, "min": 650.0, "max": 710.0, "unit": "kg", "co2": 9.10, "icon": "✨"},
-        {"id": "c5", "name": "Brass / Pital Utensils", "hindi": "पीतल और कांसा", "rate": 460.0, "min": 430.0, "max": 480.0, "unit": "kg", "co2": 7.40, "icon": "🫖"},
-        {"id": "c6", "name": "Aluminium Section / Cans", "hindi": "अल्युमिनियम", "rate": 165.0, "min": 150.0, "max": 175.0, "unit": "kg", "co2": 8.20, "icon": "🥫"},
-        {"id": "c7", "name": "Electronic Waste (PCBs / WEEE)", "hindi": "ई-कचरा / मदरबोर्ड", "rate": 135.0, "min": 95.0, "max": 310.0, "unit": "kg", "co2": 4.50, "icon": "💻"},
+        {"id": "plastic", "name": "Plastic (PET/HDPE)", "hindi": "प्लास्टिक", "rate": 15.0, "min": 12.0, "max": 20.0, "unit": "kg", "co2": 1.80, "icon": "🥤"},
+        {"id": "paper", "name": "Paper & Cardboard", "hindi": "कागज़ और गत्ता", "rate": 12.0, "min": 10.0, "max": 16.0, "unit": "kg", "co2": 1.35, "icon": "📄"},
+        {"id": "metal", "name": "Metal (Iron/Al/Cu)", "hindi": "धातु / लोहा", "rate": 45.0, "min": 35.0, "max": 60.0, "unit": "kg", "co2": 2.50, "icon": "🥫"},
+        {"id": "ewaste", "name": "E-Waste & Electronics", "hindi": "ई-कचरा", "rate": 60.0, "min": 50.0, "max": 120.0, "unit": "kg", "co2": 4.50, "icon": "💻"},
+        {"id": "glass", "name": "Glass Bottles", "hindi": "कांच की बोतलें", "rate": 2.0, "min": 1.5, "max": 3.0, "unit": "kg", "co2": 0.30, "icon": "🍾"},
+        {"id": "others", "name": "Others / Mixed Dry", "hindi": "अन्य सूखा कचरा", "rate": 8.0, "min": 5.0, "max": 12.0, "unit": "kg", "co2": 0.80, "icon": "📦"},
     ]
 
 # Seeded Pickup Orders
@@ -324,13 +323,13 @@ def generate_receipt_hash(rec_no, user, collector, total, weight, ts):
     payload = f"{rec_no}|{user}|{collector}|{total}|{weight}|{ts}"
     return hashlib.sha256(payload.encode()).hexdigest()
 
-# Demo Personas
+# Demo Personas - Exact Match to ScrapSetu 2.0 Mockup
 DEMO_ROLES = {
-    "HOUSEHOLD": {"name": "Pooja Verma", "email": "household@scrapsetu.in", "role": "HOUSEHOLD"},
+    "HOUSEHOLD": {"name": "Priya Sharma", "email": "priya@scrapsetu.in", "role": "HOUSEHOLD"},
     "BUSINESS": {"name": "GreenTech Enterprises Ltd", "email": "business@scrapsetu.in", "role": "BUSINESS"},
-    "COLLECTOR": {"name": "Ramu Paswan", "email": "collector@scrapsetu.in", "role": "COLLECTOR"},
-    "RECYCLER": {"name": "EcoPlast Reclaimers Pvt Ltd", "email": "recycler@scrapsetu.in", "role": "RECYCLER"},
-    "ADMIN": {"name": "Deepak Verma", "email": "admin@scrapsetu.in", "role": "ADMIN"},
+    "COLLECTOR": {"name": "Ramesh Kumar", "email": "ramesh@scrapsetu.in", "role": "COLLECTOR"},
+    "RECYCLER": {"name": "EcoTransform Recycling Facility", "email": "recycler@scrapsetu.in", "role": "RECYCLER"},
+    "ADMIN": {"name": "CPCB SuperAdmin", "email": "admin@scrapsetu.in", "role": "ADMIN"},
 }
 
 def login_as(role_key):

@@ -56,105 +56,74 @@ export default function GreenImpactPage() {
           </p>
         </div>
 
-        {/* Global Impact Counter Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Card className="border-emerald-200 bg-gradient-to-br from-emerald-900 to-forest-950 text-white shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between text-xs font-bold text-emerald-300 mb-2">
-                <span className="flex items-center gap-1.5">
-                  <Recycle className="w-4 h-4 text-emerald-400" />
-                  Landfill Diversion
-                </span>
-                <Badge variant="emerald" className="text-[10px]">Audited</Badge>
-              </div>
-              <div className="text-3xl sm:text-4xl font-black tracking-tight font-mono text-emerald-100">
-                2,845.9 MT
-              </div>
-              <p className="text-xs text-emerald-300 mt-2">
-                2,845,920 kg of solid dry recyclables successfully redirected to verified recycling facilities.
-              </p>
-            </CardContent>
+        {/* Exact 4 GreenLedger Metric Cards - Mockup Row 3 Panel 6 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="border-emerald-200 bg-white rounded-3xl p-5 shadow-lg space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold text-zinc-500 uppercase tracking-wider">
+              <span className="flex items-center gap-1.5">
+                <Recycle className="w-4 h-4 text-emerald-600" />
+                Total Recycled
+              </span>
+              <span className="text-[10px] bg-emerald-100 text-emerald-800 font-mono font-bold px-2 py-0.5 rounded-full">Audited</span>
+            </div>
+            <div className="text-3xl font-black tracking-tight font-mono text-zinc-950">
+              125.6 Tons
+            </div>
+            <div className="text-xs text-emerald-700 font-bold">+24% MoM Diversion</div>
+            <p className="text-[11px] text-zinc-500">
+              Redirected from municipal landfills into circular industrial mills.
+            </p>
           </Card>
 
-          <Card className="border-blue-200 bg-gradient-to-br from-blue-900 to-sky-950 text-white shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between text-xs font-bold text-blue-300 mb-2">
-                <span className="flex items-center gap-1.5">
-                  <Leaf className="w-4 h-4 text-blue-400" />
-                  CO₂e Emissions Prevented
-                </span>
-                <Badge variant="blue" className="text-[10px]">IPCC Model</Badge>
-              </div>
-              <div className="text-3xl sm:text-4xl font-black tracking-tight font-mono text-blue-100">
-                4,268 MT
-              </div>
-              <p className="text-xs text-blue-300 mt-2">
-                Avoided greenhouse gases calculated vs virgin polymer and primary bauxite/iron smelting.
-              </p>
-            </CardContent>
+          <Card className="border-blue-200 bg-white rounded-3xl p-5 shadow-lg space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold text-zinc-500 uppercase tracking-wider">
+              <span className="flex items-center gap-1.5">
+                <Leaf className="w-4 h-4 text-blue-600" />
+                Carbon Prevented
+              </span>
+              <span className="text-[10px] bg-blue-100 text-blue-800 font-mono font-bold px-2 py-0.5 rounded-full">IPCC Model</span>
+            </div>
+            <div className="text-3xl font-black tracking-tight font-mono text-zinc-950">
+              8,920 KG CO₂
+            </div>
+            <div className="text-xs text-blue-700 font-bold">+30% Net Carbon Offset</div>
+            <p className="text-[11px] text-zinc-500">
+              Greenhouse gas abatement vs primary raw virgin bauxite and crude resin.
+            </p>
           </Card>
 
-          <Card className="border-teal-200 bg-gradient-to-br from-teal-900 to-stone-900 text-white shadow-lg">
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between text-xs font-bold text-teal-300 mb-2">
-                <span className="flex items-center gap-1.5">
-                  <Trees className="w-4 h-4 text-teal-400" />
-                  Mature Trees Preserved
-                </span>
-                <Badge variant="teal" className="text-[10px]">Paper Circularity</Badge>
-              </div>
-              <div className="text-3xl sm:text-4xl font-black tracking-tight font-mono text-teal-100">
-                38,420 Trees
-              </div>
-              <p className="text-xs text-teal-300 mt-2">
-                Conserved forest cover through corrugated carton and white paper recovery loops.
-              </p>
-            </CardContent>
+          <Card className="border-teal-200 bg-white rounded-3xl p-5 shadow-lg space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold text-zinc-500 uppercase tracking-wider">
+              <span className="flex items-center gap-1.5">
+                <Trees className="w-4 h-4 text-teal-600" />
+                Forest Preserved
+              </span>
+              <span className="text-[10px] bg-teal-100 text-teal-800 font-mono font-bold px-2 py-0.5 rounded-full">Circularity</span>
+            </div>
+            <div className="text-3xl font-black tracking-tight font-mono text-zinc-950">
+              450 Trees
+            </div>
+            <div className="text-xs text-teal-700 font-bold">Paper Recycled Equivalent</div>
+            <p className="text-[11px] text-zinc-500">
+              Saved through closed-loop corrugated kraft and white office paper recycling.
+            </p>
           </Card>
 
-          <Card className="border-cyan-200 bg-white shadow-md">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-2 text-xs font-bold text-stone-600 mb-1">
-                <Droplets className="w-4 h-4 text-cyan-600" />
-                <span>Industrial Water Conserved</span>
-              </div>
-              <div className="text-2xl font-black text-stone-900 font-mono">
-                {globalImpact.waterSavedLiters} Litres
-              </div>
-              <div className="text-xs text-stone-500 mt-1">
-                Saved compared to pulp milling and plastic synthesis
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-amber-200 bg-white shadow-md">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-2 text-xs font-bold text-stone-600 mb-1">
+          <Card className="border-amber-200 bg-white rounded-3xl p-5 shadow-lg space-y-2">
+            <div className="flex items-center justify-between text-xs font-bold text-zinc-500 uppercase tracking-wider">
+              <span className="flex items-center gap-1.5">
                 <ShieldCheck className="w-4 h-4 text-amber-600" />
-                <span>Informal Livelihoods Formalized</span>
-              </div>
-              <div className="text-2xl font-black text-stone-900 font-mono">
-                1,420 Kabadiwalas
-              </div>
-              <div className="text-xs text-stone-500 mt-1">
-                Equipped with TrustWeigh hardware, UPI payout, and health coverage
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="border-emerald-200 bg-white shadow-md">
-            <CardContent className="p-5">
-              <div className="flex items-center gap-2 text-xs font-bold text-stone-600 mb-1">
-                <TrendingUp className="w-4 h-4 text-emerald-600" />
-                <span>Direct Citizen & SME Payouts</span>
-              </div>
-              <div className="text-2xl font-black text-emerald-950 font-mono">
-                {formatINR(globalImpact.directPayoutDisbursed)}
-              </div>
-              <div className="text-xs text-stone-500 mt-1">
-                100% digital instant payments without commission deductions
-              </div>
-            </CardContent>
+                Active Households
+              </span>
+              <span className="text-[10px] bg-amber-100 text-amber-800 font-mono font-bold px-2 py-0.5 rounded-full">GreenKarma</span>
+            </div>
+            <div className="text-3xl font-black tracking-tight font-mono text-zinc-950">
+              2,100 Homes
+            </div>
+            <div className="text-xs text-amber-700 font-bold">Verified Doorstep Participants</div>
+            <p className="text-[11px] text-zinc-500">
+              Earning instant digital UPI settlements and GreenKarma ecological points.
+            </p>
           </Card>
         </div>
 

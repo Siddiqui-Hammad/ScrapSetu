@@ -16,370 +16,403 @@ import {
   ArrowRight,
   ShieldCheck,
   Package,
+  Layers,
+  DollarSign,
+  Truck,
+  RotateCcw,
+  BarChart3,
+  Settings,
+  Recycle,
 } from 'lucide-react';
-import { Button } from '../../../components/ui/button';
-import { formatINR, formatKg, formatDate } from '../../../lib/utils';
-import { useAuthStore } from '../../../store/authStore';
+import { Button } from '@/components/ui/button';
+import { formatINR, formatKg } from '@/lib/utils';
+import { useAuthStore } from '@/store/authStore';
 
 export default function RecyclerPortalPage() {
   const { user } = useAuthStore();
+  const [activeNav, setActiveNav] = useState<'lots' | 'rates' | 'inventory' | 'dispatches' | 'analytics'>('lots');
+  const [lotFilter, setLotFilter] = useState<'all' | 'pending' | 'in_process' | 'completed'>('all');
 
-  // Inbound Lots Data (Table-centric)
-  const [inboundLots, setInboundLots] = useState([
+  // Exact 5 Incoming Material Lots matching Mockup Row 2 Panel 3
+  const [incomingLots, setIncomingLots] = useState([
     {
-      lotId: 'LOT-2026-OCT-7712',
-      supplier: 'Ramu Paswan (Kavach Certified)',
-      material: 'Rigid Plastics (PET Clear Optical)',
-      grossKg: 182.5,
-      tareKg: 7.5,
-      netKg: 175.0,
-      moisturePercent: 1.2,
-      agreedRate: 31.5,
-      status: 'PENDING_INSPECTION', // PENDING_INSPECTION, ACCEPTED, PROCESSED, FLAGGED
-      discrepancy: 'None (Matches Origin Slip)',
-      time: '11:45 AM Today',
+      id: '#LOT001',
+      supplier: 'Ramesh Kumar',
+      material: 'Mixed Plastic PET',
+      grossKg: 320,
+      impurityPct: 4.2,
+      netKg: 306.5,
+      status: 'Pending',
+      statusColor: 'bg-amber-100 text-amber-800 border-amber-200',
     },
     {
-      lotId: 'LOT-2026-OCT-7709',
-      supplier: 'Mohammad Farooq (Mini Truck)',
-      material: 'Kraft Corrugated Carton (Gatta)',
-      grossKg: 520.0,
-      tareKg: 15.0,
-      netKg: 505.0,
-      moisturePercent: 3.5,
-      agreedRate: 17.0,
-      status: 'ACCEPTED',
-      discrepancy: 'Moisture -2% Adjusted',
-      time: '09:30 AM Today',
+      id: '#LOT002',
+      supplier: 'Suresh Yadav',
+      material: 'Old Corrugated Cardboard',
+      grossKg: 540,
+      impurityPct: 2.1,
+      netKg: 528.6,
+      status: 'In Process',
+      statusColor: 'bg-blue-100 text-blue-800 border-blue-200',
     },
     {
-      lotId: 'LOT-2026-OCT-7698',
-      supplier: 'GreenTech Commercial Logistics',
-      material: 'Server Motherboards & Mixed PCBs',
-      grossKg: 65.0,
-      tareKg: 2.0,
-      netKg: 63.0,
-      moisturePercent: 0.0,
-      agreedRate: 135.0,
-      status: 'PROCESSED',
-      discrepancy: 'None',
-      time: 'Yesterday',
+      id: '#LOT003',
+      supplier: 'City Solid Waste',
+      material: 'Mixed Aluminium Cans',
+      grossKg: 180,
+      impurityPct: 1.0,
+      netKg: 178.2,
+      status: 'In Process',
+      statusColor: 'bg-blue-100 text-blue-800 border-blue-200',
+    },
+    {
+      id: '#LOT004',
+      supplier: 'GreenLogistics',
+      material: 'E-Waste PCB Boards',
+      grossKg: 95,
+      impurityPct: 0.5,
+      netKg: 94.5,
+      status: 'Completed',
+      statusColor: 'bg-emerald-100 text-emerald-800 border-emerald-200',
+    },
+    {
+      id: '#LOT005',
+      supplier: 'Mahesh Verma',
+      material: 'Glass Bottles',
+      grossKg: 410,
+      impurityPct: 3.5,
+      netKg: 395.6,
+      status: 'Pending',
+      statusColor: 'bg-amber-100 text-amber-800 border-amber-200',
     },
   ]);
 
-  // Buying Rate Sheet Data
-  const [buyingRates, setBuyingRates] = useState([
-    { id: 'br-1', category: 'Rigid Plastics (PET / HDPE)', grade: 'Optical Clean / Food Contact', ratePerKg: 31.5, minLotKg: 50, dailyIntakeCapKg: 1500, active: true },
-    { id: 'br-2', category: 'Paper & Cardboard (Gatta)', grade: 'Kraft Mill Grade A', ratePerKg: 17.0, minLotKg: 100, dailyIntakeCapKg: 3000, active: true },
-    { id: 'br-3', category: 'Copper Wire (Millberry)', grade: 'Electrolytic 99.9%', ratePerKg: 695.0, minLotKg: 20, dailyIntakeCapKg: 500, active: true },
-    { id: 'br-4', category: 'Heavy Structural Iron', grade: 'HMS 1/2 Melting Quality', ratePerKg: 35.5, minLotKg: 150, dailyIntakeCapKg: 5000, active: true },
-  ]);
+  // Exact 4 Current Buying Rates matching Mockup Row 2 Panel 3
+  const buyingRates = [
+    {
+      material: 'Plastic (PET/HDPE)',
+      range: '₹25 - ₹45 / kg',
+      trend: '+5%',
+      up: true,
+      color: 'text-blue-700 bg-blue-50 border-blue-200',
+    },
+    {
+      material: 'Cardboard (OCC)',
+      range: '₹10 - ₹20 / kg',
+      trend: '+2%',
+      up: true,
+      color: 'text-amber-700 bg-amber-50 border-amber-200',
+    },
+    {
+      material: 'Aluminium Cans',
+      range: '₹120 - ₹160 / kg',
+      trend: '+12%',
+      up: true,
+      color: 'text-orange-700 bg-orange-50 border-orange-200',
+    },
+    {
+      material: 'E-Waste (PCBs)',
+      range: '₹50 - ₹120 / kg',
+      trend: '+8%',
+      up: true,
+      color: 'text-purple-700 bg-purple-50 border-purple-200',
+    },
+  ];
 
-  const [filterText, setFilterText] = useState('');
-  const [isNewSlipOpen, setIsNewSlipOpen] = useState(false);
-
-  // New slip form state
-  const [slipSupplier, setSlipSupplier] = useState('');
-  const [slipMaterial, setSlipMaterial] = useState('Rigid Plastics (PET / HDPE)');
-  const [slipGross, setSlipGross] = useState(250.0);
-  const [slipTare, setSlipTare] = useState(10.0);
-  const [slipRate, setSlipRate] = useState(31.5);
-
-  const handleCreateSlip = (e: React.FormEvent) => {
-    e.preventDefault();
-    const net = Math.max(0, slipGross - slipTare);
-    const newLot = {
-      lotId: `LOT-2026-OCT-${Math.floor(7700 + Math.random() * 900)}`,
-      supplier: slipSupplier || 'Verified Doorstep Collector',
-      material: slipMaterial,
-      grossKg: slipGross,
-      tareKg: slipTare,
-      netKg: net,
-      moisturePercent: 1.0,
-      agreedRate: slipRate,
-      status: 'ACCEPTED',
-      discrepancy: 'None',
-      time: 'Just now',
-    };
-    setInboundLots([newLot, ...inboundLots]);
-    setIsNewSlipOpen(false);
-  };
-
-  const handleAcceptLot = (lotId: string) => {
-    setInboundLots((prev) =>
-      prev.map((l) => (l.lotId === lotId ? { ...l, status: 'ACCEPTED' } : l))
+  const handleUpdateStatus = (lotId: string, newStatus: string) => {
+    setIncomingLots((prev) =>
+      prev.map((lot) =>
+        lot.id === lotId
+          ? {
+              ...lot,
+              status: newStatus,
+              statusColor:
+                newStatus === 'Completed'
+                  ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                  : 'bg-blue-100 text-blue-800 border-blue-200',
+            }
+          : lot
+      )
     );
   };
 
+  const filteredLots = incomingLots.filter((lot) => {
+    if (lotFilter === 'pending') return lot.status === 'Pending';
+    if (lotFilter === 'in_process') return lot.status === 'In Process';
+    if (lotFilter === 'completed') return lot.status === 'Completed';
+    return true;
+  });
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* 1. Industrial Plant Status Bar */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-white border border-zinc-200 shadow-2xs">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-800">
-              State Pollution Control Board Registered Facility
-            </span>
-          </div>
-          <h1 className="text-2xl font-black text-zinc-950 tracking-tight mt-1">
-            {user?.name || 'EcoPlast Reclaimers Pvt Ltd'}
-          </h1>
-          <p className="text-xs text-zinc-500 mt-0.5">
-            CPCB Registration: <span className="font-mono font-bold text-zinc-700">CPCB/PWM/DEL-2024/092</span> • Okhla Industrial Cluster
-          </p>
+    <div className="min-h-screen bg-[#f4f6f8] flex">
+      {/* 1. Left Dark Forest Sidebar - Exact Match to Mockup Row 2 Panel 3 */}
+      <aside className="w-64 bg-forest-900 text-white shrink-0 hidden lg:flex flex-col justify-between p-5 border-r border-forest-950">
+        <div className="space-y-8">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500 text-forest-950 flex items-center justify-center font-bold">
+              <Factory className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-base font-black tracking-tight text-white leading-tight">
+                ScrapSetu
+              </div>
+              <div className="text-[10px] font-bold text-emerald-400 tracking-wider uppercase">
+                Recycler Facility
+              </div>
+            </div>
+          </Link>
+
+          <nav className="space-y-1.5">
+            {[
+              { id: 'lots', label: 'Incoming Lots', icon: Package },
+              { id: 'rates', label: 'Rate Sheet & Mandi', icon: DollarSign },
+              { id: 'inventory', label: 'Baled Inventory', icon: Layers },
+              { id: 'dispatches', label: 'Truck Dispatches', icon: Truck },
+              { id: 'analytics', label: 'EPR Accounting', icon: BarChart3 },
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = activeNav === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveNav(item.id as any)}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                    isActive
+                      ? 'bg-emerald-500 text-forest-950 shadow-md font-extrabold'
+                      : 'text-zinc-300 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
         </div>
 
-        <div className="flex items-center gap-6 shrink-0 bg-zinc-50 p-3 rounded-xl border border-zinc-200 text-xs">
+        {/* Facility Card in Sidebar */}
+        <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-emerald-400 text-forest-950 font-black flex items-center justify-center text-xs">
+            ET
+          </div>
+          <div className="overflow-hidden">
+            <div className="text-xs font-extrabold text-white truncate">
+              EcoTransform Mill #04
+            </div>
+            <div className="text-[10px] text-zinc-400">CPCB Reg: #BLR-CPCB-04</div>
+          </div>
+        </div>
+      </aside>
+
+      {/* 2. Main Content Area */}
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+        {/* Top Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200">
           <div>
-            <div className="text-[10px] uppercase font-bold text-zinc-400">Weighbridge Status</div>
-            <div className="font-mono font-bold text-forest-900">50T Digital (Calibrated)</div>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-xs font-bold uppercase tracking-wider text-emerald-800">
+                Registered Recycling &amp; Pelletizing Facility
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-zinc-950 tracking-tight mt-1">
+              EcoTransform Operations Terminal
+            </h1>
+            <p className="text-xs text-zinc-500 font-medium">
+              Weighbridge Intake • Moisture &amp; Quality Deduction • EPR Traceability Passports
+            </p>
           </div>
-          <div className="border-l border-zinc-200 pl-4">
-            <div className="text-[10px] uppercase font-bold text-zinc-400">Today Inbound</div>
-            <div className="font-mono font-bold text-emerald-700">743.0 kg Net</div>
-          </div>
-          <div className="border-l border-zinc-200 pl-4">
+
+          <div className="flex items-center gap-3">
             <Button
               size="sm"
-              variant="primary"
-              onClick={() => setIsNewSlipOpen(true)}
-              className="font-bold text-xs"
+              className="bg-forest-900 hover:bg-forest-950 text-white font-bold text-xs px-4"
+              onClick={() => alert('New digital weighbridge slip created.')}
             >
-              <Plus className="w-3.5 h-3.5 mr-1" />
-              New Weighbridge Slip
+              <Plus className="w-4 h-4 mr-1.5" />
+              <span>New Weighbridge Slip</span>
             </Button>
           </div>
         </div>
-      </div>
 
-      {/* 2. New Slip Modal */}
-      {isNewSlipOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-zinc-200 space-y-4">
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
-              <h3 className="text-base font-bold text-zinc-950 flex items-center gap-2">
-                <Scale className="w-4 h-4 text-forest-900" />
-                Issue Weighbridge Gate Intake Slip
-              </h3>
-              <button
-                onClick={() => setIsNewSlipOpen(false)}
-                className="text-zinc-400 hover:text-zinc-700 text-sm font-bold"
+        {/* Current Buying Rates (4 Cards) - Exact Match to Mockup */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+              Current Buying Rates (Live Market)
+            </h3>
+            <span className="text-xs text-emerald-700 font-bold">Updated 10m ago</span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {buyingRates.map((br, idx) => (
+              <div
+                key={idx}
+                className="bg-white rounded-2xl p-4 border border-zinc-200 shadow-sm flex items-center justify-between"
               >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateSlip} className="space-y-4 text-xs">
-              <div>
-                <label className="block font-bold text-zinc-700 mb-1">Supplier / Collector Name</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Ramu Paswan (Kavach Certified)"
-                  value={slipSupplier}
-                  onChange={(e) => setSlipSupplier(e.target.value)}
-                  className="w-full px-3 py-2 border border-zinc-300 rounded-xl"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-zinc-700 mb-1">Material Category</label>
-                <select
-                  value={slipMaterial}
-                  onChange={(e) => setSlipMaterial(e.target.value)}
-                  className="w-full px-3 py-2 border border-zinc-300 rounded-xl"
-                >
-                  <option>Rigid Plastics (PET / HDPE)</option>
-                  <option>Kraft Corrugated Carton (Gatta)</option>
-                  <option>Copper Wire (Millberry)</option>
-                  <option>Heavy Structural Iron (HMS)</option>
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-zinc-700 mb-1">Gross Truck Weight (kg)</label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    value={slipGross}
-                    onChange={(e) => setSlipGross(Number(e.target.value))}
-                    className="w-full px-3 py-2 border border-zinc-300 rounded-xl font-mono"
-                  />
+                  <div className="text-xs font-extrabold text-zinc-900">{br.material}</div>
+                  <div className="text-sm font-black text-forest-900 font-mono mt-0.5">
+                    {br.range}
+                  </div>
                 </div>
-                <div>
-                  <label className="block font-bold text-zinc-700 mb-1">Tare Container Weight (kg)</label>
-                  <input
-                    type="number"
-                    step="0.5"
-                    value={slipTare}
-                    onChange={(e) => setSlipTare(Number(e.target.value))}
-                    className="w-full px-3 py-2 border border-zinc-300 rounded-xl font-mono"
-                  />
-                </div>
-              </div>
-
-              <div className="p-3 bg-zinc-50 rounded-xl border border-zinc-200 flex justify-between items-center">
-                <span>Calculated Net Weight:</span>
-                <span className="font-mono font-bold text-forest-900 text-sm">
-                  {Math.max(0, slipGross - slipTare)} kg
+                <span className="text-xs font-bold font-mono px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                  ↑ {br.trend}
                 </span>
               </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="ghost" size="sm" onClick={() => setIsNewSlipOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" variant="primary" size="sm" className="font-bold">
-                  Confirm Intake & Generate QR Pass
-                </Button>
-              </div>
-            </form>
+            ))}
           </div>
         </div>
-      )}
 
-      {/* 3. Inbound Material Deliveries (High-Density Operational Data Table) */}
-      <div className="circular-card p-6 bg-white space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 pb-4">
-          <div>
-            <h2 className="text-base font-bold text-zinc-950">Inbound Material Gate Intakes</h2>
-            <p className="text-xs text-zinc-500">Live weighbridge passes awaiting QC inspection and hopper unloading</p>
+        {/* Incoming Material Lots Table - Exact Match to Mockup */}
+        <div className="bg-white rounded-3xl p-6 shadow-xl border border-zinc-200/80 space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-black text-zinc-950 tracking-tight">
+                Incoming Material Lots
+              </h2>
+              <p className="text-xs text-zinc-500">
+                Calibrated weighbridge receipts awaiting processing and quality grading.
+              </p>
+            </div>
+
+            {/* Tabs matching mockup: All, Pending, In Process, Completed */}
+            <div className="flex items-center rounded-xl bg-zinc-100 p-1 text-xs font-bold">
+              {[
+                { id: 'all', label: 'All Lots (5)' },
+                { id: 'pending', label: 'Pending (2)' },
+                { id: 'in_process', label: 'In Process (2)' },
+                { id: 'completed', label: 'Completed (1)' },
+              ].map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setLotFilter(tab.id as any)}
+                  className={`px-3 py-1.5 rounded-lg transition-all ${
+                    lotFilter === tab.id
+                      ? 'bg-white text-forest-900 shadow-2xs font-extrabold'
+                      : 'text-zinc-600 hover:text-zinc-900'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="relative w-64">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-zinc-400" />
-              <input
-                type="text"
-                placeholder="Search Lot ID or Supplier..."
-                value={filterText}
-                onChange={(e) => setFilterText(e.target.value)}
-                className="w-full pl-8 pr-3 py-1.5 text-xs border border-zinc-200 rounded-xl bg-zinc-50 focus:bg-white"
-              />
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead className="bg-zinc-50 text-zinc-500 uppercase text-[10px] font-black border-y border-zinc-200">
+                <tr>
+                  <th className="py-3 px-4">Lot ID</th>
+                  <th className="py-3 px-4">Collector / Source</th>
+                  <th className="py-3 px-4">Material Type</th>
+                  <th className="py-3 px-4">Gross Weight</th>
+                  <th className="py-3 px-4">Deduction</th>
+                  <th className="py-3 px-4">Net Weight</th>
+                  <th className="py-3 px-4">Status</th>
+                  <th className="py-3 px-4 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-200/80">
+                {filteredLots.map((lot) => (
+                  <tr key={lot.id} className="hover:bg-zinc-50/80 transition-colors">
+                    <td className="py-3 px-4 font-mono font-black text-zinc-950">
+                      {lot.id}
+                    </td>
+                    <td className="py-3 px-4 font-bold text-zinc-800">
+                      {lot.supplier}
+                    </td>
+                    <td className="py-3 px-4 font-semibold text-zinc-600">
+                      {lot.material}
+                    </td>
+                    <td className="py-3 px-4 font-mono font-medium text-zinc-700">
+                      {lot.grossKg} kg
+                    </td>
+                    <td className="py-3 px-4 font-mono text-amber-700">
+                      {lot.impurityPct}%
+                    </td>
+                    <td className="py-3 px-4 font-mono font-bold text-emerald-800">
+                      {lot.netKg} kg
+                    </td>
+                    <td className="py-3 px-4">
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${lot.statusColor}`}
+                      >
+                        {lot.status}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-right">
+                      {lot.status === 'Pending' ? (
+                        <button
+                          onClick={() => handleUpdateStatus(lot.id, 'In Process')}
+                          className="px-2.5 py-1 rounded-lg bg-forest-900 text-white font-bold text-[11px] hover:bg-forest-950 transition-colors"
+                        >
+                          Inspect / Grade
+                        </button>
+                      ) : lot.status === 'In Process' ? (
+                        <button
+                          onClick={() => handleUpdateStatus(lot.id, 'Completed')}
+                          className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white font-bold text-[11px] hover:bg-emerald-700 transition-colors"
+                        >
+                          Process Batch
+                        </button>
+                      ) : (
+                        <Link
+                          href="/passport/RCP-2026-DEL-0894"
+                          className="px-2.5 py-1 rounded-lg bg-zinc-100 text-zinc-800 font-bold text-[11px] hover:bg-zinc-200 transition-colors inline-block"
+                        >
+                          View Passport
+                        </Link>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Processing Capacity & Environmental Output Row - Exact Match to Mockup */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-3xl p-5 shadow-lg border border-zinc-200/80 space-y-2">
+            <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+              Processing Capacity
+            </div>
+            <div className="text-2xl font-black text-zinc-950 font-mono">
+              320 / 500 tons (64%)
+            </div>
+            <div className="w-full bg-zinc-100 rounded-full h-2.5 overflow-hidden">
+              <div className="bg-emerald-500 h-full rounded-full" style={{ width: '64%' }} />
+            </div>
+            <div className="text-[11px] text-zinc-400">180 tons spare hydraulic capacity</div>
+          </div>
+
+          <div className="bg-white rounded-3xl p-5 shadow-lg border border-zinc-200/80 space-y-2">
+            <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+              Received This Month
+            </div>
+            <div className="text-2xl font-black text-emerald-800 font-mono">
+              245 tons
+            </div>
+            <div className="text-xs text-zinc-500">
+              Aggregated from 14 verified local kabadiwala hubs.
+            </div>
+          </div>
+
+          <div className="bg-white rounded-3xl p-5 shadow-lg border border-zinc-200/80 space-y-2">
+            <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+              Dispatched Bales
+            </div>
+            <div className="text-2xl font-black text-blue-900 font-mono">
+              190 tons
+            </div>
+            <div className="text-xs text-zinc-500">
+              Shipped to FMCG brand partners under EPR compliance.
             </div>
           </div>
         </div>
-
-        {/* Compact Table */}
-        <div className="overflow-x-auto">
-          <table className="ops-table">
-            <thead>
-              <tr>
-                <th>Lot Identifier</th>
-                <th>Supplier Partner</th>
-                <th>Material Category</th>
-                <th>Gross / Tare</th>
-                <th>Net Weight</th>
-                <th>Agreed Rate</th>
-                <th>Discrepancy Status</th>
-                <th>Inspection Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {inboundLots
-                .filter((l) => l.lotId.toLowerCase().includes(filterText.toLowerCase()) || l.supplier.toLowerCase().includes(filterText.toLowerCase()))
-                .map((lot) => {
-                  const isPending = lot.status === 'PENDING_INSPECTION';
-                  return (
-                    <tr key={lot.lotId}>
-                      <td className="font-mono font-bold text-zinc-950">{lot.lotId}</td>
-                      <td>
-                        <div className="font-bold">{lot.supplier}</div>
-                        <div className="text-[10px] text-zinc-400">{lot.time}</div>
-                      </td>
-                      <td className="font-semibold text-zinc-800">{lot.material}</td>
-                      <td className="font-mono text-zinc-500">
-                        {lot.grossKg} / {lot.tareKg} kg
-                      </td>
-                      <td className="font-mono font-black text-forest-900 text-sm">
-                        {lot.netKg} kg
-                      </td>
-                      <td className="font-mono font-semibold">₹{lot.agreedRate}/kg</td>
-                      <td>
-                        <span
-                          className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                            lot.discrepancy.includes('None')
-                              ? 'bg-emerald-100 text-forest-900'
-                              : 'bg-amber-100 text-amber-900'
-                          }`}
-                        >
-                          {lot.discrepancy}
-                        </span>
-                      </td>
-                      <td>
-                        {isPending ? (
-                          <button
-                            onClick={() => handleAcceptLot(lot.lotId)}
-                            className="px-2.5 py-1 rounded-lg bg-forest-900 text-white font-bold text-[11px] hover:bg-forest-950 transition-colors shadow-2xs"
-                          >
-                            Accept & Unload
-                          </button>
-                        ) : (
-                          <span className="text-[11px] text-emerald-700 font-bold flex items-center gap-1">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            Unloaded
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* 4. Factory Buying Rate Sheet Manager */}
-      <div className="circular-card p-6 bg-white space-y-4">
-        <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
-          <div>
-            <h2 className="text-base font-bold text-zinc-950">Published Buying Rate Sheet</h2>
-            <p className="text-xs text-zinc-500">
-              Wholesale procurement rates broadcasted daily to all certified regional collectors
-            </p>
-          </div>
-          <Button size="sm" variant="outline" className="font-bold text-xs">
-            Broadcast Updated Rates to Mandis
-          </Button>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="ops-table">
-            <thead>
-              <tr>
-                <th>Category</th>
-                <th>Specifications / Grade</th>
-                <th>Buying Rate (₹/kg)</th>
-                <th>Min Lot Size</th>
-                <th>Daily Intake Target</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {buyingRates.map((br) => (
-                <tr key={br.id}>
-                  <td className="font-bold text-zinc-950">{br.category}</td>
-                  <td className="text-zinc-600">{br.grade}</td>
-                  <td>
-                    <span className="font-mono font-black text-forest-900 text-sm">
-                      ₹{br.ratePerKg.toFixed(2)}
-                    </span>
-                  </td>
-                  <td className="font-mono text-zinc-600">{br.minLotKg} kg</td>
-                  <td className="font-mono text-zinc-600">{br.dailyIntakeCapKg} kg / day</td>
-                  <td>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-forest-900">
-                      ACTIVE
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      </main>
     </div>
   );
 }

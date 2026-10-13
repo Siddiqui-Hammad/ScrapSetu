@@ -64,47 +64,57 @@ export const Navbar: React.FC = () => {
             </div>
           </Link>
 
-          {/* Center Navigation Links */}
+          {/* Center Navigation Links (Exact Match to Mockup) */}
           <nav className="hidden md:flex items-center gap-1">
             <Link
               href="/"
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                 pathname === '/'
                   ? 'text-forest-900 bg-emerald-50/80 font-bold'
                   : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/60'
               }`}
             >
-              Overview
+              Home
+            </Link>
+            <Link
+              href="/rates"
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                pathname === '/rates'
+                  ? 'text-forest-900 bg-emerald-50/80 font-bold'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/60'
+              }`}
+            >
+              Rates
+            </Link>
+            <Link
+              href="/impact"
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                pathname === '/impact'
+                  ? 'text-forest-900 bg-emerald-50/80 font-bold'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/60'
+              }`}
+            >
+              Impact
+            </Link>
+            <Link
+              href="/passport/RCP-2026-DEL-0894"
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+                pathname.startsWith('/passport')
+                  ? 'text-forest-900 bg-emerald-50/80 font-bold'
+                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/60'
+              }`}
+            >
+              Passport
             </Link>
             <Link
               href="/how-it-works"
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
                 pathname === '/how-it-works'
                   ? 'text-forest-900 bg-emerald-50/80 font-bold'
                   : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/60'
               }`}
             >
               How It Works
-            </Link>
-            <Link
-              href="/rates"
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                pathname === '/rates'
-                  ? 'text-forest-900 bg-emerald-50/80 font-bold'
-                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/60'
-              }`}
-            >
-              Mandi Benchmark
-            </Link>
-            <Link
-              href="/impact"
-              className={`px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-colors ${
-                pathname === '/impact'
-                  ? 'text-forest-900 bg-emerald-50/80 font-bold'
-                  : 'text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100/60'
-              }`}
-            >
-              GreenLedger Impact
             </Link>
           </nav>
 

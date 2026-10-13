@@ -16,13 +16,16 @@ import {
   BarChart2,
   Leaf,
   Layers,
+  Recycle,
+  Award,
 } from 'lucide-react';
-import { Button } from '../../../components/ui/button';
-import { formatINR, formatKg, formatDate } from '../../../lib/utils';
-import { useAuthStore } from '../../../store/authStore';
+import { Button } from '@/components/ui/button';
+import { formatINR, formatKg, formatDate } from '@/lib/utils';
+import { useAuthStore } from '@/store/authStore';
 
 export default function BusinessPortalPage() {
   const { user } = useAuthStore();
+  const [activeNav, setActiveNav] = useState<'facilities' | 'schedule' | 'invoices' | 'epr' | 'credits'>('facilities');
   const [isScheduleOpen, setIsScheduleOpen] = useState(false);
 
   // Commercial Facilities
@@ -58,10 +61,8 @@ export default function BusinessPortalPage() {
     },
   ]);
 
-  // Scheduled pickup form state
   const [selectedFacility, setSelectedFacility] = useState('Okhla Phase-III Central Logistics Bay 7');
   const [estLoad, setEstLoad] = useState(250);
-  const [isRecurring, setIsRecurring] = useState(true);
 
   const handleSchedulePickup = (e: React.FormEvent) => {
     e.preventDefault();
@@ -81,198 +82,239 @@ export default function BusinessPortalPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* 1. Header & ESG Overview */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-white border border-zinc-200 shadow-2xs">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
-            <span className="text-[11px] font-bold uppercase tracking-wider text-blue-800">
-              Commercial Generator & EPR Registry
-            </span>
-          </div>
-          <h1 className="text-2xl font-black text-zinc-950 tracking-tight mt-1">
-            {user?.name || 'GreenTech Enterprises Ltd'}
-          </h1>
-          <p className="text-xs text-zinc-500 mt-0.5">
-            GSTIN: <span className="font-mono font-bold text-zinc-700">07AAAAA0000A1Z5</span> • Multi-Facility Bulk Contract
-          </p>
+    <div className="min-h-screen bg-[#f4f6f8] flex">
+      {/* 1. Left Dark Forest Sidebar */}
+      <aside className="w-64 bg-forest-900 text-white shrink-0 hidden lg:flex flex-col justify-between p-5 border-r border-forest-950">
+        <div className="space-y-8">
+          <Link href="/" className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl bg-blue-500 text-white flex items-center justify-center font-bold">
+              <Building2 className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="text-base font-black tracking-tight text-white leading-tight">
+                ScrapSetu
+              </div>
+              <div className="text-[10px] font-bold text-blue-300 tracking-wider uppercase">
+                Enterprise Portal
+              </div>
+            </div>
+          </Link>
+
+          <nav className="space-y-1.5">
+            {[
+              { id: 'facilities', label: 'Commercial Facilities', icon: Building2 },
+              { id: 'schedule', label: 'Bulk Dispatch', icon: Truck },
+              { id: 'invoices', label: 'GST Invoices', icon: FileText },
+              { id: 'epr', label: 'CPCB EPR Certificates', icon: ShieldCheck },
+              { id: 'credits', label: 'ESG Reporting', icon: Leaf },
+            ].map((item) => {
+              const Icon = item.icon;
+              const isActive = activeNav === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveNav(item.id as any)}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                    isActive
+                      ? 'bg-emerald-500 text-forest-950 shadow-md font-extrabold'
+                      : 'text-zinc-300 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </nav>
         </div>
 
-        <div className="flex items-center gap-6 shrink-0 bg-zinc-50 p-3 rounded-xl border border-zinc-200 text-xs">
+        <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 flex items-center gap-3">
+          <div className="w-9 h-9 rounded-full bg-blue-500 text-white font-black flex items-center justify-center text-xs">
+            GT
+          </div>
+          <div className="overflow-hidden">
+            <div className="text-xs font-extrabold text-white truncate">
+              GreenTech Solutions
+            </div>
+            <div className="text-[10px] text-zinc-400">GSTIN: 07AAAAA0000A1Z5</div>
+          </div>
+        </div>
+      </aside>
+
+      {/* 2. Main Content Area */}
+      <main className="flex-1 p-4 sm:p-6 lg:p-8 space-y-6 max-w-7xl mx-auto">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-zinc-200">
           <div>
-            <div className="text-[10px] uppercase font-bold text-zinc-400">Total Commercial Tonnage</div>
-            <div className="font-mono font-bold text-forest-900">1,840 kg Diverted</div>
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+              <span className="text-xs font-bold uppercase tracking-wider text-blue-800">
+                Commercial Waste Generator Terminal
+              </span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-black text-zinc-950 tracking-tight mt-1">
+              Enterprise ESG &amp; Bulk Dispatch
+            </h1>
+            <p className="text-xs text-zinc-500 font-medium">
+              Multi-facility scheduled pickup • Automated B2B GST Invoicing • CPCB EPR Compliance
+            </p>
           </div>
-          <div className="border-l border-zinc-200 pl-4">
-            <div className="text-[10px] uppercase font-bold text-zinc-400">Annual EPR Obligation</div>
-            <div className="font-mono font-bold text-emerald-700">122% Achieved ✓</div>
-          </div>
-          <div className="border-l border-zinc-200 pl-4">
+
+          <div className="flex items-center gap-3">
             <Button
               size="sm"
-              variant="primary"
+              className="bg-forest-900 hover:bg-forest-950 text-white font-bold text-xs px-4"
               onClick={() => setIsScheduleOpen(true)}
-              className="font-bold text-xs"
             >
-              <Plus className="w-3.5 h-3.5 mr-1" />
-              Schedule Bulk Dispatch
+              <Plus className="w-4 h-4 mr-1.5" />
+              <span>Schedule Bulk Pickup</span>
             </Button>
           </div>
         </div>
-      </div>
 
-      {/* 2. Schedule Bulk Dispatch Modal */}
+        {/* Top 3 Metric Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white rounded-3xl p-5 shadow-lg border border-zinc-200/80 space-y-2">
+            <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+              Total Recycled to Date
+            </div>
+            <div className="text-2xl font-black text-zinc-950 font-mono">
+              38.5 Tons
+            </div>
+            <div className="text-xs text-emerald-700 font-bold">+18% vs Last Quarter</div>
+          </div>
+
+          <div className="bg-white rounded-3xl p-5 shadow-lg border border-zinc-200/80 space-y-2">
+            <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+              EPR Credits Accrued
+            </div>
+            <div className="text-2xl font-black text-blue-900 font-mono">
+              385 Credits
+            </div>
+            <div className="text-xs text-zinc-500">CPCB Portal Sync Active ✓</div>
+          </div>
+
+          <div className="bg-white rounded-3xl p-5 shadow-lg border border-zinc-200/80 space-y-2">
+            <div className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
+              Carbon Mitigated
+            </div>
+            <div className="text-2xl font-black text-emerald-800 font-mono">
+              63.5 Tons CO₂
+            </div>
+            <div className="text-xs text-zinc-500">Audited by Bureau Veritas standard</div>
+          </div>
+        </div>
+
+        {/* Facilities List & Invoices */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <div className="lg:col-span-6 bg-white rounded-3xl p-6 shadow-xl border border-zinc-200/80 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-black text-zinc-950 tracking-tight">
+                Active Facilities &amp; Warehouses
+              </h2>
+              <span className="text-xs text-zinc-400">3 Registered</span>
+            </div>
+
+            <div className="space-y-3">
+              {facilities.map((fac) => (
+                <div
+                  key={fac.id}
+                  className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200/80 hover:bg-white transition-all space-y-1"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-extrabold text-xs text-zinc-950">{fac.name}</span>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                      {fac.status}
+                    </span>
+                  </div>
+                  <div className="text-xs text-zinc-500">{fac.type}</div>
+                  <div className="text-[11px] font-mono text-forest-900 font-bold pt-1">
+                    Weekly Average: {fac.weeklyAvg}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="lg:col-span-6 bg-white rounded-3xl p-6 shadow-xl border border-zinc-200/80 space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-base font-black text-zinc-950 tracking-tight">
+                Recent GST Dispatch Invoices
+              </h2>
+              <span className="text-xs text-zinc-400">Download Tax Invoices</span>
+            </div>
+
+            <div className="space-y-3">
+              {invoices.map((inv) => (
+                <div
+                  key={inv.invoiceNo}
+                  className="p-4 rounded-2xl bg-zinc-50 border border-zinc-200/80 hover:bg-white transition-all flex items-center justify-between gap-3"
+                >
+                  <div className="space-y-1">
+                    <div className="font-mono font-black text-xs text-zinc-950">
+                      {inv.invoiceNo}
+                    </div>
+                    <div className="text-xs text-zinc-700 font-semibold">{inv.material}</div>
+                    <div className="text-[11px] text-zinc-400 font-mono">
+                      {inv.netWeight} kg • {inv.date}
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <div className="text-xs font-black text-forest-900 font-mono">
+                      {formatINR(inv.totalAmount)}
+                    </div>
+                    <span className="inline-block mt-1 text-[9px] font-black px-2 py-0.5 rounded-full bg-blue-100 text-blue-900 border border-blue-200">
+                      {inv.eprStatus}
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* Schedule Bulk Dialog */}
       {isScheduleOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-zinc-200 space-y-4">
-            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
-              <h3 className="text-base font-bold text-zinc-950 flex items-center gap-2">
-                <Truck className="w-4 h-4 text-forest-900" />
-                Schedule Commercial Heavy Dispatch
-              </h3>
-              <button
-                onClick={() => setIsScheduleOpen(false)}
-                className="text-zinc-400 hover:text-zinc-700 text-sm font-bold"
-              >
-                ✕
-              </button>
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl border border-zinc-200">
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-200">
+              <h3 className="text-base font-black text-zinc-950">Schedule Commercial Bulk Pickup</h3>
+              <button onClick={() => setIsScheduleOpen(false)} className="text-zinc-400 font-bold">✕</button>
             </div>
 
             <form onSubmit={handleSchedulePickup} className="space-y-4 text-xs">
               <div>
-                <label className="block font-bold text-zinc-700 mb-1">Select Facility Dispatch Bay</label>
+                <label className="block font-bold text-zinc-700 mb-1">Origin Facility</label>
                 <select
                   value={selectedFacility}
                   onChange={(e) => setSelectedFacility(e.target.value)}
-                  className="w-full px-3 py-2 border border-zinc-300 rounded-xl"
+                  className="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl font-bold"
                 >
                   {facilities.map((f) => (
-                    <option key={f.id}>{f.name}</option>
+                    <option key={f.id} value={f.name}>{f.name}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block font-bold text-zinc-700 mb-1">Estimated Bulk Load (kg)</label>
+                <label className="block font-bold text-zinc-700 mb-1">Estimated Load (kg)</label>
                 <input
                   type="number"
-                  min="50"
-                  step="10"
                   value={estLoad}
                   onChange={(e) => setEstLoad(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-zinc-300 rounded-xl font-mono"
+                  className="w-full px-3 py-2 bg-zinc-50 border border-zinc-300 rounded-xl font-mono font-bold"
                 />
               </div>
 
-              <div className="flex items-center gap-2 p-3 bg-zinc-50 rounded-xl border border-zinc-200">
-                <input
-                  type="checkbox"
-                  id="rec"
-                  checked={isRecurring}
-                  onChange={(e) => setIsRecurring(e.target.checked)}
-                  className="rounded text-forest-900 accent-forest-900"
-                />
-                <label htmlFor="rec" className="font-semibold text-zinc-800">
-                  Set as recurring weekly commercial contract
-                </label>
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <Button type="button" variant="ghost" size="sm" onClick={() => setIsScheduleOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" variant="primary" size="sm" className="font-bold">
-                  Confirm Dispatch Order
-                </Button>
+              <div className="flex justify-end gap-3 pt-3 border-t border-zinc-200">
+                <Button variant="outline" size="sm" onClick={() => setIsScheduleOpen(false)}>Cancel</Button>
+                <Button size="sm" type="submit" className="bg-forest-900 text-white font-bold">Dispatch Truck</Button>
               </div>
             </form>
           </div>
         </div>
       )}
-
-      {/* 3. Facility Dispatch Bays Table */}
-      <div className="circular-card p-6 bg-white space-y-4">
-        <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
-          <div>
-            <h2 className="text-base font-bold text-zinc-950">Active Commercial Dispatch Locations</h2>
-            <p className="text-xs text-zinc-500">Warehouse loading docks linked to automated pickup schedules</p>
-          </div>
-          <span className="text-xs font-mono font-bold text-zinc-500">{facilities.length} Bays Registered</span>
-        </div>
-
-        <table className="ops-table">
-          <thead>
-            <tr>
-              <th>Facility Dock / Bay</th>
-              <th>Waste Stream Specification</th>
-              <th>Weekly Avg Tonnage</th>
-              <th>Dispatch Schedule</th>
-            </tr>
-          </thead>
-          <tbody>
-            {facilities.map((fac) => (
-              <tr key={fac.id}>
-                <td className="font-bold text-zinc-950">{fac.name}</td>
-                <td className="text-zinc-600">{fac.type}</td>
-                <td className="font-mono font-semibold text-forest-900">{fac.weeklyAvg}</td>
-                <td>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-forest-900">
-                    {fac.status}
-                  </span>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      {/* 4. GST Tax Invoices & CPCB EPR Credit Certificates */}
-      <div className="circular-card p-6 bg-white space-y-4">
-        <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
-          <div>
-            <h2 className="text-base font-bold text-zinc-950">GST E-Invoices & EPR Compliance Certificates</h2>
-            <p className="text-xs text-zinc-500">
-              Audited transaction records compliant with Central Pollution Control Board guidelines
-            </p>
-          </div>
-          <Button size="sm" variant="outline" className="font-bold text-xs">
-            <Download className="w-3.5 h-3.5 mr-1" />
-            Download Annual ESG Audit Pack (PDF)
-          </Button>
-        </div>
-
-        <table className="ops-table">
-          <thead>
-            <tr>
-              <th>Invoice Number</th>
-              <th>Facility Origin</th>
-              <th>Material Category</th>
-              <th>Net Weight</th>
-              <th>Settled Amount</th>
-              <th>EPR Status</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {invoices.map((inv) => (
-              <tr key={inv.invoiceNo}>
-                <td className="font-mono font-bold text-zinc-950">{inv.invoiceNo}</td>
-                <td>{inv.facility}</td>
-                <td className="font-semibold text-zinc-800">{inv.material}</td>
-                <td className="font-mono font-bold">{inv.netWeight} kg</td>
-                <td className="font-mono font-black text-forest-900">{formatINR(inv.totalAmount)}</td>
-                <td>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-forest-900 font-mono">
-                    {inv.eprStatus}
-                  </span>
-                </td>
-                <td className="text-zinc-500 text-[11px]">{inv.date}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }
