@@ -6,242 +6,310 @@ import {
   Truck,
   Scale,
   MapPin,
+  Clock,
   CheckCircle2,
-  Navigation,
-  Compass,
+  AlertCircle,
   Phone,
   ShieldCheck,
+  ChevronRight,
   TrendingUp,
-  FileCheck,
+  RotateCcw,
+  QrCode,
   ArrowRight,
-  RefreshCw,
+  FileText,
+  CreditCard,
+  Map as MapIcon,
+  List as ListIcon,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
-import { Badge } from '../../../components/ui/badge';
-import { Card, CardContent } from '../../../components/ui/card';
-import { Progress } from '../../../components/ui/progress';
 import { MapLibreMap } from '../../../components/maps/MapLibreMap';
 import { TrustWeighModal } from '../../../components/workflows/TrustWeighModal';
-import { formatINR, formatKg } from '../../../lib/utils';
+import { formatINR, formatKg, formatDate } from '../../../lib/utils';
 import { useAuthStore } from '../../../store/authStore';
 
 export default function CollectorPortalPage() {
   const { user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState<'jobs' | 'weigh' | 'route' | 'kyc'>('jobs');
-  const [selectedWeighPickup, setSelectedWeighPickup] = useState<any | null>(null);
+  const [activeTab, setActiveTab] = useState<'jobs' | 'route' | 'weigh' | 'kyc'>('jobs');
   const [isWeighModalOpen, setIsWeighModalOpen] = useState(false);
-  const [toastMsg, setToastMsg] = useState('');
+  const [selectedJobForWeigh, setSelectedJobForWeigh] = useState<any>(null);
 
-  // Capacity
-  const currentLoadKg = 187.5;
-  const maxCapacityKg = 250.0;
-  const loadPercentage = Math.round((currentLoadKg / maxCapacityKg) * 100);
-
-  // Open & Accepted Jobs
+  // Operational Jobs State
   const [jobs, setJobs] = useState([
     {
       id: 'REQ-101',
-      requesterName: 'Pooja Verma (Verified)',
-      phone: '+91 98290 12345',
-      address: 'B-142, Malviya Nagar Sector 3',
-      materials: 'Paper & Cardboard (25kg), PET Plastics (10kg)',
+      customer: 'Pooja Verma',
+      address: 'South Extension II, Block C, New Delhi',
+      materials: 'Kraft Carton & Paper (25kg), PET Bottles (10kg)',
       estWeight: 35.0,
-      estVal: 535.0,
-      distanceKm: 0.8,
-      status: 'OPEN',
-      lat: 26.8524,
-      lng: 75.8173,
+      estVal: 667.5,
+      distanceKm: 1.2,
+      timeSlot: 'Morning (9 AM - 12 PM)',
+      phone: '+91 98290 12345',
+      status: 'OPEN', // OPEN, ACCEPTED, COMPLETED
     },
     {
       id: 'REQ-103',
-      requesterName: 'City Bakery & Outlet',
-      phone: '+91 98290 77007',
-      address: 'Crystal Court Mall, Malviya Nagar',
-      materials: 'Rigid Plastics (45kg), Beverage Cans (20kg)',
-      estWeight: 65.0,
-      estVal: 1450.0,
-      distanceKm: 1.4,
+      customer: 'Metro Food Hub & Cafe',
+      address: 'Saket District Centre, New Delhi',
+      materials: 'Rigid Plastics (45kg), Beverage Cans (18kg)',
+      estWeight: 63.0,
+      estVal: 4230.0,
+      distanceKm: 2.8,
+      timeSlot: 'Morning (9 AM - 12 PM)',
+      phone: '+91 98110 77007',
       status: 'ACCEPTED',
-      lat: 26.8533,
-      lng: 75.8190,
+    },
+    {
+      id: 'RCP-2026-DEL-0894',
+      customer: 'GreenTech Enterprises Ltd',
+      address: 'Okhla Industrial Area Phase-III',
+      materials: 'Corrugated Cartons (140kg), Server E-Waste (35kg)',
+      estWeight: 175.0,
+      estVal: 6895.0,
+      distanceKm: 4.1,
+      timeSlot: 'Completed at 11:30 AM',
+      phone: '+91 98110 44004',
+      status: 'COMPLETED',
+      receiptNumber: 'RCP-2026-DEL-0894',
     },
   ]);
 
-  const handleAcceptJob = (id: string) => {
+  // Vehicle Capacity
+  const vehicleMaxCapacity = 250;
+  const currentVehicleLoad = 187.5;
+  const capacityPercent = Math.round((currentVehicleLoad / vehicleMaxCapacity) * 100);
+
+  const handleAcceptJob = (jobId: string) => {
     setJobs((prev) =>
-      prev.map((j) => (j.id === id ? { ...j, status: 'ACCEPTED' } : j))
+      prev.map((j) => (j.id === jobId ? { ...j, status: 'ACCEPTED' } : j))
     );
-    setToastMsg(`पिकअप #${id} स्वीकार कर लिया गया! ग्राहक का फोन व पता अनलॉक हुआ।`);
-    setTimeout(() => setToastMsg(''), 4000);
   };
 
   const handleOpenWeigh = (job: any) => {
-    setSelectedWeighPickup(job);
+    setSelectedJobForWeigh(job);
     setIsWeighModalOpen(true);
   };
 
-  const handleWeighComplete = (receiptNumber: string) => {
+  const handleCompleteWeigh = () => {
+    if (selectedJobForWeigh) {
+      setJobs((prev) =>
+        prev.map((j) =>
+          j.id === selectedJobForWeigh.id
+            ? { ...j, status: 'COMPLETED', receiptNumber: `RCP-2026-DEL-${Math.floor(1000 + Math.random() * 9000)}` }
+            : j
+        )
+      );
+    }
     setIsWeighModalOpen(false);
-    setJobs((prev) =>
-      prev.map((j) =>
-        j.id === selectedWeighPickup?.id ? { ...j, status: 'COMPLETED' } : j
-      )
-    );
-    setToastMsg(`रसीद #${receiptNumber} जारी हुई! लेनदेन पूरा हुआ।`);
-    setTimeout(() => setToastMsg(''), 5000);
   };
 
+  const openJobs = jobs.filter((j) => j.status === 'OPEN');
+  const acceptedJobs = jobs.filter((j) => j.status === 'ACCEPTED');
+  const completedJobs = jobs.filter((j) => j.status === 'COMPLETED');
+
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 select-none">
-      {/* High-Contrast Mobile Terminal Header */}
-      <div className="bg-gradient-to-r from-emerald-900 to-forest-950 text-white p-5 sm:p-7 rounded-3xl shadow-xl flex flex-wrap items-center justify-between gap-4 border border-emerald-800">
-        <div className="flex items-center gap-3.5">
-          <div className="w-14 h-14 rounded-2xl bg-emerald-800 border border-emerald-600 flex items-center justify-center text-3xl shadow-md">
-            🛺
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 space-y-6">
+      {/* 1. High-Contrast Mobile Status Bar */}
+      <div className="bg-forest-950 text-white rounded-2xl p-5 shadow-lg border border-emerald-950 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-300">
+              Active Collector Terminal
+            </span>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-xl sm:text-2xl font-black tracking-tight font-hindi">
-                {user?.name || 'रामकिशन साहु'}
-              </h1>
-              <Badge variant="kyc">सत्यापित साथी ✓</Badge>
-            </div>
-            <p className="text-xs text-emerald-200 mt-0.5 font-hindi">
-              वाहन: ई-रिक्शा लोडर (RJ 14 TB 4921) • दैनिक क्षमता: 250 किग्रा
-            </p>
-          </div>
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight text-white mt-1">
+            {user?.name || 'Ramu Paswan'}
+          </h1>
+          <p className="text-xs text-zinc-300">
+            E-Rickshaw Loader DL 1 ER 4921 • 3-Point KYC Verified ✓
+          </p>
         </div>
 
-        <div className="text-right">
-          <div className="text-2xl font-black text-amber-300">₹3,442.50</div>
-          <div className="text-[10px] text-emerald-200 uppercase font-bold tracking-wider">
-            आज की कुल कमाई (Today's Earnings)
+        {/* Daily Capacity Gauge */}
+        <div className="bg-black/40 border border-emerald-500/20 rounded-xl p-3 sm:w-64">
+          <div className="flex justify-between items-center text-xs font-bold mb-1">
+            <span className="text-zinc-300">Vehicle Capacity:</span>
+            <span className="text-emerald-400 font-mono">
+              {currentVehicleLoad} / {vehicleMaxCapacity} kg ({capacityPercent}%)
+            </span>
+          </div>
+          <div className="w-full bg-zinc-800 rounded-full h-2 overflow-hidden">
+            <div
+              className={`h-full transition-all duration-300 ${
+                capacityPercent > 85 ? 'bg-amber-400' : 'bg-emerald-400'
+              }`}
+              style={{ width: `${capacityPercent}%` }}
+            />
           </div>
         </div>
       </div>
 
-      {toastMsg && (
-        <div className="p-4 bg-emerald-50 border-2 border-emerald-400 rounded-2xl text-emerald-950 text-xs font-bold flex items-center gap-2 animate-in fade-in-0">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-          <span>{toastMsg}</span>
-        </div>
-      )}
+      {/* 2. Operational Tab Bar (Touch Targets > 48px) */}
+      <div className="grid grid-cols-4 gap-2 p-1 bg-zinc-200/80 rounded-2xl text-xs font-bold">
+        <button
+          onClick={() => setActiveTab('jobs')}
+          className={`py-3 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+            activeTab === 'jobs'
+              ? 'bg-white text-forest-900 shadow-sm'
+              : 'text-zinc-600 hover:text-zinc-900'
+          }`}
+        >
+          <ListIcon className="w-4 h-4" />
+          <span className="hidden sm:inline">Jobs</span>
+          <span className="bg-forest-900 text-white text-[10px] px-1.5 py-0.2 rounded-full font-mono">
+            {openJobs.length + acceptedJobs.length}
+          </span>
+        </button>
 
-      {/* Daily Capacity Meter Card */}
-      <div className="p-4 bg-white rounded-2xl border border-stone-200 shadow-card-subtle space-y-2">
-        <div className="flex justify-between items-center text-xs font-bold text-stone-800">
-          <span>वाहन क्षमता (Daily Vehicle Payload):</span>
-          <span className="text-emerald-900">{formatKg(currentLoadKg)} / {formatKg(maxCapacityKg)} ({loadPercentage}%)</span>
-        </div>
-        <Progress value={loadPercentage} />
+        <button
+          onClick={() => setActiveTab('route')}
+          className={`py-3 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+            activeTab === 'route'
+              ? 'bg-white text-forest-900 shadow-sm'
+              : 'text-zinc-600 hover:text-zinc-900'
+          }`}
+        >
+          <MapIcon className="w-4 h-4" />
+          <span>EcoRoute</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('weigh')}
+          className={`py-3 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+            activeTab === 'weigh'
+              ? 'bg-white text-forest-900 shadow-sm'
+              : 'text-zinc-600 hover:text-zinc-900'
+          }`}
+        >
+          <Scale className="w-4 h-4" />
+          <span>TrustWeigh</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab('kyc')}
+          className={`py-3 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 ${
+            activeTab === 'kyc'
+              ? 'bg-white text-forest-900 shadow-sm'
+              : 'text-zinc-600 hover:text-zinc-900'
+          }`}
+        >
+          <ShieldCheck className="w-4 h-4" />
+          <span>KYC ID</span>
+        </button>
       </div>
 
-      {/* Touch-Friendly Tab Bar for Low Digital Literacy */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-bold">
-        {[
-          { key: 'jobs', label: '📍 नजदीकी पिकअप', sub: `${jobs.filter((j) => j.status === 'OPEN').length} Open Jobs` },
-          { key: 'weigh', label: '⚖️ तौल व रसीद', sub: `${jobs.filter((j) => j.status === 'ACCEPTED').length} Active` },
-          { key: 'route', label: '🗺️ स्मार्ट रूट TSP', sub: 'EcoRoute Navigation' },
-          { key: 'kyc', label: '🪪 KYC सत्यापन', sub: 'Aadhaar + DL + Selfie' },
-        ].map((t) => (
-          <button
-            key={t.key}
-            onClick={() => setActiveTab(t.key as any)}
-            className={`p-3.5 rounded-2xl text-center transition-all border ${
-              activeTab === t.key
-                ? 'bg-emerald-700 text-white border-emerald-700 shadow-md ring-2 ring-emerald-300'
-                : 'bg-white text-stone-700 border-stone-200 hover:bg-stone-50'
-            }`}
-          >
-            <div className="text-sm font-hindi">{t.label}</div>
-            <div className="text-[10px] opacity-80 mt-0.5">{t.sub}</div>
-          </button>
-        ))}
-      </div>
-
-      {/* TAB 1: NEARBY OPEN JOBS */}
+      {/* 3. TAB 1: OPERATIONAL JOBS LIST */}
       {activeTab === 'jobs' && (
         <div className="space-y-4">
-          <div className="flex justify-between items-center px-1">
-            <h3 className="font-bold text-stone-900 text-base font-hindi">नजदीकी खुले पिकअप ऑर्डर्स</h3>
-            <span className="text-xs text-stone-500 font-medium">8 किमी कार्यक्षेत्र के भीतर</span>
-          </div>
+          {/* In-Progress / Accepted Orders Requiring Weighing */}
+          {acceptedJobs.length > 0 && (
+            <div className="space-y-3">
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-800 block">
+                Accepted — Ready for Weighing ({acceptedJobs.length})
+              </span>
+              {acceptedJobs.map((job) => (
+                <div
+                  key={job.id}
+                  className="p-5 rounded-2xl bg-amber-50/60 border border-amber-300 shadow-2xs space-y-4"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black uppercase text-amber-900 bg-amber-200/80 px-2 py-0.5 rounded">
+                          In Progress
+                        </span>
+                        <span className="text-xs font-mono font-bold text-zinc-500">{job.id}</span>
+                      </div>
+                      <h3 className="text-base font-bold text-zinc-950 mt-1">{job.customer}</h3>
+                      <p className="text-xs text-zinc-600 flex items-center gap-1 mt-0.5">
+                        <MapPin className="w-3.5 h-3.5 text-zinc-400" />
+                        {job.address}
+                      </p>
+                    </div>
 
-          <div className="space-y-3">
-            {jobs.filter((j) => j.status === 'OPEN').map((job) => (
-              <div
-                key={job.id}
-                className="p-5 bg-white rounded-3xl border border-stone-200/90 shadow-card-subtle space-y-3"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-stone-900 text-sm">{job.materials}</span>
-                    <Badge variant="secondary">{job.distanceKm} किमी दूरी</Badge>
+                    <a
+                      href={`tel:${job.phone}`}
+                      className="p-2.5 rounded-xl bg-white border border-amber-300 text-amber-900 shadow-2xs hover:bg-amber-100 flex items-center gap-1 text-xs font-bold"
+                    >
+                      <Phone className="w-4 h-4" />
+                      <span className="hidden sm:inline">Call Customer</span>
+                    </a>
                   </div>
-                  <span className="text-base font-extrabold text-emerald-900">
-                    अनुमानित: {formatINR(job.estVal)}
-                  </span>
-                </div>
 
-                <div className="text-xs text-stone-500 flex items-center gap-1.5">
-                  <MapPin className="w-3.5 h-3.5 text-emerald-600" />
-                  <span>स्थान: {job.address}</span>
-                </div>
+                  <div className="p-3 bg-white rounded-xl border border-amber-200 text-xs flex justify-between items-center">
+                    <div>
+                      <span className="font-bold text-zinc-800">{job.materials}</span>
+                      <div className="text-[11px] text-zinc-500">Estimated Weight: ~{job.estWeight} kg</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-sm font-black font-mono text-forest-900">
+                        {formatINR(job.estVal)}
+                      </div>
+                      <div className="text-[10px] text-zinc-400">Est. Payout</div>
+                    </div>
+                  </div>
 
-                <div className="flex items-center justify-between pt-2 border-t border-stone-100">
-                  <span className="text-xs text-stone-600 font-hindi">वजन: {formatKg(job.estWeight)}</span>
                   <Button
-                    size="sm"
-                    variant="default"
-                    onClick={() => handleAcceptJob(job.id)}
+                    variant="primary"
+                    size="lg"
+                    onClick={() => handleOpenWeigh(job)}
+                    className="w-full font-bold text-sm shadow-md flex items-center justify-center gap-2"
                   >
-                    <span>पिकअप स्वीकार करें (Accept Job)</span>
-                    <ArrowRight className="w-4 h-4 ml-1" />
+                    <Scale className="w-4 h-4" />
+                    <span>Open TrustWeigh Scale Entry & Issue Receipt</span>
                   </Button>
                 </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+              ))}
+            </div>
+          )}
 
-      {/* TAB 2: ACTIVE JOBS FOR WEIGHING */}
-      {activeTab === 'weigh' && (
-        <div className="space-y-4">
-          <div className="flex justify-between items-center px-1">
-            <h3 className="font-bold text-stone-900 text-base font-hindi">चालू ऑर्डर्स एवं डिजिटल तौल</h3>
-            <span className="text-xs text-stone-500 font-medium">तौल दर्ज कर रसीद बनाएं</span>
-          </div>
-
+          {/* Open Nearby Pickups Feed */}
           <div className="space-y-3">
-            {jobs.filter((j) => j.status === 'ACCEPTED').map((job) => (
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 block">
+              Nearby Open Pickups ({openJobs.length})
+            </span>
+            {openJobs.map((job) => (
               <div
                 key={job.id}
-                className="p-5 bg-white rounded-3xl border border-stone-200/90 shadow-card-subtle space-y-4"
+                className="circular-card p-5 space-y-4 hover:border-emerald-500"
               >
-                <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-start justify-between gap-3">
                   <div>
-                    <h4 className="font-bold text-stone-900 text-sm">{job.requesterName}</h4>
-                    <p className="text-xs text-stone-500 flex items-center gap-1.5 mt-0.5">
-                      <Phone className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>{job.phone}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-forest-900 font-mono">
+                        {job.distanceKm} km away
+                      </span>
+                      <span className="text-xs text-zinc-400 font-mono">{job.id}</span>
+                    </div>
+                    <h3 className="text-base font-bold text-zinc-950 mt-1">{job.customer}</h3>
+                    <p className="text-xs text-zinc-600 flex items-center gap-1 mt-0.5">
+                      <MapPin className="w-3.5 h-3.5 text-zinc-400" />
+                      {job.address}
                     </p>
                   </div>
-                  <Badge variant="warning">पिकअप चालू (Accepted)</Badge>
+
+                  <div className="text-right shrink-0">
+                    <div className="text-lg font-black font-mono text-forest-900">
+                      {formatINR(job.estVal)}
+                    </div>
+                    <div className="text-[10px] text-zinc-500">~{job.estWeight} kg expected</div>
+                  </div>
                 </div>
 
-                <div className="p-3 bg-stone-50 rounded-xl text-xs text-stone-700 font-medium">
-                  सामग्री: {job.materials} • अनुमानित वजन: {formatKg(job.estWeight)}
+                <div className="p-2.5 bg-zinc-50 rounded-xl text-xs text-zinc-700 font-medium border border-zinc-200/80">
+                  {job.materials}
                 </div>
 
                 <Button
-                  size="sm"
-                  variant="gold"
-                  onClick={() => handleOpenWeigh(job)}
-                  className="w-full text-xs font-bold"
+                  variant="default"
+                  size="default"
+                  onClick={() => handleAcceptJob(job.id)}
+                  className="w-full font-bold shadow-sm"
                 >
-                  <Scale className="w-4 h-4 mr-1.5" />
-                  <span>⚖️ तौल दर्ज करें व डिजिटल रसीद बनाएं (Open Digital Scale)</span>
+                  Accept Pickup Order
+                  <ArrowRight className="w-4 h-4 ml-1.5" />
                 </Button>
               </div>
             ))}
@@ -249,98 +317,154 @@ export default function CollectorPortalPage() {
         </div>
       )}
 
-      {/* TAB 3: SMART ROUTE TSP */}
+      {/* 4. TAB 2: ECOROUTE TSP OPTIMIZATION */}
       {activeTab === 'route' && (
-        <div className="space-y-4">
-          <div className="p-5 bg-white rounded-3xl border border-stone-200/90 shadow-card-subtle space-y-4">
-            <div className="flex justify-between items-center">
+        <div className="space-y-4 animate-in fade-in duration-150">
+          <div className="circular-card p-5 space-y-4">
+            <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-bold text-stone-900 text-base font-hindi">
-                  EcoRoute™ TSP मल्टी-स्टॉप नेविगेशन
-                </h3>
-                <p className="text-xs text-stone-500 font-medium">
-                  ईंधन व समय बचाने हेतु सबसे नजदीकी क्रम में स्टॉप्स व्यवस्थित
+                <h3 className="text-base font-bold text-zinc-950">EcoRoute TSP Trip Planner</h3>
+                <p className="text-xs text-zinc-500">
+                  Travelling Salesperson algorithm optimized sequence saves 38% fuel transit
                 </p>
               </div>
-              <Badge variant="success">1.8 किमी की बचत ✓</Badge>
+              <span className="text-xs font-bold bg-emerald-100 text-forest-900 px-3 py-1 rounded-full">
+                Optimal Sequence
+              </span>
             </div>
 
-            <MapLibreMap
-              center={[26.8501, 75.8155]}
-              pickups={jobs.map((j) => ({
-                id: j.id,
-                lat: j.lat,
-                lng: j.lng,
-                title: j.materials,
-                weightKg: j.estWeight,
-                status: j.status,
-                distanceKm: j.distanceKm,
-              }))}
-              routeStops={jobs.map((j, idx) => ({
-                pickupId: j.id,
-                requesterName: j.requesterName,
-                addressLabel: j.address,
-                streetAddress: j.address,
-                lat: j.lat,
-                lng: j.lng,
-                preferredTimeSlot: 'Morning',
-                estimatedWeightKg: j.estWeight,
-                estimatedValue: j.estVal,
-                stopSequenceIndex: idx + 1,
-              }))}
-              className="h-72 rounded-2xl"
-            />
+            {/* Stops Sequence List */}
+            <div className="space-y-2.5">
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-emerald-50/60 border border-emerald-200 text-xs">
+                <span className="w-6 h-6 rounded-full bg-forest-900 text-white flex items-center justify-center font-bold text-[11px] shrink-0">
+                  1
+                </span>
+                <div className="flex-1">
+                  <div className="font-bold text-zinc-950">South Extension II (REQ-101)</div>
+                  <div className="text-[11px] text-zinc-500">1.2 km • ~35 kg Kraft Paper & Plastic</div>
+                </div>
+                <span className="font-mono font-bold text-forest-900">₹667.50</span>
+              </div>
+
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-white border border-zinc-200 text-xs">
+                <span className="w-6 h-6 rounded-full bg-zinc-200 text-zinc-700 flex items-center justify-center font-bold text-[11px] shrink-0">
+                  2
+                </span>
+                <div className="flex-1">
+                  <div className="font-bold text-zinc-950">Saket District Centre (REQ-103)</div>
+                  <div className="text-[11px] text-zinc-500">2.8 km • ~63 kg Beverage Cans & PET</div>
+                </div>
+                <span className="font-mono font-bold text-forest-900">₹4,230.00</span>
+              </div>
+
+              <div className="flex items-center gap-3 p-3 rounded-xl bg-purple-50/60 border border-purple-200 text-xs">
+                <span className="w-6 h-6 rounded-full bg-purple-900 text-white flex items-center justify-center font-bold text-[11px] shrink-0">
+                  3
+                </span>
+                <div className="flex-1">
+                  <div className="font-bold text-zinc-950">EcoPlast Reclaimers (Weighbridge Unload)</div>
+                  <div className="text-[11px] text-zinc-500">Okhla Industrial Area • Factory Unload</div>
+                </div>
+                <span className="text-[11px] font-bold text-purple-700">Intake Hub</span>
+              </div>
+            </div>
+
+            <div className="h-64 rounded-xl overflow-hidden border border-zinc-200">
+              <MapLibreMap height="100%" />
+            </div>
           </div>
         </div>
       )}
 
-      {/* TAB 4: 3-POINT KYC STATUS */}
+      {/* 5. TAB 3: TRUSTWEIGH DIGITAL SCALE TERMINAL */}
+      {activeTab === 'weigh' && (
+        <div className="space-y-4 animate-in fade-in duration-150">
+          <div className="circular-card p-6 space-y-6">
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+              <div>
+                <h3 className="text-base font-bold text-zinc-950">TrustWeigh Calibrated Terminal</h3>
+                <p className="text-xs text-zinc-500">Bluetooth scale integration with tare deduction & SHA-256 seal</p>
+              </div>
+              <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200">
+                SCALE BT: CONNECTED (±0.05kg)
+              </span>
+            </div>
+
+            {acceptedJobs.length > 0 ? (
+              <div className="space-y-4">
+                <p className="text-xs text-zinc-600">Select an in-progress job to weigh:</p>
+                {acceptedJobs.map((j) => (
+                  <div
+                    key={j.id}
+                    className="p-4 rounded-xl border border-zinc-200 flex items-center justify-between"
+                  >
+                    <div>
+                      <div className="font-bold text-xs text-zinc-950">{j.customer}</div>
+                      <div className="text-[11px] text-zinc-500">{j.materials}</div>
+                    </div>
+                    <Button size="sm" variant="primary" onClick={() => handleOpenWeigh(j)} className="font-bold text-xs">
+                      Weigh Now →
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-zinc-500 text-xs space-y-2">
+                <Scale className="w-8 h-8 text-zinc-300 mx-auto" />
+                <p>No active accepted jobs to weigh right now.</p>
+                <Button size="sm" variant="outline" onClick={() => setActiveTab('jobs')}>
+                  Browse Open Pickups
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 6. TAB 4: 3-POINT KYC VERIFICATION STATUS */}
       {activeTab === 'kyc' && (
-        <div className="p-6 bg-white rounded-3xl border border-stone-200/90 shadow-card-subtle space-y-5 text-xs">
-          <div className="flex items-center justify-between border-b border-stone-100 pb-3">
+        <div className="circular-card p-6 space-y-4 animate-in fade-in duration-150">
+          <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
             <div>
-              <h3 className="font-bold text-stone-900 text-base font-hindi">
-                🪪 3-पॉइंट पहचान सत्यापन (3-Point KYC Verification)
-              </h3>
-              <p className="text-stone-500 text-xs">
-                आधार कार्ड, ड्राइविंग लाइसेंस, और लाइव सेल्फी स्थिति
-              </p>
+              <h3 className="text-base font-bold text-zinc-950">Collector 3-Point KYC Identity</h3>
+              <p className="text-xs text-zinc-500">Aadhaar, Driving Licence, and Live Biometric Selfie verification</p>
             </div>
-            <Badge variant="kyc">APPROVED ✓</Badge>
+            <span className="text-xs font-bold bg-emerald-100 text-forest-900 px-3 py-1 rounded-full">
+              ACTIVE & VERIFIED ✓
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
-              <span className="text-2xl">📄</span>
-              <div className="font-bold text-stone-900 text-xs">Aadhaar Card (आधार)</div>
-              <div className="font-mono text-stone-500 text-[11px]">UID: 5482-XXXX-4912</div>
-              <div className="text-emerald-700 font-bold text-[11px]">UIDAI Verified ✓</div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+            <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200 text-xs space-y-1">
+              <span className="text-[10px] uppercase font-bold text-zinc-400">1. Aadhaar Card</span>
+              <div className="font-mono font-bold text-zinc-950">5482-9182-4912</div>
+              <div className="text-emerald-700 font-semibold text-[11px]">UIDAI Masked ✓</div>
             </div>
 
-            <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
-              <span className="text-2xl">🪪</span>
-              <div className="font-bold text-stone-900 text-xs">Driving Licence (DL)</div>
-              <div className="font-mono text-stone-500 text-[11px]">DL: RJ-14-2019-00291</div>
-              <div className="text-emerald-700 font-bold text-[11px]">Commercial LMV-TR ✓</div>
+            <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200 text-xs space-y-1">
+              <span className="text-[10px] uppercase font-bold text-zinc-400">2. Driving Licence</span>
+              <div className="font-mono font-bold text-zinc-950">DL-04-2019-00291</div>
+              <div className="text-emerald-700 font-semibold text-[11px]">Commercial Transport ✓</div>
             </div>
 
-            <div className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2">
-              <span className="text-2xl">🤳</span>
-              <div className="font-bold text-stone-900 text-xs">Live Selfie (फेस मैच)</div>
-              <div className="font-mono text-stone-500 text-[11px]">Biometric Liveness</div>
-              <div className="text-emerald-700 font-bold text-[11px]">Match: 98.4% ✓</div>
+            <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200 text-xs space-y-1">
+              <span className="text-[10px] uppercase font-bold text-zinc-400">3. Live Selfie</span>
+              <div className="font-bold text-zinc-950">Biometric Match: 98.4%</div>
+              <div className="text-emerald-700 font-semibold text-[11px]">Anti-Spoofing Verified ✓</div>
             </div>
           </div>
         </div>
       )}
 
-      {/* TrustWeigh Modal */}
-      <TrustWeighModal
-        pickup={selectedWeighPickup}
-        isOpen={isWeighModalOpen}
-        onClose={() => setIsWeighModalOpen(false)}
-        onSuccess={handleWeighComplete}
-      />
+      {/* TrustWeigh Modal Integration */}
+      {selectedJobForWeigh && (
+        <TrustWeighModal
+          pickup={selectedJobForWeigh}
+          isOpen={isWeighModalOpen}
+          onClose={() => setIsWeighModalOpen(false)}
+          onSuccess={handleCompleteWeigh}
+        />
+      )}
     </div>
   );
 }

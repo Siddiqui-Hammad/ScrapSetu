@@ -26,7 +26,7 @@ import { UserRole } from '@/types';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { demoLoginAs, login } = useAuthStore();
+  const { demoLoginAs } = useAuthStore();
   const [identifier, setIdentifier] = useState('9876543210');
   const [password, setPassword] = useState('password123');
   const [selectedRole, setSelectedRole] = useState<UserRole>('HOUSEHOLD');

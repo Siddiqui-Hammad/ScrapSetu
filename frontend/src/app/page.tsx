@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import {
   Recycle,
@@ -13,298 +13,429 @@ import {
   Leaf,
   CheckCircle2,
   Truck,
-  Building,
+  Building2,
   Factory,
   Home,
+  QrCode,
+  Calculator,
+  ChevronRight,
+  BarChart3,
+  Award,
+  Globe2,
 } from 'lucide-react';
 import { Button } from '../components/ui/button';
-import { Badge } from '../components/ui/badge';
-import { Card, CardContent } from '../components/ui/card';
 import { formatINR } from '../lib/utils';
 import { useAuthStore } from '../store/authStore';
 
 export default function HomePage() {
   const { demoLoginAs } = useAuthStore();
 
+  // Calculator State
+  const [calcMaterial, setCalcMaterial] = useState<'paper' | 'plastic' | 'copper' | 'iron'>('paper');
+  const [calcWeight, setCalcWeight] = useState(30);
+
+  const materialRates = {
+    paper: { name: 'Kraft Carton & Paper', rate: 15.5, co2PerKg: 1.35, unit: 'kg' },
+    plastic: { name: 'Rigid Plastics (PET/HDPE)', rate: 28.0, co2PerKg: 1.80, unit: 'kg' },
+    copper: { name: 'Copper Wire (Millberry)', rate: 685.0, co2PerKg: 9.10, unit: 'kg' },
+    iron: { name: 'Heavy Structural Iron', rate: 34.0, co2PerKg: 1.50, unit: 'kg' },
+  };
+
+  const currentMat = materialRates[calcMaterial];
+  const calculatedEarnings = currentMat.rate * calcWeight;
+  const calculatedCo2 = (currentMat.co2PerKg * calcWeight).toFixed(1);
+
   const mandiTicker = [
-    { cat: 'Paper & Cardboard', hindi: 'कागज़ और रद्दी', rate: '₹14.00/kg', trend: '+₹1.20', isUp: true },
-    { cat: 'Rigid Plastics (PET)', hindi: 'प्लास्टिक की बोतलें', rate: '₹18.50/kg', trend: '+₹0.80', isUp: true },
-    { cat: 'Ferrous Metals (Iron)', hindi: 'लोहा और स्टील', rate: '₹30.00/kg', trend: '-₹0.50', isUp: false },
-    { cat: 'Copper Wiring', hindi: 'तांबा और केबल', rate: '₹550.00/kg', trend: '+₹15.00', isUp: true },
-    { cat: 'E-Waste (Motherboard)', hindi: 'ई-कचरा / इलेक्ट्रॉनिक्स', rate: '₹45.00/kg', trend: '+₹3.50', isUp: true },
+    { name: 'Copper Wire (Millberry)', rate: '₹685/kg', trend: '+2.4%', isUp: true },
+    { name: 'Brass / Pital Utensils', rate: '₹460/kg', trend: '+1.1%', isUp: true },
+    { name: 'Aluminium Extrusions', rate: '₹165/kg', trend: '-0.8%', isUp: false },
+    { name: 'PET Bottles (Clean Optical)', rate: '₹28/kg', trend: '+3.2%', isUp: true },
+    { name: 'Kraft Corrugated Carton', rate: '₹15.5/kg', trend: '+1.3%', isUp: true },
+    { name: 'Heavy Structural Iron (HMS)', rate: '₹34/kg', trend: '+0.5%', isUp: true },
   ];
 
   return (
-    <div className="space-y-16 pb-16">
-      {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-emerald-950 via-forest-900 to-forest-950 text-white py-20 px-4 sm:px-6 lg:px-8">
-        <div className="absolute inset-0 bg-[radial-gradient(#10b981_1px,transparent_1px)] [background-size:24px_24px] opacity-15" />
-        <div className="max-w-7xl mx-auto relative z-10 space-y-8 text-center sm:text-left">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-xs font-semibold backdrop-blur-md">
-            <Sparkles className="w-4 h-4 text-emerald-400" />
-            <span>Empowering India's Informal Recycling Ecosystem with AI & Web3 Ledger</span>
+    <div className="space-y-24 pb-20">
+      {/* 1. Live Commodity Mandi Ticker Bar */}
+      <section className="bg-zinc-900 text-zinc-300 border-b border-zinc-800 text-xs py-2 px-4 overflow-x-auto">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-6 whitespace-nowrap">
+          <div className="flex items-center gap-2 font-bold text-emerald-400 shrink-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="uppercase tracking-wider text-[11px]">National Mandi Benchmark:</span>
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-7 space-y-6">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight">
-                A Digital Bridge to{' '}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-mint-200 to-emerald-200">
-                  Sustainable Recycling
-                </span>
-              </h1>
-              <p className="text-base sm:text-lg text-emerald-100/90 max-w-2xl font-normal leading-relaxed">
-                ScrapSetu connects households, bulk waste commercial generators, informal kabadiwalas, and authorized recycling plants with transparent Mandi pricing, AI waste vision, and tamper-proof SHA-256 receipts.
-              </p>
-
-              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-3 pt-2">
-                <Link href="/household">
-                  <Button size="lg" variant="default" className="text-sm font-bold shadow-glow-emerald">
-                    <span>Schedule Scrap Pickup</span>
-                    <ArrowRight className="w-4 h-4 ml-1.5" />
-                  </Button>
-                </Link>
-                <Link href="/rates">
-                  <Button size="lg" variant="secondary" className="text-sm font-bold">
-                    <span>Explore Live Mandi Rates</span>
-                  </Button>
-                </Link>
-              </div>
-
-              {/* Trust Indicators */}
-              <div className="pt-6 border-t border-emerald-800/80 flex flex-wrap items-center justify-center sm:justify-start gap-6 text-xs text-emerald-200/80">
-                <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                  <span>3-Point KYC Verified Kabadiwalas</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Scale className="w-4 h-4 text-emerald-400" />
-                  <span>TrustWeigh™ Digital Accuracy</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Leaf className="w-4 h-4 text-emerald-400" />
-                  <span>CPCB EPR & ESG Compliant</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Hero Floating Metric Card */}
-            <div className="lg:col-span-5">
-              <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 sm:p-8 space-y-5 shadow-2xl">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">
-                    Live Circular Network Pulse
-                  </span>
-                  <Badge variant="success">Rajasthan & NCR</Badge>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-emerald-950/60 p-4 rounded-2xl border border-emerald-700/50">
-                    <div className="text-2xl font-extrabold text-white">5,480 kg</div>
-                    <div className="text-xs text-emerald-300 font-medium">Diverted from Landfills</div>
-                  </div>
-                  <div className="bg-emerald-950/60 p-4 rounded-2xl border border-emerald-700/50">
-                    <div className="text-2xl font-extrabold text-white">₹78,450</div>
-                    <div className="text-xs text-emerald-300 font-medium">Cash Paid to Citizens</div>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-emerald-950/40 rounded-2xl border border-emerald-700/40 space-y-2 text-xs">
-                  <div className="flex justify-between items-center text-emerald-200">
-                    <span>Greenhouse Gas Abatement:</span>
-                    <span className="font-bold text-white">8,220 kg CO₂e Saved</span>
-                  </div>
-                  <div className="flex justify-between items-center text-emerald-200">
-                    <span>Equivalent Trees Saved:</span>
-                    <span className="font-bold text-white">94 Mature Trees 🌲</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Live Mandi Benchmark Rates Ticker */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="p-4 bg-white rounded-2xl border border-stone-200/90 shadow-card-subtle flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2 text-xs font-bold text-stone-900 shrink-0">
-            <TrendingUp className="w-4 h-4 text-emerald-700" />
-            <span>Mandi Scrap Index (North India):</span>
-          </div>
-
-          <div className="flex items-center gap-6 overflow-x-auto text-xs py-1">
-            {mandiTicker.map((m, idx) => (
-              <div key={idx} className="flex items-center gap-2 whitespace-nowrap">
-                <span className="font-bold text-stone-800">{m.cat}</span>
-                <span className="text-emerald-900 font-extrabold">{m.rate}</span>
-                <span className={`text-[10px] font-bold ${m.isUp ? 'text-emerald-600' : 'text-stone-400'}`}>
-                  {m.trend}
+          <div className="flex items-center gap-6 overflow-x-auto text-[11px]">
+            {mandiTicker.map((item, idx) => (
+              <div key={idx} className="flex items-center gap-1.5 font-medium">
+                <span className="text-zinc-400">{item.name}</span>
+                <span className="font-bold text-white font-mono">{item.rate}</span>
+                <span className={item.isUp ? 'text-emerald-400 font-semibold' : 'text-rose-400 font-semibold'}>
+                  {item.trend}
                 </span>
               </div>
             ))}
           </div>
+          <Link href="/rates" className="text-emerald-400 hover:text-emerald-300 font-semibold shrink-0 text-[11px] underline">
+            Full Index →
+          </Link>
         </div>
       </section>
 
-      {/* 4 Dedicated Role Portals Overview */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
-        <div className="text-center max-w-2xl mx-auto space-y-2">
-          <Badge variant="secondary">Tailored SaaS Dashboards</Badge>
-          <h2 className="text-3xl font-extrabold text-stone-900 tracking-tight">
-            Designed for Every Stakeholder in the Circular Chain
+      {/* 2. Hero Section: Editorial & Bold */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="lg:col-span-7 space-y-6">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-forest-900 text-xs font-bold">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
+              <span>National Circular Economy Logistics Network</span>
+            </div>
+
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-zinc-950 leading-[1.08]">
+              Transforming India&apos;s scrap economy with{' '}
+              <span className="text-forest-900 underline decoration-emerald-400 decoration-wavy decoration-2">
+                circular intelligence.
+              </span>
+            </h1>
+
+            <p className="text-base sm:text-lg text-zinc-600 max-w-xl font-normal leading-relaxed">
+              ScrapSetu bridges households, commercial generators, informal kabadiwalas, and authorized recycling facilities with transparent wholesale pricing, AI material identification, and cryptographically verified digital weighbridges.
+            </p>
+
+            <div className="flex flex-wrap items-center gap-3 pt-2">
+              <Link href="/household">
+                <Button size="lg" variant="primary" className="font-bold shadow-md">
+                  Book Doorstep Pickup
+                  <ArrowRight className="w-4 h-4 ml-1.5" />
+                </Button>
+              </Link>
+              <Link href="/how-it-works">
+                <Button size="lg" variant="outline" className="font-bold">
+                  Explore Circular Architecture
+                </Button>
+              </Link>
+            </div>
+
+            {/* Micro Trust Indicators */}
+            <div className="pt-6 border-t border-zinc-200/80 flex flex-wrap items-center gap-6 text-xs text-zinc-600 font-medium">
+              <div className="flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-forest-900" />
+                <span>3-Point KYC Partners</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Scale className="w-4 h-4 text-forest-900" />
+                <span>TrustWeigh™ Calibrated Scales</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Leaf className="w-4 h-4 text-forest-900" />
+                <span>CPCB Traceable Credits</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Hero Interactive Calculator Widget */}
+          <div className="lg:col-span-5">
+            <div className="circular-card p-6 sm:p-7 bg-white relative overflow-hidden border border-zinc-200 shadow-lg">
+              <div className="flex items-center justify-between pb-4 border-b border-zinc-100">
+                <div className="flex items-center gap-2">
+                  <Calculator className="w-4 h-4 text-forest-900" />
+                  <span className="text-xs font-bold uppercase tracking-wider text-zinc-700">
+                    Instant Scrap Valuation
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold bg-emerald-100 text-forest-900 px-2 py-0.5 rounded-full">
+                  Live Mandi
+                </span>
+              </div>
+
+              <div className="space-y-5 pt-4">
+                {/* Material Selectors */}
+                <div>
+                  <label className="block text-xs font-bold text-zinc-700 mb-2">Select Scrap Category:</label>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    {(['paper', 'plastic', 'copper', 'iron'] as const).map((key) => {
+                      const isSel = calcMaterial === key;
+                      return (
+                        <button
+                          key={key}
+                          onClick={() => setCalcMaterial(key)}
+                          className={`p-2 rounded-xl text-left font-bold transition-all border ${
+                            isSel
+                              ? 'bg-emerald-50 border-emerald-500 text-forest-900 ring-1 ring-emerald-400'
+                              : 'bg-zinc-50 border-zinc-200 text-zinc-700 hover:bg-zinc-100'
+                          }`}
+                        >
+                          <div className="text-[11px] truncate">{materialRates[key].name}</div>
+                          <div className="text-[10px] text-zinc-500 font-mono">₹{materialRates[key].rate}/kg</div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Weight Slider */}
+                <div>
+                  <div className="flex justify-between items-center text-xs font-bold text-zinc-700 mb-1.5">
+                    <span>Estimated Weight:</span>
+                    <span className="font-mono text-forest-900 text-sm font-black">{calcWeight} kg</span>
+                  </div>
+                  <input
+                    type="range"
+                    min="5"
+                    max="150"
+                    step="5"
+                    value={calcWeight}
+                    onChange={(e) => setCalcWeight(Number(e.target.value))}
+                    className="w-full accent-forest-900 h-2 bg-zinc-200 rounded-lg cursor-pointer"
+                  />
+                  <div className="flex justify-between text-[10px] text-zinc-400 mt-1">
+                    <span>5 kg</span>
+                    <span>75 kg</span>
+                    <span>150 kg+</span>
+                  </div>
+                </div>
+
+                {/* Result Box */}
+                <div className="bg-forest-950 text-white rounded-2xl p-4 space-y-2">
+                  <div className="flex items-baseline justify-between">
+                    <span className="text-xs text-emerald-200">Doorstep Cash Payout:</span>
+                    <span className="text-3xl font-black font-mono text-emerald-300">
+                      {formatINR(calculatedEarnings)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-zinc-300 pt-1 border-t border-emerald-900/60">
+                    <span>Greenhouse Gas Mitigated:</span>
+                    <span className="font-bold text-emerald-400">{calculatedCo2} kg CO₂e</span>
+                  </div>
+                </div>
+
+                <Link href="/household" className="block">
+                  <Button variant="default" className="w-full font-bold shadow-sm">
+                    Book Doorstep Pickup for This Scrap
+                    <ArrowRight className="w-4 h-4 ml-1.5" />
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. The Cradle-to-Gate Recyclable Journey */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-2xl mx-auto space-y-2 mb-12">
+          <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 block">
+            End-to-End Traceability
+          </span>
+          <h2 className="text-3xl font-black text-zinc-950 tracking-tight">
+            How Material Flows Through ScrapSetu
           </h2>
-          <p className="text-xs sm:text-sm text-stone-500 font-medium">
-            No one-size-fits-all forms. Each role has a specialized operational terminal.
+          <p className="text-xs sm:text-sm text-zinc-600">
+            Four synchronized touchpoints ensuring transparent pricing, fuel efficiency, and CPCB audit compliance.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {/* Card 1: Household */}
-          <Card className="hover:border-emerald-500/60 transition-all">
-            <CardContent className="p-6 space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center text-xl shadow-xs">
-                🏠
-              </div>
-              <div>
-                <h3 className="font-bold text-stone-900 text-base">Household Generator</h3>
-                <p className="text-xs text-stone-500 font-medium mt-1">
-                  Book doorstep pickups, snap photos with ScrapVision AI, and earn fair Mandi cash.
-                </p>
-              </div>
-              <ul className="text-xs text-stone-600 space-y-1.5 pt-2 border-t border-stone-100">
-                <li className="flex items-center gap-1.5">✓ ScrapVision™ Auto-detection</li>
-                <li className="flex items-center gap-1.5">✓ Real-time collector ETA radar</li>
-                <li className="flex items-center gap-1.5">✓ Green Karma eco-points</li>
-              </ul>
-              <Link href="/household" className="block pt-2">
-                <Button variant="secondary" size="sm" className="w-full">
-                  Launch Household Portal
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          {/* Card 2: Collector */}
-          <Card className="hover:border-emerald-500/60 transition-all">
-            <CardContent className="p-6 space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-900 flex items-center justify-center text-xl shadow-xs">
-                🛺
-              </div>
-              <div>
-                <h3 className="font-bold text-stone-900 text-base">Kabadiwala Terminal</h3>
-                <p className="text-xs text-stone-500 font-medium mt-1">
-                  Mobile-first, high-contrast, bilingual terminal with daily capacity meter & TSP route planner.
-                </p>
-              </div>
-              <ul className="text-xs text-stone-600 space-y-1.5 pt-2 border-t border-stone-100">
-                <li className="flex items-center gap-1.5">✓ EcoRoute™ TSP Multi-stop planner</li>
-                <li className="flex items-center gap-1.5">✓ TrustWeigh™ Digital scale entry</li>
-                <li className="flex items-center gap-1.5">✓ Daily earnings & Mandi comparison</li>
-              </ul>
-              <Link href="/collector" className="block pt-2">
-                <Button variant="secondary" size="sm" className="w-full">
-                  Launch Collector Terminal
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          {/* Card 3: Business */}
-          <Card className="hover:border-emerald-500/60 transition-all">
-            <CardContent className="p-6 space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-blue-100 text-blue-900 flex items-center justify-center text-xl shadow-xs">
-                🏢
-              </div>
-              <div>
-                <h3 className="font-bold text-stone-900 text-base">Commercial Generator</h3>
-                <p className="text-xs text-stone-500 font-medium mt-1">
-                  Manage recurring warehouse & corporate pickups, multi-branch dispatch, and EPR audits.
-                </p>
-              </div>
-              <ul className="text-xs text-stone-600 space-y-1.5 pt-2 border-t border-stone-100">
-                <li className="flex items-center gap-1.5">✓ Multi-branch dispatch scheduling</li>
-                <li className="flex items-center gap-1.5">✓ GST invoices & weighbridge logs</li>
-                <li className="flex items-center gap-1.5">✓ Exportable ESG & EPR certificates</li>
-              </ul>
-              <Link href="/business" className="block pt-2">
-                <Button variant="secondary" size="sm" className="w-full">
-                  Launch Business Portal
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          {/* Card 4: Recycler */}
-          <Card className="hover:border-emerald-500/60 transition-all">
-            <CardContent className="p-6 space-y-4">
-              <div className="w-12 h-12 rounded-2xl bg-purple-100 text-purple-900 flex items-center justify-center text-xl shadow-xs">
-                🏭
-              </div>
-              <div>
-                <h3 className="font-bold text-stone-900 text-base">Authorized Recycler</h3>
-                <p className="text-xs text-stone-500 font-medium mt-1">
-                  Publish factory buying rates, record weighbridge gate slips, and track circular processing.
-                </p>
-              </div>
-              <ul className="text-xs text-stone-600 space-y-1.5 pt-2 border-t border-stone-100">
-                <li className="flex items-center gap-1.5">✓ Live buying rate sheet publisher</li>
-                <li className="flex items-center gap-1.5">✓ Weighbridge gross/tare slip maker</li>
-                <li className="flex items-center gap-1.5">✓ CPCB environmental licensing status</li>
-              </ul>
-              <Link href="/recycler" className="block pt-2">
-                <Button variant="secondary" size="sm" className="w-full">
-                  Launch Recycler Portal
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
-      {/* 4-Step Interactive Workflow */}
-      <section className="bg-stone-100/80 py-16 px-4 sm:px-6 lg:px-8 border-y border-stone-200/80">
-        <div className="max-w-7xl mx-auto space-y-12">
-          <div className="text-center max-w-xl mx-auto space-y-2">
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-stone-900 tracking-tight">
-              End-to-End Circular Recycling in 4 Steps
-            </h2>
-            <p className="text-xs sm:text-sm text-stone-500 font-medium">
-              From household doorstep to verified factory smelting with cryptographic audit trail.
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 relative">
+          {/* Step 1 */}
+          <div className="circular-card p-6 space-y-3 relative">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-forest-900 flex items-center justify-center font-black text-sm">
+              01
+            </div>
+            <h3 className="text-sm font-bold text-zinc-950">AI ScrapVision Scan</h3>
+            <p className="text-xs text-zinc-600 leading-relaxed">
+              Citizens or businesses take a quick photo. Deep learning classifies polymers and alloys, estimating weight and fair Mandi price.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div className="p-6 bg-white rounded-3xl border border-stone-200/90 shadow-card-subtle space-y-3">
-              <span className="text-2xl font-black text-emerald-700">01</span>
-              <h3 className="font-bold text-stone-900 text-sm">Create Pickup & AI Scan</h3>
-              <p className="text-xs text-stone-500 leading-relaxed">
-                User selects scrap items or snaps an image with ScrapVision AI for instant category & Mandi estimation.
+          {/* Step 2 */}
+          <div className="circular-card p-6 space-y-3 relative">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-forest-900 flex items-center justify-center font-black text-sm">
+              02
+            </div>
+            <h3 className="text-sm font-bold text-zinc-950">EcoRoute TSP Dispatch</h3>
+            <p className="text-xs text-zinc-600 leading-relaxed">
+              Requests are clustered into optimal collector routes using Travelling Salesperson algorithms, eliminating 38% of empty mileage.
+            </p>
+          </div>
+
+          {/* Step 3 */}
+          <div className="circular-card p-6 space-y-3 relative">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-forest-900 flex items-center justify-center font-black text-sm">
+              03
+            </div>
+            <h3 className="text-sm font-bold text-zinc-950">TrustWeigh Digital Seal</h3>
+            <p className="text-xs text-zinc-600 leading-relaxed">
+              Collector weighs on a calibrated digital scale. Tare and gross weights are sealed cryptographically with SHA-256 for instant UPI payout.
+            </p>
+          </div>
+
+          {/* Step 4 */}
+          <div className="circular-card p-6 space-y-3 relative">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-forest-900 flex items-center justify-center font-black text-sm">
+              04
+            </div>
+            <h3 className="text-sm font-bold text-zinc-950">Recycler Waste Passport</h3>
+            <p className="text-xs text-zinc-600 leading-relaxed">
+              Aggregated lots are transferred to authorized CPCB recycling plants with batch QR passports, generating traceable EPR credits.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Five Distinct Portals Showcase (Asymmetric Architectural Grid) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center max-w-2xl mx-auto space-y-2 mb-12">
+          <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 block">
+            Tailored Experiences
+          </span>
+          <h2 className="text-3xl font-black text-zinc-950 tracking-tight">
+            Specialized Portals for Every Stakeholder
+          </h2>
+          <p className="text-xs sm:text-sm text-zinc-600">
+            Each role interacts through an interface purpose-built for their actual working environment.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Household Portal */}
+          <div className="circular-card p-6 flex flex-col justify-between hover:border-emerald-500">
+            <div className="space-y-3">
+              <div className="p-2.5 rounded-xl bg-emerald-50 text-forest-900 w-fit">
+                <Home className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-zinc-950">Households & Citizens</h3>
+              <p className="text-xs text-zinc-600 leading-relaxed">
+                Zero-charge doorstep collection, ScrapVision photo estimation, live neighborhood collector tracking, and instant digital payments.
               </p>
             </div>
+            <div className="pt-6">
+              <Link href="/household">
+                <Button variant="outline" size="sm" className="w-full font-bold">
+                  Open Household Portal →
+                </Button>
+              </Link>
+            </div>
+          </div>
 
-            <div className="p-6 bg-white rounded-3xl border border-stone-200/90 shadow-card-subtle space-y-3">
-              <span className="text-2xl font-black text-emerald-700">02</span>
-              <h3 className="font-bold text-stone-900 text-sm">Smart Collector Matching</h3>
-              <p className="text-xs text-stone-500 leading-relaxed">
-                Nearest verified kabadiwala receives the job via EcoRoute TSP, accepting with ETA and fuzzed privacy.
+          {/* Kabadiwala Terminal */}
+          <div className="circular-card p-6 flex flex-col justify-between hover:border-emerald-500 bg-emerald-50/30">
+            <div className="space-y-3">
+              <div className="p-2.5 rounded-xl bg-forest-900 text-white w-fit">
+                <Truck className="w-5 h-5" />
+              </div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-zinc-950">Kabadiwala Terminal</h3>
+                <span className="text-[10px] bg-forest-900 text-white px-2 py-0.5 rounded font-bold">Mobile-First</span>
+              </div>
+              <p className="text-xs text-zinc-600 leading-relaxed">
+                High-contrast operational terminal in Hindi and English with daily capacity gauges, 1-tap accept, and TrustWeigh digital weighing slips.
               </p>
             </div>
+            <div className="pt-6">
+              <Link href="/collector">
+                <Button variant="primary" size="sm" className="w-full font-bold">
+                  Open Collector Terminal →
+                </Button>
+              </Link>
+            </div>
+          </div>
 
-            <div className="p-6 bg-white rounded-3xl border border-stone-200/90 shadow-card-subtle space-y-3">
-              <span className="text-2xl font-black text-emerald-700">03</span>
-              <h3 className="font-bold text-stone-900 text-sm">TrustWeigh™ & Receipt</h3>
-              <p className="text-xs text-stone-500 leading-relaxed">
-                Net weight is confirmed, agreed rate settled, and a tamper-evident SHA-256 digital receipt is chained.
+          {/* Commercial Business */}
+          <div className="circular-card p-6 flex flex-col justify-between hover:border-emerald-500">
+            <div className="space-y-3">
+              <div className="p-2.5 rounded-xl bg-blue-50 text-blue-800 w-fit">
+                <Building2 className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-zinc-950">Commercial Bulk Generators</h3>
+              <p className="text-xs text-zinc-600 leading-relaxed">
+                Scheduled warehouse dispatch, recurring subscriptions, GST tax invoices, and automated Scope 3 ESG greenhouse gas compliance export.
               </p>
             </div>
+            <div className="pt-6">
+              <Link href="/business">
+                <Button variant="outline" size="sm" className="w-full font-bold">
+                  Open Enterprise Portal →
+                </Button>
+              </Link>
+            </div>
+          </div>
 
-            <div className="p-6 bg-white rounded-3xl border border-stone-200/90 shadow-card-subtle space-y-3">
-              <span className="text-2xl font-black text-emerald-700">04</span>
-              <h3 className="font-bold text-stone-900 text-sm">Waste Passport™ & EPR</h3>
-              <p className="text-xs text-stone-500 leading-relaxed">
-                Scrap batch arrives at CPCB authorized mill for weighbridge intake, closing the circular loop with ESG points.
+          {/* Recycler Mill */}
+          <div className="circular-card p-6 flex flex-col justify-between hover:border-emerald-500">
+            <div className="space-y-3">
+              <div className="p-2.5 rounded-xl bg-purple-50 text-purple-800 w-fit">
+                <Factory className="w-5 h-5" />
+              </div>
+              <h3 className="text-base font-bold text-zinc-950">Authorized Recycler Facilities</h3>
+              <p className="text-xs text-zinc-600 leading-relaxed">
+                Wholesale buying rate sheet manager, industrial weighbridge intake passes, output granulate batching, and CPCB license synchronization.
               </p>
+            </div>
+            <div className="pt-6">
+              <Link href="/recycler">
+                <Button variant="outline" size="sm" className="w-full font-bold">
+                  Open Recycler Desk →
+                </Button>
+              </Link>
+            </div>
+          </div>
+
+          {/* Administrator Console */}
+          <div className="circular-card p-6 flex flex-col justify-between lg:col-span-2 bg-zinc-900 text-white">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="p-2.5 rounded-xl bg-emerald-500/20 text-emerald-400 w-fit">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 bg-emerald-950 px-2 py-0.5 rounded border border-emerald-800">
+                  Platform Governance
+                </span>
+              </div>
+              <h3 className="text-base font-bold text-white">Administrator Regulatory Console</h3>
+              <p className="text-xs text-zinc-300 leading-relaxed max-w-lg">
+                Calm, high-density operational control center featuring 3-Point KYC inspection queue (Aadhaar, DL, Live Selfie), live Mandi price governance, EcoShield fraud review, and free cloud database connectivity.
+              </p>
+            </div>
+            <div className="pt-6">
+              <Link href="/admin">
+                <Button variant="gold" size="sm" className="font-bold">
+                  Open Administrator Console →
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Verified Climate Impact Summary */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-forest-950 text-white rounded-3xl p-8 sm:p-12 relative overflow-hidden">
+          <div className="max-w-2xl space-y-4">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-400">
+              National Sustainability Telemetry
+            </span>
+            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">
+              Measurable ecological impact across Indian urban wards.
+            </h2>
+            <p className="text-xs sm:text-sm text-emerald-200">
+              Every scrap intake is validated against virgin feedstock substitution lifecycle models (IPCC 2024 Guidelines).
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-8 border-t border-emerald-900/80 mt-8">
+            <div>
+              <div className="text-3xl font-black font-mono text-emerald-300">2,845.9 MT</div>
+              <div className="text-xs text-emerald-200 mt-1">Dry Recyclables Diverted</div>
+            </div>
+            <div>
+              <div className="text-3xl font-black font-mono text-emerald-300">4,268 MT</div>
+              <div className="text-xs text-emerald-200 mt-1">CO₂e Emissions Avoided</div>
+            </div>
+            <div>
+              <div className="text-3xl font-black font-mono text-emerald-300">38,420</div>
+              <div className="text-xs text-emerald-200 mt-1">Forest Trees Preserved</div>
+            </div>
+            <div>
+              <div className="text-3xl font-black font-mono text-emerald-300">₹5.49 Cr</div>
+              <div className="text-xs text-emerald-200 mt-1">Direct Citizen & SME Payouts</div>
             </div>
           </div>
         </div>

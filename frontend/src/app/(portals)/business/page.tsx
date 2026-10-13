@@ -1,212 +1,277 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import {
   Building2,
   Calendar,
-  FileText,
   Download,
+  FileText,
+  Truck,
   Plus,
+  CheckCircle2,
+  ArrowRight,
   ShieldCheck,
   TrendingUp,
-  Truck,
+  BarChart2,
   Leaf,
-  CheckCircle2,
+  Layers,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
-import { Badge } from '../../../components/ui/badge';
-import { Card, CardContent } from '../../../components/ui/card';
 import { formatINR, formatKg, formatDate } from '../../../lib/utils';
 import { useAuthStore } from '../../../store/authStore';
 
 export default function BusinessPortalPage() {
   const { user } = useAuthStore();
-  const [successMsg, setSuccessMsg] = useState('');
+  const [isScheduleOpen, setIsScheduleOpen] = useState(false);
 
+  // Commercial Facilities
+  const facilities = [
+    { id: 'fac-1', name: 'Okhla Phase-III Central Logistics Bay 7', type: 'Industrial Pallets & Cartons', weeklyAvg: '450 kg', status: 'Active Primary' },
+    { id: 'fac-2', name: 'Saket District Centre Mall Outlet', type: 'Retail Packaging & Plastic', weeklyAvg: '180 kg', status: 'Active Branch' },
+    { id: 'fac-3', name: 'Gurugram Tech Park Data Center', type: 'E-Waste & Server Racks', weeklyAvg: '95 kg', status: 'Quarterly Pickup' },
+  ];
+
+  // Commercial Invoices & EPR Certificates
   const [invoices, setInvoices] = useState([
     {
-      invoiceNo: 'INV-2026-JP-00192',
-      branch: 'Sitapura Industrial Bay 7',
-      materials: 'Packaging Cardboard (105kg), Scrap Iron (82.5kg)',
-      weightKg: 187.5,
-      amount: 3442.5,
-      date: '2026-10-09',
-      payment: 'UPI Verified',
-      gstin: '08AAAAA1234A1Z5',
+      invoiceNo: 'GST-2026-DEL-0894',
+      facility: 'Okhla Central Bay 7',
+      material: 'Baled Corrugated Cartons (Kraft)',
+      netWeight: 175.0,
+      gstin: '07AAAAA0000A1Z5',
+      hsnCode: 'HSN-4707',
+      totalAmount: 6895.0,
+      eprStatus: 'CPCB CAT-I VERIFIED',
+      date: '2026-10-10',
     },
     {
-      invoiceNo: 'INV-2026-JP-00114',
-      branch: 'Sitapura Industrial Bay 7',
-      materials: 'Office Paper Shreds (210kg)',
-      weightKg: 210.0,
-      amount: 4120.0,
+      invoiceNo: 'GST-2026-DEL-0712',
+      facility: 'Saket Mall Outlet',
+      material: 'Clean Rigid PET Packaging',
+      netWeight: 210.0,
+      gstin: '07AAAAA0000A1Z5',
+      hsnCode: 'HSN-3915',
+      totalAmount: 8120.0,
+      eprStatus: 'CPCB CAT-II VERIFIED',
       date: '2026-09-28',
-      payment: 'Bank Transfer',
-      gstin: '08AAAAA1234A1Z5',
     },
   ]);
 
-  const handleBookDispatch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setSuccessMsg('Bulk commercial dispatch scheduled! Assigned to heavy mini-truck carrier.');
-    setTimeout(() => setSuccessMsg(''), 4000);
-  };
+  // Scheduled pickup form state
+  const [selectedFacility, setSelectedFacility] = useState('Okhla Phase-III Central Logistics Bay 7');
+  const [estLoad, setEstLoad] = useState(250);
+  const [isRecurring, setIsRecurring] = useState(true);
 
-  const handleExportEprReport = () => {
-    alert('Generating Verified ESG / EPR Extended Producer Responsibility Audit Certificate (PDF)...');
+  const handleSchedulePickup = (e: React.FormEvent) => {
+    e.preventDefault();
+    const newInv = {
+      invoiceNo: `GST-2026-DEL-${Math.floor(1000 + Math.random() * 9000)}`,
+      facility: selectedFacility,
+      material: 'Industrial Secondary Packaging & Scrap',
+      netWeight: estLoad,
+      gstin: '07AAAAA0000A1Z5',
+      hsnCode: 'HSN-4707',
+      totalAmount: estLoad * 17.5,
+      eprStatus: 'PROCESSING',
+      date: 'Scheduled Tomorrow',
+    };
+    setInvoices([newInv, ...invoices]);
+    setIsScheduleOpen(false);
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Enterprise Header */}
-      <div className="bg-gradient-to-r from-blue-950 via-slate-900 to-slate-950 text-white p-6 sm:p-8 rounded-3xl shadow-xl flex flex-wrap items-center justify-between gap-6 border border-slate-800">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs font-bold border border-blue-500/30">
-            <Building2 className="w-3.5 h-3.5" />
-            <span>Commercial Bulk Generator Portal</span>
+      {/* 1. Header & ESG Overview */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 rounded-2xl bg-white border border-zinc-200 shadow-2xs">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-600" />
+            <span className="text-[11px] font-bold uppercase tracking-wider text-blue-800">
+              Commercial Generator & EPR Registry
+            </span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            {user?.name || 'GreenLeaf Logistics & Hospitality'}
+          <h1 className="text-2xl font-black text-zinc-950 tracking-tight mt-1">
+            {user?.name || 'GreenTech Enterprises Ltd'}
           </h1>
-          <p className="text-xs text-slate-300 font-medium">
-            GSTIN: 08AAAAA1234A1Z5 • Operating Hub: Sitapura Industrial Area, Jaipur
+          <p className="text-xs text-zinc-500 mt-0.5">
+            GSTIN: <span className="font-mono font-bold text-zinc-700">07AAAAA0000A1Z5</span> • Multi-Facility Bulk Contract
           </p>
         </div>
 
-        <Button
-          variant="gold"
-          size="sm"
-          onClick={handleExportEprReport}
-          className="text-xs font-bold shadow-sm"
-        >
-          <Download className="w-4 h-4 mr-1.5" />
-          <span>Download CPCB EPR Certificate</span>
-        </Button>
+        <div className="flex items-center gap-6 shrink-0 bg-zinc-50 p-3 rounded-xl border border-zinc-200 text-xs">
+          <div>
+            <div className="text-[10px] uppercase font-bold text-zinc-400">Total Commercial Tonnage</div>
+            <div className="font-mono font-bold text-forest-900">1,840 kg Diverted</div>
+          </div>
+          <div className="border-l border-zinc-200 pl-4">
+            <div className="text-[10px] uppercase font-bold text-zinc-400">Annual EPR Obligation</div>
+            <div className="font-mono font-bold text-emerald-700">122% Achieved ✓</div>
+          </div>
+          <div className="border-l border-zinc-200 pl-4">
+            <Button
+              size="sm"
+              variant="primary"
+              onClick={() => setIsScheduleOpen(true)}
+              className="font-bold text-xs"
+            >
+              <Plus className="w-3.5 h-3.5 mr-1" />
+              Schedule Bulk Dispatch
+            </Button>
+          </div>
+        </div>
       </div>
 
-      {successMsg && (
-        <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-2xl text-emerald-950 text-xs font-bold flex items-center gap-2">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-          <span>{successMsg}</span>
+      {/* 2. Schedule Bulk Dispatch Modal */}
+      {isScheduleOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl border border-zinc-200 space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+              <h3 className="text-base font-bold text-zinc-950 flex items-center gap-2">
+                <Truck className="w-4 h-4 text-forest-900" />
+                Schedule Commercial Heavy Dispatch
+              </h3>
+              <button
+                onClick={() => setIsScheduleOpen(false)}
+                className="text-zinc-400 hover:text-zinc-700 text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSchedulePickup} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-zinc-700 mb-1">Select Facility Dispatch Bay</label>
+                <select
+                  value={selectedFacility}
+                  onChange={(e) => setSelectedFacility(e.target.value)}
+                  className="w-full px-3 py-2 border border-zinc-300 rounded-xl"
+                >
+                  {facilities.map((f) => (
+                    <option key={f.id}>{f.name}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-zinc-700 mb-1">Estimated Bulk Load (kg)</label>
+                <input
+                  type="number"
+                  min="50"
+                  step="10"
+                  value={estLoad}
+                  onChange={(e) => setEstLoad(Number(e.target.value))}
+                  className="w-full px-3 py-2 border border-zinc-300 rounded-xl font-mono"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 p-3 bg-zinc-50 rounded-xl border border-zinc-200">
+                <input
+                  type="checkbox"
+                  id="rec"
+                  checked={isRecurring}
+                  onChange={(e) => setIsRecurring(e.target.checked)}
+                  className="rounded text-forest-900 accent-forest-900"
+                />
+                <label htmlFor="rec" className="font-semibold text-zinc-800">
+                  Set as recurring weekly commercial contract
+                </label>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <Button type="button" variant="ghost" size="sm" onClick={() => setIsScheduleOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" variant="primary" size="sm" className="font-bold">
+                  Confirm Dispatch Order
+                </Button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="p-5 bg-white rounded-2xl border border-stone-200 shadow-card-subtle">
-          <div className="text-xs font-bold text-stone-500 uppercase tracking-wider">Total Tonnage</div>
-          <div className="text-2xl font-black text-stone-900 mt-1">397.5 kg</div>
-          <span className="text-[11px] text-emerald-700 font-semibold">100% Circular Diversion</span>
+      {/* 3. Facility Dispatch Bays Table */}
+      <div className="circular-card p-6 bg-white space-y-4">
+        <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
+          <div>
+            <h2 className="text-base font-bold text-zinc-950">Active Commercial Dispatch Locations</h2>
+            <p className="text-xs text-zinc-500">Warehouse loading docks linked to automated pickup schedules</p>
+          </div>
+          <span className="text-xs font-mono font-bold text-zinc-500">{facilities.length} Bays Registered</span>
         </div>
-        <div className="p-5 bg-white rounded-2xl border border-stone-200 shadow-card-subtle">
-          <div className="text-xs font-bold text-stone-500 uppercase tracking-wider">Scrap Revenue</div>
-          <div className="text-2xl font-black text-stone-900 mt-1">{formatINR(7562.5)}</div>
-          <span className="text-[11px] text-stone-400">Direct Account Settlement</span>
-        </div>
-        <div className="p-5 bg-white rounded-2xl border border-stone-200 shadow-card-subtle">
-          <div className="text-xs font-bold text-stone-500 uppercase tracking-wider">Dispatches</div>
-          <div className="text-2xl font-black text-stone-900 mt-1">2 Shipments</div>
-          <span className="text-[11px] text-emerald-700 font-semibold">Weekly Recurring Active</span>
-        </div>
-        <div className="p-5 bg-white rounded-2xl border border-stone-200 shadow-card-subtle">
-          <div className="text-xs font-bold text-stone-500 uppercase tracking-wider">EPR Compliance</div>
-          <div className="text-2xl font-black text-emerald-700 mt-1">100% Verified</div>
-          <span className="text-[11px] text-stone-400">Audit-Ready Ledger</span>
-        </div>
+
+        <table className="ops-table">
+          <thead>
+            <tr>
+              <th>Facility Dock / Bay</th>
+              <th>Waste Stream Specification</th>
+              <th>Weekly Avg Tonnage</th>
+              <th>Dispatch Schedule</th>
+            </tr>
+          </thead>
+          <tbody>
+            {facilities.map((fac) => (
+              <tr key={fac.id}>
+                <td className="font-bold text-zinc-950">{fac.name}</td>
+                <td className="text-zinc-600">{fac.type}</td>
+                <td className="font-mono font-semibold text-forest-900">{fac.weeklyAvg}</td>
+                <td>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-forest-900">
+                    {fac.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Commercial Bulk Scheduler */}
-        <div className="lg:col-span-5 space-y-6">
-          <Card>
-            <CardContent className="p-6 space-y-5">
-              <div>
-                <h3 className="font-bold text-stone-900 text-base">Schedule Commercial Bulk Dispatch</h3>
-                <p className="text-xs text-stone-500 font-medium">
-                  Dispatch heavy packaging, scrap iron, or commercial electronic waste
-                </p>
-              </div>
-
-              <form onSubmit={handleBookDispatch} className="space-y-4 text-xs">
-                <div>
-                  <label className="font-semibold text-stone-700 block mb-1">Facility / Branch Location</label>
-                  <select className="w-full p-2.5 rounded-xl border border-stone-300 bg-white font-medium">
-                    <option>Central Warehouse — Sitapura Bay 7</option>
-                    <option>City Hospitality Outlet — Malviya Nagar</option>
-                    <option>Distribution Hub — Mansarovar RIICO</option>
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="font-semibold text-stone-700 block mb-1">Primary Material Stream</label>
-                    <select className="w-full p-2.5 rounded-xl border border-stone-300 bg-white font-medium">
-                      <option>Cardboard & Packaging</option>
-                      <option>Industrial Metals (Iron/Steel)</option>
-                      <option>Commercial E-Waste</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="font-semibold text-stone-700 block mb-1">Estimated Load (kg)</label>
-                    <input
-                      type="number"
-                      defaultValue={150}
-                      min={50}
-                      className="w-full p-2.5 rounded-xl border border-stone-300 bg-white font-bold"
-                    />
-                  </div>
-                </div>
-
-                <div className="p-3 bg-blue-50/70 rounded-xl border border-blue-200 flex items-center gap-2 text-blue-900 font-semibold">
-                  <input type="checkbox" defaultChecked className="rounded" />
-                  <span>Set as recurring weekly commercial subscription</span>
-                </div>
-
-                <Button type="submit" className="w-full text-xs font-bold py-3.5">
-                  Book Commercial Mini-Truck Dispatch
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+      {/* 4. GST Tax Invoices & CPCB EPR Credit Certificates */}
+      <div className="circular-card p-6 bg-white space-y-4">
+        <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
+          <div>
+            <h2 className="text-base font-bold text-zinc-950">GST E-Invoices & EPR Compliance Certificates</h2>
+            <p className="text-xs text-zinc-500">
+              Audited transaction records compliant with Central Pollution Control Board guidelines
+            </p>
+          </div>
+          <Button size="sm" variant="outline" className="font-bold text-xs">
+            <Download className="w-3.5 h-3.5 mr-1" />
+            Download Annual ESG Audit Pack (PDF)
+          </Button>
         </div>
 
-        {/* Right Column: GST Invoices & Weighbridge Records */}
-        <div className="lg:col-span-7 space-y-6">
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="font-bold text-stone-900 text-base">GST Invoices & Weighbridge Slips</h3>
-                  <p className="text-xs text-stone-500 font-medium">
-                    Cryptographically hashed digital transaction receipts
-                  </p>
-                </div>
-                <Badge variant="outline">{invoices.length} Invoices</Badge>
-              </div>
-
-              <div className="space-y-3">
-                {invoices.map((inv) => (
-                  <div
-                    key={inv.invoiceNo}
-                    className="p-4 bg-stone-50 rounded-2xl border border-stone-200 space-y-2 text-xs"
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-extrabold text-stone-900 font-mono">{inv.invoiceNo}</span>
-                      <span className="font-black text-emerald-900 text-sm">{formatINR(inv.amount)}</span>
-                    </div>
-
-                    <div className="font-medium text-stone-700">{inv.materials}</div>
-
-                    <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-stone-500 pt-1 border-t border-stone-200/60">
-                      <span>{inv.branch} • {inv.date}</span>
-                      <Badge variant="success">{inv.payment}</Badge>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <table className="ops-table">
+          <thead>
+            <tr>
+              <th>Invoice Number</th>
+              <th>Facility Origin</th>
+              <th>Material Category</th>
+              <th>Net Weight</th>
+              <th>Settled Amount</th>
+              <th>EPR Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {invoices.map((inv) => (
+              <tr key={inv.invoiceNo}>
+                <td className="font-mono font-bold text-zinc-950">{inv.invoiceNo}</td>
+                <td>{inv.facility}</td>
+                <td className="font-semibold text-zinc-800">{inv.material}</td>
+                <td className="font-mono font-bold">{inv.netWeight} kg</td>
+                <td className="font-mono font-black text-forest-900">{formatINR(inv.totalAmount)}</td>
+                <td>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-forest-900 font-mono">
+                    {inv.eprStatus}
+                  </span>
+                </td>
+                <td className="text-zinc-500 text-[11px]">{inv.date}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

@@ -19,6 +19,8 @@ interface MapProps {
   routeStops?: RouteStop[];
   onSelectPickup?: (id: string) => void;
   className?: string;
+  height?: string;
+  interactive?: boolean;
 }
 
 export const MapLibreMap: React.FC<MapProps> = ({
@@ -27,6 +29,8 @@ export const MapLibreMap: React.FC<MapProps> = ({
   routeStops = [],
   onSelectPickup,
   className = 'h-96 w-full rounded-2xl overflow-hidden border border-stone-200',
+  height,
+  interactive,
 }) => {
   const [selectedPin, setSelectedPin] = useState<string | null>(null);
 

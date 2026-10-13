@@ -14,6 +14,10 @@ const badgeVariants = cva(
         danger: 'border-transparent bg-red-500/15 text-red-800 border-red-300 font-bold',
         outline: 'border-stone-300 text-stone-700 bg-white',
         kyc: 'border-emerald-300 bg-emerald-50 text-emerald-800 font-extrabold shadow-xs',
+        emerald: 'border-transparent bg-emerald-600 text-white font-bold',
+        blue: 'border-transparent bg-blue-600 text-white font-bold',
+        teal: 'border-transparent bg-teal-600 text-white font-bold',
+        purple: 'border-transparent bg-purple-600 text-white font-bold',
       },
     },
     defaultVariants: {

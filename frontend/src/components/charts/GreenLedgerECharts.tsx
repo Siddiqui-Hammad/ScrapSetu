@@ -116,3 +116,5 @@ export const GreenLedgerCharts: React.FC<ChartProps> = ({
     </div>
   );
 };
+
+export const GreenLedgerECharts = GreenLedgerCharts;

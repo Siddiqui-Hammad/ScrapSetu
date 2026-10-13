@@ -10,13 +10,15 @@ import { ScrapVisionPrediction } from '../../types';
 interface ScrapVisionModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirmCategory: (prediction: ScrapVisionPrediction) => void;
+  onConfirmCategory?: (prediction: ScrapVisionPrediction) => void;
+  onConfirmPrediction?: (prediction: ScrapVisionPrediction) => void;
 }
 
 export const ScrapVisionModal: React.FC<ScrapVisionModalProps> = ({
   isOpen,
   onClose,
   onConfirmCategory,
+  onConfirmPrediction,
 }) => {
   const [selectedSample, setSelectedSample] = useState<string>('cardboard-boxes.jpg');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -140,7 +142,8 @@ export const ScrapVisionModal: React.FC<ScrapVisionModalProps> = ({
                 size="sm"
                 variant="default"
                 onClick={() => {
-                  onConfirmCategory(prediction);
+                  if (onConfirmPrediction) onConfirmPrediction(prediction);
+                  if (onConfirmCategory) onConfirmCategory(prediction);
                   onClose();
                 }}
               >

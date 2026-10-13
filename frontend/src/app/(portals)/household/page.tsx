@@ -3,22 +3,25 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import {
+  Sparkles,
+  Camera,
   Calendar,
   Clock,
-  Sparkles,
+  MapPin,
+  CheckCircle2,
+  Scale,
+  ArrowRight,
+  TrendingUp,
+  Leaf,
   Plus,
   Trash2,
-  CheckCircle2,
-  MapPin,
-  TrendingUp,
-  Scale,
-  Leaf,
+  QrCode,
   ShieldCheck,
-  ArrowRight,
+  Truck,
+  ChevronRight,
+  Info,
 } from 'lucide-react';
 import { Button } from '../../../components/ui/button';
-import { Badge } from '../../../components/ui/badge';
-import { Card, CardContent } from '../../../components/ui/card';
 import { ScrapVisionModal } from '../../../components/workflows/ScrapVisionModal';
 import { MapLibreMap } from '../../../components/maps/MapLibreMap';
 import { formatINR, formatKg, formatDate } from '../../../lib/utils';
@@ -29,151 +32,279 @@ export default function HouseholdPortalPage() {
   const { user } = useAuthStore();
   const [isVisionOpen, setIsVisionOpen] = useState(false);
 
-  // Booking items
-  const [items, setItems] = useState([
-    { categoryId: 'cat-paper', name: 'Paper & Cardboard', estimatedQty: 25, unit: 'kg', rate: 14.0 },
-    { categoryId: 'cat-plastic', name: 'Rigid Plastics (PET)', estimatedQty: 10, unit: 'kg', rate: 18.5 },
-  ]);
-  const [slot, setSlot] = useState('Morning (9 AM - 12 PM)');
-  const [bookingSuccess, setBookingSuccess] = useState(false);
+  // Guided Multi-Step Wizard State (1 = Material Selection, 2 = Weight & Estimate, 3 = Schedule Slot)
+  const [currentStep, setCurrentStep] = useState<1 | 2 | 3>(1);
 
-  // Active / recent pickups
-  const [pickups, setPickups] = useState([
+  // Selected materials
+  const [selectedMaterials, setSelectedMaterials] = useState<
+    Array<{ id: string; name: string; rate: number; estQty: number; unit: string }>
+  >([
+    { id: 'cat-paper', name: 'Kraft Carton & Paper', rate: 15.5, estQty: 25, unit: 'kg' },
+    { id: 'cat-plastic', name: 'PET Bottles & Plastic', rate: 28.0, estQty: 10, unit: 'kg' },
+  ]);
+
+  const [address, setAddress] = useState('Flat 402, Block C, South Extension II, New Delhi');
+  const [pincode, setPincode] = useState('110049');
+  const [timeSlot, setTimeSlot] = useState('Morning (9 AM - 12 PM)');
+  const [isBookingSuccess, setIsBookingSuccess] = useState(false);
+
+  // Active Pickups & History
+  const [activeBookings, setActiveBookings] = useState([
     {
       id: 'REQ-101',
-      materials: 'Paper & Cardboard (25kg), PET Plastics (10kg)',
+      materials: 'Kraft Carton (25kg), PET Plastics (10kg)',
       estWeight: 35.0,
-      estVal: 535.0,
-      slot: 'Morning (9 AM - 12 PM)',
+      estVal: 667.5,
+      timeSlot: 'Morning (9 AM - 12 PM)',
       status: 'OPEN',
       collector: null,
-      date: 'Today, 2026-10-14',
+      step: 1, // 1: Booked, 2: Assigned, 3: In Transit, 4: Settled
+      date: 'Today, Oct 14',
     },
     {
-      id: 'REC-2026-JP-00192',
-      materials: 'Heavy Scrap Iron (42.5kg)',
+      id: 'RCP-2026-DEL-0894',
+      materials: 'Heavy Scrap Iron & Appliances (42.5kg)',
       estWeight: 42.5,
-      estVal: 1275.0,
-      slot: 'Afternoon (12 PM - 3 PM)',
+      estVal: 1445.0,
+      timeSlot: 'Completed',
       status: 'COMPLETED',
-      collector: 'Ramkishan Sahu (Verified Kabadiwala)',
-      date: '2026-10-09',
+      collector: 'Ramu Paswan (Kavach Certified)',
+      step: 4,
+      date: 'Oct 10, 2026',
+      receiptHash: '9e7b28fc083a3d5b0018a1a310bb2447d25e0a9437d8fca02d13bb22283a0058',
     },
   ]);
 
-  const totalEstWeight = items.reduce((acc, it) => acc + it.estimatedQty, 0);
-  const totalEstVal = items.reduce((acc, it) => acc + it.estimatedQty * it.rate, 0);
+  const totalEstWeight = selectedMaterials.reduce((acc, it) => acc + it.estQty, 0);
+  const totalEstPayout = selectedMaterials.reduce((acc, it) => acc + it.estQty * it.rate, 0);
+  const co2Mitigated = (totalEstWeight * 1.65).toFixed(1);
 
-  const handleAddCategoryFromAi = (pred: ScrapVisionPrediction) => {
-    setItems((prev) => [
+  const quickMaterialPresets = [
+    { id: 'cat-paper', name: 'Kraft Carton & Paper', rate: 15.5, defaultQty: 20 },
+    { id: 'cat-plastic', name: 'PET Bottles & Plastic', rate: 28.0, defaultQty: 10 },
+    { id: 'cat-iron', name: 'Heavy Structural Iron', rate: 34.0, defaultQty: 15 },
+    { id: 'cat-copper', name: 'Copper Wire & Cables', rate: 685.0, defaultQty: 5 },
+    { id: 'cat-brass', name: 'Brass / Pital Utensils', rate: 460.0, defaultQty: 4 },
+    { id: 'cat-ewaste', name: 'E-Waste & Electronics', rate: 135.0, defaultQty: 8 },
+  ];
+
+  const handleToggleMaterial = (preset: typeof quickMaterialPresets[0]) => {
+    const existing = selectedMaterials.find((m) => m.id === preset.id);
+    if (existing) {
+      if (selectedMaterials.length > 1) {
+        setSelectedMaterials(selectedMaterials.filter((m) => m.id !== preset.id));
+      }
+    } else {
+      setSelectedMaterials([
+        ...selectedMaterials,
+        { id: preset.id, name: preset.name, rate: preset.rate, estQty: preset.defaultQty, unit: 'kg' },
+      ]);
+    }
+  };
+
+  const handleAddFromAi = (pred: ScrapVisionPrediction) => {
+    setSelectedMaterials((prev) => [
       ...prev,
       {
-        categoryId: pred.categorySlug,
+        id: `ai-${Date.now()}`,
         name: pred.categoryName,
-        estimatedQty: 15,
-        unit: 'kg',
         rate: (pred.estimatedPriceRange.min + pred.estimatedPriceRange.max) / 2,
+        estQty: 15,
+        unit: 'kg',
       },
     ]);
   };
 
-  const handleBookPickup = (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleConfirmBooking = () => {
     const newId = `REQ-${Math.floor(100 + Math.random() * 900)}`;
-    const newReq = {
+    const newOrder = {
       id: newId,
-      materials: items.map((i) => `${i.name} (${i.estimatedQty}kg)`).join(', '),
+      materials: selectedMaterials.map((m) => `${m.name} (${m.estQty}kg)`).join(', '),
       estWeight: totalEstWeight,
-      estVal: totalEstVal,
-      slot,
+      estVal: totalEstPayout,
+      timeSlot,
       status: 'OPEN',
       collector: null,
+      step: 1,
       date: 'Scheduled for Tomorrow',
     };
-    setPickups((prev) => [newReq, ...prev]);
-    setBookingSuccess(true);
-    setTimeout(() => setBookingSuccess(false), 5000);
+    setActiveBookings([newOrder, ...activeBookings]);
+    setIsBookingSuccess(true);
+    setCurrentStep(1);
+    setTimeout(() => setIsBookingSuccess(false), 5000);
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-emerald-900 to-forest-950 text-white p-6 sm:p-8 rounded-3xl shadow-xl flex flex-wrap items-center justify-between gap-6 border border-emerald-800/80">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
-            <span>🏠 Verified Household Generator</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-            Welcome back, {user?.name || 'Pooja Verma'}!
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10">
+      {/* 1. Header & Quick Context */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-200">
+        <div>
+          <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 block">
+            Residential Scrap Dispatch Portal
+          </span>
+          <h1 className="text-2xl sm:text-3xl font-black text-zinc-950 tracking-tight">
+            Sell Recyclables from Home
           </h1>
-          <p className="text-xs text-emerald-200/90 flex items-center gap-1.5 font-medium">
-            <MapPin className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Pickup Address: B-142, Malviya Nagar Sector 3, Jaipur (302017)</span>
+          <p className="text-xs sm:text-sm text-zinc-600 mt-0.5">
+            Verified doorstep collection with calibrated digital scales and direct UPI settlement.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 text-center">
-            <div className="text-xl font-extrabold text-amber-300">450 Pts</div>
-            <div className="text-[10px] text-emerald-200 font-bold uppercase tracking-wider">
-              Green Karma
-            </div>
+        {/* Lifetime Personal Impact Counter */}
+        <div className="flex items-center gap-6 text-right shrink-0 bg-white p-3.5 rounded-2xl border border-zinc-200 shadow-2xs">
+          <div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total Recycled</div>
+            <div className="text-lg font-black text-forest-900 font-mono">77.5 kg</div>
           </div>
-          <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/20 text-center">
-            <div className="text-xl font-extrabold text-white">77.5 kg</div>
-            <div className="text-[10px] text-emerald-200 font-bold uppercase tracking-wider">
-              Total Diverted
-            </div>
+          <div className="border-l border-zinc-100 pl-4">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">Total Payout</div>
+            <div className="text-lg font-black text-emerald-700 font-mono">₹2,112.50</div>
+          </div>
+          <div className="border-l border-zinc-100 pl-4">
+            <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-400">CO₂ Avoided</div>
+            <div className="text-lg font-black text-forest-900 font-mono">116.2 kg</div>
           </div>
         </div>
       </div>
 
-      {/* Main Grid: Visual Scrap Booking Flow + Map / Tracker */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Visual Booking Form */}
+      {isBookingSuccess && (
+        <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-2xl text-xs text-forest-950 flex items-center justify-between">
+          <div className="flex items-center gap-2 font-bold">
+            <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+            <span>Pickup order scheduled successfully! Assigned to nearest verified Kabadiwala.</span>
+          </div>
+          <span className="font-mono text-emerald-800">REF: REQ-CONFIRMED</span>
+        </div>
+      )}
+
+      {/* 2. Main Two-Column Layout: Guided Booking Flow vs Active Orders */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left Column: Guided 3-Step Booking Wizard */}
         <div className="lg:col-span-7 space-y-6">
-          <Card>
-            <CardContent className="p-6 sm:p-8 space-y-6">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-stone-100 pb-4">
-                <div>
-                  <h2 className="text-lg font-bold text-stone-900">Schedule Doorstep Scrap Pickup</h2>
-                  <p className="text-xs text-stone-500 font-medium">
-                    Select material types, estimate quantities, and view live Mandi price calculation
-                  </p>
-                </div>
-                <Button
-                  size="sm"
-                  variant="gold"
-                  type="button"
-                  onClick={() => setIsVisionOpen(true)}
-                  className="text-xs font-bold"
+          <div className="circular-card p-6 bg-white space-y-6">
+            {/* Step Navigation Bar */}
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-4">
+              <div className="flex items-center gap-3">
+                <span
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${
+                    currentStep === 1
+                      ? 'bg-forest-900 text-white'
+                      : 'bg-emerald-100 text-forest-900'
+                  }`}
                 >
-                  <Sparkles className="w-3.5 h-3.5 mr-1 text-stone-900" />
-                  <span>Scan with ScrapVision™ AI</span>
-                </Button>
+                  1
+                </span>
+                <span className={`text-xs font-bold ${currentStep === 1 ? 'text-zinc-950' : 'text-zinc-400'}`}>
+                  Materials
+                </span>
+                <ChevronRight className="w-3.5 h-3.5 text-zinc-300" />
+                <span
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${
+                    currentStep === 2
+                      ? 'bg-forest-900 text-white'
+                      : 'bg-emerald-100 text-forest-900'
+                  }`}
+                >
+                  2
+                </span>
+                <span className={`text-xs font-bold ${currentStep === 2 ? 'text-zinc-950' : 'text-zinc-400'}`}>
+                  Valuation
+                </span>
+                <ChevronRight className="w-3.5 h-3.5 text-zinc-300" />
+                <span
+                  className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black ${
+                    currentStep === 3
+                      ? 'bg-forest-900 text-white'
+                      : 'bg-emerald-100 text-forest-900'
+                  }`}
+                >
+                  3
+                </span>
+                <span className={`text-xs font-bold ${currentStep === 3 ? 'text-zinc-950' : 'text-zinc-400'}`}>
+                  Time Slot
+                </span>
               </div>
 
-              {bookingSuccess && (
-                <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-2xl text-emerald-950 text-xs font-bold flex items-center gap-2">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                  <span>Pickup scheduled successfully! Broadcasted to nearest verified collectors in Malviya Nagar.</span>
-                </div>
-              )}
+              <button
+                onClick={() => setIsVisionOpen(true)}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-forest-900 hover:bg-emerald-100 border border-emerald-200/80 text-xs font-bold transition-all shadow-2xs"
+              >
+                <Camera className="w-3.5 h-3.5 text-emerald-600" />
+                <span>AI Photo Scan</span>
+              </button>
+            </div>
 
-              <form onSubmit={handleBookPickup} className="space-y-6">
-                {/* Material Item Rows */}
+            {/* STEP 1: Material Selection */}
+            {currentStep === 1 && (
+              <div className="space-y-4 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-zinc-950">
+                    Step 1: Select Scrap Categories in Your Household
+                  </h3>
+                  <span className="text-[11px] text-zinc-500">Tap to toggle</span>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  {quickMaterialPresets.map((preset) => {
+                    const isSelected = selectedMaterials.some((m) => m.id === preset.id);
+                    return (
+                      <button
+                        key={preset.id}
+                        type="button"
+                        onClick={() => handleToggleMaterial(preset)}
+                        className={`p-3 rounded-xl border text-left transition-all ${
+                          isSelected
+                            ? 'bg-emerald-50/80 border-emerald-500 ring-1 ring-emerald-500 shadow-2xs'
+                            : 'bg-zinc-50 border-zinc-200 hover:bg-zinc-100/60'
+                        }`}
+                      >
+                        <div className="font-bold text-xs text-zinc-950">{preset.name}</div>
+                        <div className="text-[11px] text-emerald-700 font-mono font-semibold mt-0.5">
+                          ₹{preset.rate}/kg
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="pt-2 flex justify-end">
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => setCurrentStep(2)}
+                    className="font-bold text-xs"
+                  >
+                    Next: Estimate Quantities
+                    <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 2: Quantity & Valuation */}
+            {currentStep === 2 && (
+              <div className="space-y-5 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-bold text-zinc-950">
+                    Step 2: Adjust Estimated Quantities (kg)
+                  </h3>
+                  <button
+                    onClick={() => setCurrentStep(1)}
+                    className="text-xs text-emerald-700 font-semibold hover:underline"
+                  >
+                    ← Edit Categories
+                  </button>
+                </div>
+
                 <div className="space-y-3">
-                  <label className="text-xs font-bold text-stone-800 block">
-                    Scrap Categories & Estimated Weights:
-                  </label>
-                  {items.map((it, idx) => (
+                  {selectedMaterials.map((mat, idx) => (
                     <div
-                      key={idx}
-                      className="p-3.5 bg-stone-50 rounded-2xl border border-stone-200/90 flex flex-wrap items-center justify-between gap-3 text-xs"
+                      key={mat.id}
+                      className="flex items-center justify-between gap-4 p-3 rounded-xl bg-zinc-50 border border-zinc-200 text-xs"
                     >
-                      <div>
-                        <span className="font-bold text-stone-900">{it.name}</span>
-                        <span className="text-stone-500 ml-2 font-mono">(@ ₹{it.rate}/kg)</span>
+                      <div className="flex-1">
+                        <div className="font-bold text-zinc-950">{mat.name}</div>
+                        <div className="text-zinc-500 text-[11px]">Benchmark: ₹{mat.rate}/kg</div>
                       </div>
 
                       <div className="flex items-center gap-3">
@@ -181,167 +312,212 @@ export default function HouseholdPortalPage() {
                           <input
                             type="number"
                             min="1"
-                            value={it.estimatedQty}
+                            max="250"
+                            value={mat.estQty}
                             onChange={(e) => {
-                              const v = Number(e.target.value);
-                              setItems((prev) =>
-                                prev.map((item, i) => (i === idx ? { ...item, estimatedQty: v } : item))
-                              );
+                              const val = Math.max(1, Number(e.target.value));
+                              const updated = [...selectedMaterials];
+                              updated[idx].estQty = val;
+                              setSelectedMaterials(updated);
                             }}
-                            className="w-16 p-2 rounded-xl border border-stone-300 bg-white text-center font-bold"
+                            className="w-16 px-2 py-1 bg-white border border-zinc-300 rounded-lg text-center font-mono font-bold text-xs"
                           />
-                          <span className="text-stone-500 font-semibold">kg</span>
+                          <span className="text-zinc-500 font-medium">kg</span>
                         </div>
-                        <span className="font-extrabold text-emerald-900 w-20 text-right">
-                          {formatINR(it.estimatedQty * it.rate)}
-                        </span>
-                        {items.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => setItems((prev) => prev.filter((_, i) => i !== idx))}
-                            className="text-stone-400 hover:text-red-600 p-1"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        )}
+
+                        <div className="w-20 text-right font-mono font-bold text-forest-900">
+                          {formatINR(mat.estQty * mat.rate)}
+                        </div>
                       </div>
                     </div>
                   ))}
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setItems((prev) => [
-                        ...prev,
-                        { categoryId: 'cat-metal', name: 'Scrap Iron (Heavy)', estimatedQty: 10, unit: 'kg', rate: 30.0 },
-                      ])
-                    }
-                    className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1.5 p-1"
-                  >
-                    <Plus className="w-4 h-4" />
-                    <span>+ Add Another Waste Category</span>
-                  </button>
                 </div>
 
-                {/* Pickup Slot Chooser */}
-                <div>
-                  <label className="text-xs font-bold text-stone-800 block mb-2">
-                    Preferred Time Slot:
-                  </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-                    {[
-                      'Morning (9 AM - 12 PM)',
-                      'Afternoon (12 PM - 3 PM)',
-                      'Evening (3 PM - 6 PM)',
-                    ].map((s) => (
-                      <button
-                        key={s}
-                        type="button"
-                        onClick={() => setSlot(s)}
-                        className={`p-3 rounded-xl border text-center font-bold transition-all ${
-                          slot === s
-                            ? 'bg-emerald-700 text-white border-emerald-700 shadow-xs'
-                            : 'bg-stone-50 border-stone-200 text-stone-700 hover:bg-stone-100'
-                        }`}
+                {/* Calculation Summary Box */}
+                <div className="bg-forest-950 text-white p-4 rounded-xl space-y-2">
+                  <div className="flex justify-between items-baseline">
+                    <span className="text-xs text-emerald-200">Net Estimated Doorstep Payout:</span>
+                    <span className="text-2xl font-black font-mono text-emerald-300">
+                      {formatINR(totalEstPayout)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-[11px] text-zinc-300 pt-1 border-t border-emerald-900/60">
+                    <span>Total Weight: {totalEstWeight} kg</span>
+                    <span className="text-emerald-400 font-semibold">{co2Mitigated} kg CO₂ Mitigated</span>
+                  </div>
+                </div>
+
+                <div className="flex justify-between pt-2">
+                  <Button variant="ghost" size="sm" onClick={() => setCurrentStep(1)} className="text-xs">
+                    Back
+                  </Button>
+                  <Button variant="primary" size="sm" onClick={() => setCurrentStep(3)} className="font-bold text-xs">
+                    Next: Choose Pickup Window
+                    <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* STEP 3: Slot & Confirmation */}
+            {currentStep === 3 && (
+              <div className="space-y-4 animate-in fade-in duration-200">
+                <h3 className="text-sm font-bold text-zinc-950">
+                  Step 3: Confirm Address & Preferred Arrival Window
+                </h3>
+
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <label className="block font-bold text-zinc-700 mb-1">Doorstep Address</label>
+                    <input
+                      type="text"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      className="w-full px-3 py-2 border border-zinc-300 rounded-xl bg-white font-medium focus:ring-2 focus:ring-forest-900 focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold text-zinc-700 mb-1">Postal Pincode</label>
+                      <input
+                        type="text"
+                        value={pincode}
+                        onChange={(e) => setPincode(e.target.value)}
+                        className="w-full px-3 py-2 border border-zinc-300 rounded-xl bg-white font-mono font-medium"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-bold text-zinc-700 mb-1">Preferred Time Window</label>
+                      <select
+                        value={timeSlot}
+                        onChange={(e) => setTimeSlot(e.target.value)}
+                        className="w-full px-3 py-2 border border-zinc-300 rounded-xl bg-white font-medium"
                       >
-                        {s}
-                      </button>
-                    ))}
+                        <option>Morning (9 AM - 12 PM)</option>
+                        <option>Afternoon (12 PM - 3 PM)</option>
+                        <option>Evening (3 PM - 6 PM)</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 
-                {/* ScrapRate Valuation Summary Box */}
-                <div className="p-4 bg-emerald-50/70 rounded-2xl border border-emerald-200/90 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-emerald-950">
-                      Total Estimated Value (ScrapRate™):
-                    </span>
-                    <span className="text-xl font-black text-emerald-950">
-                      {formatINR(totalEstVal)}
-                    </span>
-                  </div>
-                  <div className="text-[11px] text-stone-500 leading-relaxed">
-                    Based on North India Mandi baseline rates. Actual payout determined at doorstep with digital scale inspection.
-                  </div>
+                <div className="p-3 bg-emerald-50 rounded-xl border border-emerald-200/80 text-[11px] text-forest-950 flex items-start gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+                  <span>
+                    Your doorstep pickup is guaranteed zero-charge. Final price is sealed on the digital scale with calibrated accuracy (±0.05kg).
+                  </span>
                 </div>
 
-                <Button type="submit" size="lg" className="w-full text-xs font-bold py-3.5">
-                  Confirm & Broadcast Scrap Pickup Request
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
+                <div className="flex justify-between pt-2">
+                  <Button variant="ghost" size="sm" onClick={() => setCurrentStep(2)} className="text-xs">
+                    Back
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={handleConfirmBooking}
+                    className="font-bold text-xs shadow-md"
+                  >
+                    Confirm & Dispatch Pickup
+                    <ArrowRight className="w-3.5 h-3.5 ml-1" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Neighborhood Collector Map Preview */}
+          <div className="circular-card p-5 bg-white space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold uppercase tracking-wider text-zinc-700">
+                Collector Coverage Radar
+              </span>
+              <span className="text-[11px] font-bold text-emerald-700">2 Verified Kabadiwalas Active in Your Ward</span>
+            </div>
+            <div className="h-48 rounded-xl overflow-hidden border border-zinc-200">
+              <MapLibreMap height="100%" interactive={false} />
+            </div>
+          </div>
         </div>
 
-        {/* Right Column: Active Jobs & GIS Radar Map */}
+        {/* Right Column: Active Booking Stepper & Digital Receipts */}
         <div className="lg:col-span-5 space-y-6">
-          {/* Active Job Tracker */}
-          <Card>
-            <CardContent className="p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-stone-900 text-sm">Your Pickup Requests</h3>
-                <span className="text-xs text-stone-500">{pickups.length} Records</span>
-              </div>
+          {/* Active Orders Timeline */}
+          <div className="circular-card p-6 bg-white space-y-4">
+            <div className="flex items-center justify-between border-b border-zinc-100 pb-3">
+              <h3 className="text-sm font-bold text-zinc-950">Active Pickup Status</h3>
+              <span className="text-[10px] font-mono font-bold bg-zinc-100 px-2 py-0.5 rounded text-zinc-600">
+                {activeBookings.filter((b) => b.status === 'OPEN').length} OPEN
+              </span>
+            </div>
 
-              <div className="space-y-3">
-                {pickups.map((p) => (
+            <div className="space-y-4">
+              {activeBookings.map((booking) => {
+                const isOpen = booking.status === 'OPEN';
+                return (
                   <div
-                    key={p.id}
-                    className="p-4 rounded-2xl border border-stone-200 bg-stone-50/70 space-y-2 text-xs"
+                    key={booking.id}
+                    className={`p-4 rounded-xl border text-xs space-y-3 ${
+                      isOpen
+                        ? 'bg-white border-emerald-300 ring-1 ring-emerald-200 shadow-2xs'
+                        : 'bg-zinc-50 border-zinc-200'
+                    }`}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-stone-900 font-mono">{p.id}</span>
-                      <Badge variant={p.status === 'COMPLETED' ? 'success' : 'warning'}>
-                        {p.status}
-                      </Badge>
-                    </div>
-
-                    <div className="font-semibold text-stone-700">{p.materials}</div>
-
-                    <div className="flex items-center justify-between text-stone-500 text-[11px] pt-1">
-                      <span>{p.slot}</span>
-                      <span className="font-extrabold text-emerald-800">{formatINR(p.estVal)}</span>
-                    </div>
-
-                    {p.status === 'COMPLETED' && (
-                      <Link
-                        href={`/passport/${p.id}`}
-                        className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 hover:underline pt-1"
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="font-bold text-zinc-950">{booking.id}</div>
+                        <div className="text-zinc-500 text-[11px] mt-0.5">{booking.materials}</div>
+                      </div>
+                      <span
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider font-mono ${
+                          isOpen ? 'bg-amber-100 text-amber-900' : 'bg-emerald-100 text-forest-900'
+                        }`}
                       >
-                        <span>View Waste Passport™ QR</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </Link>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+                        {booking.status}
+                      </span>
+                    </div>
 
-          {/* Map Section */}
-          <Card>
-            <CardContent className="p-4 space-y-2">
-              <h4 className="font-bold text-stone-900 text-xs px-2 pt-2">
-                Neighborhood Collector Radar
-              </h4>
-              <MapLibreMap
-                center={[26.8524, 75.8173]}
-                pickups={[
-                  { id: 'p1', lat: 26.8524, lng: 75.8173, title: 'Your Residence', weightKg: 35.0, status: 'OPEN' },
-                  { id: 'p2', lat: 26.8501, lng: 75.8155, title: 'Ramkishan Sahu (Collector)', weightKg: 25.0, status: 'ASSIGNED', distanceKm: 0.8 },
-                ]}
-                className="h-60 rounded-2xl"
-              />
-            </CardContent>
-          </Card>
+                    {/* Progress Stepper */}
+                    <div className="flex items-center justify-between text-[10px] font-semibold text-zinc-400 pt-1">
+                      <span className={booking.step >= 1 ? 'text-forest-900 font-bold' : ''}>1. Booked</span>
+                      <span>→</span>
+                      <span className={booking.step >= 2 ? 'text-forest-900 font-bold' : ''}>2. Assigned</span>
+                      <span>→</span>
+                      <span className={booking.step >= 3 ? 'text-forest-900 font-bold' : ''}>3. Weighed</span>
+                      <span>→</span>
+                      <span className={booking.step >= 4 ? 'text-forest-900 font-bold' : ''}>4. Settled</span>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-zinc-100 text-[11px]">
+                      <span className="font-bold text-zinc-900">
+                        Est. Payout: <span className="font-mono">{formatINR(booking.estVal)}</span>
+                      </span>
+                      {booking.receiptHash ? (
+                        <Link
+                          href={`/passport/${booking.id}`}
+                          className="font-bold text-emerald-700 hover:underline flex items-center gap-1"
+                        >
+                          <QrCode className="w-3 h-3" />
+                          <span>View Passport</span>
+                        </Link>
+                      ) : (
+                        <span className="text-zinc-400">{booking.timeSlot}</span>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* ScrapVision Modal */}
+      {/* ScrapVision Modal Integration */}
       <ScrapVisionModal
         isOpen={isVisionOpen}
         onClose={() => setIsVisionOpen(false)}
-        onConfirmCategory={handleAddCategoryFromAi}
+        onConfirmPrediction={handleAddFromAi}
       />
     </div>
   );
