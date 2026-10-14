@@ -1566,7 +1566,7 @@ if current_role == "HOUSEHOLD":
                     "assigned_collector": None,
                     "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
                     "photo_svg": final_photo_to_save,
-                    "ai_vision": obs_text,
+                    "ai_vision": f"{obs_en}\n\n(हिंदी: {obs_hi})",
                     "ai_weight_details": f"Calculated: {fine_wt} kg | Payout: ₹{live_payout:,.2f} | Mandi Rate: ₹{rate_val}/kg | Confidence: {conf}%"
                 }
                 st.session_state.pickups.append(new_order)
@@ -1635,13 +1635,12 @@ elif current_role == "COLLECTOR":
     ct1_name = tr("📍 Nearby Open Jobs & Photos", "📍 नजदीकी ऑर्डर्स व फोटो जांच")[0]
     ct2_name = tr("🎯 1. Smart Buyer Matching", "🎯 1. स्मार्ट खरीदार मिलान")[0]
     ct3_name = tr("🤝 2. Collaborative Scrap Pooling", "🤝 2. सहयोगात्मक स्क्रैप पूलिंग")[0]
-    ct4_name = tr("📜 3. Scrap Passport", "📜 3. डिजिटल स्क्रैप पासपोर्ट")[0]
-    ct_voice_name = tr("🎙️ 4. Voice-First Kabadiwala Mode", "🎙️ 4. वॉयस-फर्स्ट कबाड़ीवाला मोड")[0]
+    ct4_name = tr("📜 3. Scrap Passport & Traceability", "📜 3. डिजिटल स्क्रैप पासपोर्ट व ट्रैसेबिलिटी")[0]
     ct5_name = tr("🗺️ EcoRoute TSP Route Planner", "🗺️ इको-रूट टीएसपी रूट प्लानर")[0]
     ct6_name = tr("🪪 3-Point KYC Identity", "🪪 3-बिंदु पहचान सत्यापन")[0]
 
-    col_tab1, col_tab_match, col_tab_pool, col_tab_pass, col_tab_voice, col_tab2, col_tab3 = st.tabs([
-        ct1_name, ct2_name, ct3_name, ct4_name, ct_voice_name, ct5_name, ct6_name
+    col_tab1, col_tab_match, col_tab_pool, col_tab_pass, col_tab2, col_tab3 = st.tabs([
+        ct1_name, ct2_name, ct3_name, ct4_name, ct5_name, ct6_name
     ])
 
     # ---------------- 1. JOBS & CUSTOMER SCRAP PHOTO INSPECTION (BASE64 FIXED) ----------------
@@ -1894,96 +1893,6 @@ elif current_role == "COLLECTOR":
         ]
         for s, d, tm, icon in t_steps:
             st.markdown(f"- {icon} **{s}**: {d} *({tm})*")
-
-    # ---------------- 4. VOICE-FIRST KABADIWALA MODE (ACCESSIBILITY) ----------------
-    with col_tab_voice:
-        st.markdown("#### 🎙️ " + tr("4. Voice-First Kabadiwala Mode (Accessibility)", "4. वॉयस-फर्स्ट कबाड़ीवाला मोड (सुलभ वॉयस टर्मिनल)")[0])
-        st.caption(tr("Designed for ground workers & informal collectors: Hands-free Hindi voice commands, large high-contrast tactile buttons, and low-network offline capability:", "कबाड़ीवाले साथियों के लिए विशेष सुलभ मोड: बिना टाइप किए बोलकर काम करें, बड़े बटन, और कमजोर इंटरनेट में भी पूरी कार्यप्रणाली:")[0])
-
-        # Status bar for network and voice
-        v_stat1, v_stat2, v_stat3 = st.columns(3)
-        with v_stat1:
-            st.markdown(f"""
-            <div style="background:rgba(16, 185, 129, 0.15); border:1px solid #10B981; border-radius:10px; padding:10px; text-align:center;">
-                <b style="color:#34D399; font-size:14px;">📶 {tr("Network: LOW-BANDWIDTH MODE", "नेटवर्क: 2G/कमजोर सिग्नल सक्षम")[0]}</b><br>
-                <span style="color:#A7F3D0; font-size:11px;">{tr("Local SQLite Cache Active", "ऑफलाइन लोकल कैश सक्रिय")[0]}</span>
-            </div>
-            """, unsafe_allow_html=True)
-        with v_stat2:
-            st.markdown(f"""
-            <div style="background:rgba(16, 185, 129, 0.15); border:1px solid #10B981; border-radius:10px; padding:10px; text-align:center;">
-                <b style="color:#34D399; font-size:14px;">🗣️ {tr("Voice Model: HINDI AUDIO VAD", "वॉयस इंजन: हिंदी बोली पहचान")[0]}</b><br>
-                <span style="color:#A7F3D0; font-size:11px;">{tr("Bilingual Voice AI Connected", "बोली पहचान तैयार")[0]}</span>
-            </div>
-            """, unsafe_allow_html=True)
-        with v_stat3:
-            st.markdown(f"""
-            <div style="background:rgba(16, 185, 129, 0.15); border:1px solid #10B981; border-radius:10px; padding:10px; text-align:center;">
-                <b style="color:#34D399; font-size:14px;">⚖️ {tr("Scale: TRUSTWEIGH BLUETOOTH", "कांटा: ब्लूटूथ डिजिटल कनेक्टेड")[0]}</b><br>
-                <span style="color:#A7F3D0; font-size:11px;">{tr("Calibrated to ±0.05 kg", "प्रमाणित डिजिटल तौल")[0]}</span>
-            </div>
-            """, unsafe_allow_html=True)
-
-        st.write("")
-
-        # Interactive Mic & Simulated Speech Section
-        st.markdown("##### 🎙️ " + tr("Speak Voice Command in Hindi / Hinglish:", "माइक बटन दबाएं या हिंदी में बोलें:")[0])
-
-        v_cmds = [
-            ("📦 आज के नए पिकअप ऑर्डर्स और फोटो दिखाओ", ("SHOW_ORDERS", "आपके नजदीकी 2 नए पिकअप ऑर्डर्स हैं। साउथ एक्सटेंशन में 25 किलो प्लास्टिक और साकेत में 14 किलो तांबा। ग्राहक द्वारा फोटो संलग्न है।")),
-            ("🎯 प्लास्टिक के लिए सबसे ज्यादा भाव देने वाला रीसाइक्लर ढूंढो", ("FIND_BUYER", "Apex CleanPlast ओखला में ₹35.50 प्रति किलो भाव दे रहा है। परिवहन भाड़ा घटाकर आपकी शुद्ध कमाई ₹6,390 होगी।")),
-            ("🤝 इंदिरानगर PET प्लास्टिक पूल में 50 किलो स्क्रैप जोड़ो", ("PLEDGE_POOL", "सफलतापूर्वक 50 किलो प्लास्टिक इंदिरानगर पूल में जोड़ दिया गया। आपको +₹6 प्रति किलो अतिरिक्त पूलिंग बोनस मिलेगा।")),
-            ("📜 लॉट WP-2024 का डिजिटल स्क्रैप पासपोर्ट दिखाओ", ("SHOW_PASSPORT", "लॉट WP-2024 की CPCB रसीद खुल गई है। 56.5 किलो शुद्ध वजन पर ₹1,921 का डिजिटल भुगतान पूर्ण हो चुका है।")),
-            ("🗺️ कम से कम तेल खर्च वाला सबसे छोटा रूट बताओ", ("SHOW_ROUTE", "इको-रूट तैयार है: स्टॉप 1 साउथ एक्सटेंशन, स्टॉप 2 साकेत, स्टॉप 3 ओखला प्लांट। कुल दूरी 14.2 किमी, 38% ईंधन बचेगा।")),
-        ]
-
-        vc_col1, vc_col2 = st.columns([2, 1])
-        with vc_col1:
-            sel_voice_cmd = st.selectbox(tr("Select or speak typical Hindi field command:", "कमांड चुनें या बोलें:")[0], [c[0] for c in v_cmds])
-
-        with vc_col2:
-            st.write("")
-            st.write("")
-            mic_trigger = st.button("🎙️ " + tr("Simulate Voice Speech Input", "माइक पर बोलें (Simulate Mic)")[0], type="primary", use_container_width=True)
-
-        matched_cmd = next((c for c in v_cmds if c[0] == sel_voice_cmd), v_cmds[0])
-        action_type, voice_reply = matched_cmd[1]
-
-        st.markdown(f"""
-        <div style="background:#052417; border:2px solid #10B981; border-radius:16px; padding:18px; margin:14px 0; box-shadow:0 10px 25px rgba(0,0,0,0.6);">
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:8px;">
-                <span style="font-size:24px;">🔊</span>
-                <b style="color:#6EE7B7; font-size:15px;">{tr("Voice Assistant Audio Reply (हिंदी वॉइस आउटपुट):", "स्क्रैपसेतु वॉयस सहायक की आवाज:")[0]}</b>
-            </div>
-            <p style="color:#F4FDF8; font-size:16px; font-weight:600; line-height:1.5; margin:0 0 10px 0;">
-                "{voice_reply}"
-            </p>
-            <div style="display:flex; gap:8px;">
-                <span style="background:rgba(16, 185, 129, 0.25); color:#34D399; font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px;">
-                    ✓ {tr("Recognized: Hindi Natural Speech (100% Match)", "सत्यापित: प्राकृतिक हिंदी बोली")[0]}
-                </span>
-                <span style="background:rgba(16, 185, 129, 0.25); color:#34D399; font-size:11px; font-weight:700; padding:3px 10px; border-radius:999px;">
-                    ⚡ {tr("Zero Latency Offline Pipeline", "शून्य विलंबता")[0]}
-                </span>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # Big Tactile Action Cards for Fast Operation
-        st.markdown("##### 📱 " + tr("Large Tactile 1-Tap Quick Action Buttons:", "बड़े 1-टैप त्वरित कार्य बटन:")[0])
-        b_c1, b_c2, b_c3, b_c4 = st.columns(4)
-        with b_c1:
-            if st.button("📦\n\n" + tr("Open Jobs", "खुले ऑर्डर्स")[0], use_container_width=True):
-                st.toast(tr("Viewing Nearby Jobs with Photos", "नजदीकी ऑर्डर्स देखें")[0])
-        with b_c2:
-            if st.button("🎯\n\n" + tr("Best Buyer", "सर्वोत्तम खरीदार")[0], use_container_width=True):
-                st.toast(tr("Viewing Smart Buyer Matching", "स्मार्ट खरीदार मिलान देखें")[0])
-        with b_c3:
-            if st.button("🤝\n\n" + tr("Scrap Pool", "स्क्रैप पूल")[0], use_container_width=True):
-                st.toast(tr("Viewing Collaborative Scrap Pooling", "सहयोगात्मक स्क्रैप पूलिंग देखें")[0])
-        with b_c4:
-            if st.button("📜\n\n" + tr("Passport", "डिजिटल पासपोर्ट")[0], use_container_width=True):
-                st.toast(tr("Viewing Digital Scrap Passport", "डिजिटल स्क्रैप पासपोर्ट देखें")[0])
 
     with col_tab2:
         st.markdown("#### 🗺️ " + tr("EcoRoute TSP Smart Route Navigation", "इको-रूट टीएसपी स्मार्ट रूट नेविगेशन")[0])
