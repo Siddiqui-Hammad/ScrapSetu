@@ -471,3 +471,67 @@ export interface VoiceCommandResponse {
   suggestedQuickActions: Array<{ labelHi: string; labelEn: string; command: string }>;
 }
 
+// -------------------------------------------------------------
+// FEATURE 5: AI PHOTO MATCHING & KYC VERIFICATION
+// -------------------------------------------------------------
+export interface DocumentOcrData {
+  documentType: 'AADHAAR' | 'DRIVING_LICENCE' | 'UNKNOWN';
+  documentNumber: string;
+  fullName: string;
+  dob: string;
+  gender: string;
+  addressState: string;
+  issueAuthority: string;
+  validUntil?: string;
+  vehicleClass?: string;
+}
+
+export interface PhotoMatchResult {
+  isMatch: boolean;
+  matchScore: number;
+  matchVerdict: 'VERIFIED' | 'REVIEW_REQUIRED' | 'MISMATCH_REJECTED';
+  verdictDescription: string;
+  livenessScore: number;
+  antiSpoofingPassed: boolean;
+  extractedDocument: DocumentOcrData;
+  biometricAuditHash: string;
+  verifiedAt: string;
+  facialLandmarks: {
+    eyesAligned: boolean;
+    noseMouthRatio: number;
+    symmetryIndex: number;
+    lightingQuality: 'OPTIMAL' | 'ACCEPTABLE' | 'POOR';
+  };
+}
+
+export interface MaterialBreakdownItem {
+  label: string;
+  percentage: number;
+  confidence: number;
+  grade?: string;
+  color?: string;
+}
+
+export interface BoundingBoxItem {
+  label: string;
+  box: [number, number, number, number];
+  confidence: number;
+}
+
+export interface EnhancedAiClassification {
+  categorySlug: string;
+  categoryName: string;
+  hindiName: string;
+  confidence: number;
+  explanation: string;
+  suggestedGrade: string;
+  estimatedPriceRange: { min: number; max: number; unit: string };
+  isExternalAiUsed: boolean;
+  requiresUserConfirmation: true;
+  materialBreakdown: MaterialBreakdownItem[];
+  boundingBoxes: BoundingBoxItem[];
+  carbonSavedPerKg: number;
+  cpcbCategory: string;
+  recyclabilityIndex: 'HIGH' | 'MEDIUM' | 'SPECIAL_HANDLING';
+}
+

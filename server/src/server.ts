@@ -18,6 +18,7 @@ import buyerMatchingRoutes from './routes/buyerMatchingRoutes.js';
 import poolingRoutes from './routes/poolingRoutes.js';
 import passportRoutes from './routes/passportRoutes.js';
 import voiceRoutes from './routes/voiceRoutes.js';
+import kycRoutes from './routes/kycRoutes.js';
 
 const app = express();
 
@@ -59,6 +60,7 @@ app.use('/api/buyer-matching', buyerMatchingRoutes);
 app.use('/api/pools', poolingRoutes);
 app.use('/api/passport', passportRoutes);
 app.use('/api/voice', voiceRoutes);
+app.use('/api/kyc', kycRoutes);
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {

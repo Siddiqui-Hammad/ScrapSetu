@@ -16,10 +16,13 @@ import {
   CheckCircle2,
   ArrowRight,
   UploadCloud,
+  Scan,
+  Sparkles,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/authStore';
 import { UserRole } from '@/types';
+import { PhotoMatchingVerificationWorkspace } from '@/components/workflows/PhotoMatchingVerificationWorkspace';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -30,6 +33,7 @@ export default function RegisterPage() {
   const [email, setEmail] = useState('priya@example.in');
   const [password, setPassword] = useState('password123');
   const [agreed, setAgreed] = useState(true);
+  const [showKycVerification, setShowKycVerification] = useState(false);
 
   const redirectToRole = (role: UserRole) => {
     switch (role) {
@@ -203,6 +207,39 @@ export default function RegisterPage() {
                   <option value="RECYCLER">Recycler Facility (Mill Processor)</option>
                 </select>
               </div>
+
+              {(selectedRole === 'COLLECTOR' || selectedRole === 'RECYCLER') && (
+                <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Scan className="w-4 h-4 text-forest-900" />
+                      <span className="text-xs font-bold text-forest-900">AI Biometric Fast-Track KYC</span>
+                    </div>
+                    <span className="text-[10px] font-bold bg-emerald-200/80 text-forest-900 px-2 py-0.5 rounded-full">
+                      Instant Clearance
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-zinc-600">
+                    Upload your Aadhaar Card / DL and capture a live selfie for immediate door-to-door verification.
+                  </p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowKycVerification(!showKycVerification)}
+                    className="w-full text-xs font-bold bg-white border-emerald-300 text-forest-900 hover:bg-emerald-100"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 mr-1.5 text-emerald-600" />
+                    <span>{showKycVerification ? 'Hide Biometric Verification' : 'Open Aadhaar/DL Photo Match'}</span>
+                  </Button>
+                </div>
+              )}
+
+              {showKycVerification && (
+                <div className="pt-2">
+                  <PhotoMatchingVerificationWorkspace />
+                </div>
+              )}
 
               <div>
                 <label className="block text-xs font-bold text-zinc-700 mb-1">

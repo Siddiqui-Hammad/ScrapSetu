@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { KycDossierInspector } from '@/components/workflows/KycDossierInspector';
+import { PhotoMatchingVerificationWorkspace } from '@/components/workflows/PhotoMatchingVerificationWorkspace';
 import { formatINR, formatKg } from '@/lib/utils';
 import { useAuthStore } from '@/store/authStore';
 
@@ -230,8 +231,15 @@ export default function AdminPortalPage() {
           </div>
         </div>
 
-        {/* 4 Platform Overview Metric Cards - Exact Match to Mockup */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {activeNav === 'verifications' ? (
+          <div className="space-y-8 animate-in fade-in duration-300">
+            <PhotoMatchingVerificationWorkspace />
+            <KycDossierInspector />
+          </div>
+        ) : (
+          <>
+            {/* 4 Platform Overview Metric Cards - Exact Match to Mockup */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {platformStats.map((stat, idx) => {
             const Icon = stat.icon;
             return (
@@ -453,6 +461,8 @@ export default function AdminPortalPage() {
             </table>
           </div>
         </div>
+        </>
+        )}
       </main>
 
       {/* Review Modal Dialog */}

@@ -348,4 +348,34 @@ export const apiClient = {
     getRecentLogs: () =>
       request<{ success: boolean; count: number; logs: any[] }>('/voice/recent'),
   },
+
+  // 5. KYC Photo Matching & Biometrics
+  kyc: {
+    verifyPhotoMatch: (payload: {
+      documentImage: string;
+      livePhoto: string;
+      documentTypeHint?: 'AADHAAR' | 'DRIVING_LICENCE' | 'AUTO_DETECT';
+      applicantName?: string;
+      applicantPhone?: string;
+    }) =>
+      request<{
+        success: boolean;
+        message: string;
+        data: any;
+      }>('/kyc/verify-photo', {
+        method: 'POST',
+        body: JSON.stringify(payload),
+      }),
+    listDossiers: () =>
+      request<{ success: boolean; count: number; dossiers: any[] }>('/kyc/dossiers'),
+    approveDossier: (id: string) =>
+      request<{ success: boolean; message: string; dossier: any }>(`/kyc/dossiers/${id}/approve`, {
+        method: 'POST',
+      }),
+    rejectDossier: (id: string, reason?: string) =>
+      request<{ success: boolean; message: string; dossier: any }>(`/kyc/dossiers/${id}/reject`, {
+        method: 'POST',
+        body: JSON.stringify({ reason }),
+      }),
+  },
 };
