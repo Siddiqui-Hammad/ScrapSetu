@@ -15,7 +15,7 @@ import time
 import datetime
 import math
 import json
-import urllib.parse
+import base64
 
 # -------------------------------------------------------------
 # 1. Page Configuration & Custom Luxury Dark SaaS Styling
@@ -139,6 +139,7 @@ st.markdown("""
     .bilingual-hover-tip {
         position: relative;
         display: inline-block;
+        cursor: help;
     }
     .bilingual-hover-tip:hover::after {
         content: attr(data-trans);
@@ -434,7 +435,23 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # -------------------------------------------------------------
-# 2. SVG Asset Generators (Scrap Visuals, Aadhaar, DL, Biometrics)
+# 2. Strict Bilingual Helper System
+# -------------------------------------------------------------
+# Rule: Visible text shows ONLY preferred language.
+# Alternate language is shown ONLY on hover (tooltip / data-trans).
+if "lang" not in st.session_state:
+    st.session_state.lang = "en"
+
+def tr(en_text, hi_text):
+    is_hi = (st.session_state.get("lang", "en") == "hi")
+    return (hi_text, en_text) if is_hi else (en_text, hi_text)
+
+def tr_span(en_text, hi_text, extra_style=""):
+    main, alt = tr(en_text, hi_text)
+    return f'<span class="bilingual-hover-tip" data-trans="{alt}" style="{extra_style}">{main}</span>'
+
+# -------------------------------------------------------------
+# 3. Base64-Encoded SVG Asset Generators (100% Reliable Render)
 # -------------------------------------------------------------
 def get_scrap_svg(material_type="plastic", title="Sorted Recyclable Scrap"):
     if material_type == "plastic":
@@ -527,7 +544,8 @@ def get_scrap_svg(material_type="plastic", title="Sorted Recyclable Scrap"):
         <text x="16" y="187" fill="#F4FDF8" font-family="sans-serif" font-size="12" font-weight="bold">{title}</text>
         <text x="364" y="187" fill="{accent}" font-family="monospace" font-size="11" font-weight="bold" text-anchor="end">AI VERIFIED ✓</text>
     </svg>"""
-    return "data:image/svg+xml;utf8," + urllib.parse.quote(svg)
+    b64 = base64.b64encode(svg.strip().encode("utf-8")).decode("utf-8")
+    return f"data:image/svg+xml;base64,{b64}"
 
 def get_aadhaar_card_svg(name="Ramesh Kumar Sahu", uid="4129 6638 6621", dob="15/08/1988"):
     masked_uid = "XXXX XXXX " + uid.replace("-", " ").strip()[-4:]
@@ -561,7 +579,8 @@ def get_aadhaar_card_svg(name="Ramesh Kumar Sahu", uid="4129 6638 6621", dob="15
         <rect x="0" y="228" width="420" height="22" fill="#F1F5F9"/>
         <text x="210" y="243" fill="#64748B" font-family="sans-serif" font-size="10" font-weight="bold" text-anchor="middle">मेरा आधार, मेरी पहचान • 100% CPCB Compliance</text>
     </svg>"""
-    return "data:image/svg+xml;utf8," + urllib.parse.quote(svg)
+    b64 = base64.b64encode(svg.strip().encode("utf-8")).decode("utf-8")
+    return f"data:image/svg+xml;base64,{b64}"
 
 def get_dl_card_svg(name="Shyam Sundar Sharma", dl_num="RJ-14-2022-00455", vehicle_class="LMV-TR"):
     svg = f"""<svg xmlns="http://www.w3.org/2000/svg" width="420" height="250" viewBox="0 0 420 250">
@@ -594,7 +613,8 @@ def get_dl_card_svg(name="Shyam Sundar Sharma", dl_num="RJ-14-2022-00455", vehic
         <rect x="0" y="215" width="420" height="35" fill="#07192C"/>
         <text x="20" y="234" fill="#94A3B8" font-family="monospace" font-size="9">CHIP ID: 899144020261192834 • AUTH DIGITAL CARRIER SEAL</text>
     </svg>"""
-    return "data:image/svg+xml;utf8," + urllib.parse.quote(svg)
+    b64 = base64.b64encode(svg.strip().encode("utf-8")).decode("utf-8")
+    return f"data:image/svg+xml;base64,{b64}"
 
 def get_selfie_svg(name="Ramesh Kumar Sahu", is_match=True):
     accent = "#10B981" if is_match else "#EF4444"
@@ -635,10 +655,11 @@ def get_selfie_svg(name="Ramesh Kumar Sahu", is_match=True):
         <text x="40" y="28" fill="#EF4444" font-family="monospace" font-size="9" font-weight="bold">● LIVE CAMERA FEED</text>
         <text x="320" y="28" fill="{accent}" font-family="monospace" font-size="9" font-weight="bold" text-anchor="end">FPS: 30.0</text>
     </svg>"""
-    return "data:image/svg+xml;utf8," + urllib.parse.quote(svg)
+    b64 = base64.b64encode(svg.strip().encode("utf-8")).decode("utf-8")
+    return f"data:image/svg+xml;base64,{b64}"
 
 # -------------------------------------------------------------
-# 3. Session State Initialization
+# 4. Session State Initialization
 # -------------------------------------------------------------
 if "is_logged_in" not in st.session_state:
     st.session_state.is_logged_in = False
@@ -648,8 +669,6 @@ if "user_name" not in st.session_state:
     st.session_state.user_name = "Priya Sharma"
 if "user_email" not in st.session_state:
     st.session_state.user_email = "priya@scrapsetu.in"
-if "lang" not in st.session_state:
-    st.session_state.lang = "en"
 
 # Material Catalog
 if "categories" not in st.session_state:
@@ -662,7 +681,7 @@ if "categories" not in st.session_state:
         {"id": "others", "name": "Others / Mixed Dry", "hindi": "अन्य सूखा कचरा", "rate": 8.0, "min": 5.0, "max": 12.0, "unit": "kg", "co2": 0.80, "icon": "📦"},
     ]
 
-# Seeded Pickup Orders (Enriched with scrap photo SVGs and AI scene analysis)
+# Seeded Pickup Orders (Guaranteed Base64 SVGs)
 if "pickups" not in st.session_state:
     st.session_state.pickups = [
         {
@@ -836,83 +855,103 @@ def login_as(role_key):
 # =============================================================
 if not st.session_state.is_logged_in:
     with st.sidebar:
-        st.markdown("### 🌐 Language / भाषा")
-        l_opt = st.radio("Select Language", ["English", "हिंदी"], horizontal=True)
-        st.session_state.lang = "en" if l_opt == "English" else "hi"
+        st.markdown("### 🌐 " + tr("Language Selection", "भाषा चयन")[0])
+        l_opt = st.radio(
+            tr("Preferred Language", "पसंदीदा भाषा")[0],
+            ["English", "हिंदी"],
+            index=0 if st.session_state.lang == "en" else 1,
+            horizontal=True,
+            help=tr("Hover for Hindi translation", "अंग्रेजी अनुवाद हेतु कर्सर लाएं")[0]
+        )
+        new_l = "en" if l_opt == "English" else "hi"
+        if new_l != st.session_state.lang:
+            st.session_state.lang = new_l
+            st.rerun()
 
         st.divider()
-        st.markdown("### ⚡ Live Demo Fast-Track")
-        st.caption("One-click instant login to any role dashboard:")
-        if st.button("🛡️ 1-Click Admin Console", type="primary", use_container_width=True):
+        st.markdown("### ⚡ " + tr("Live Demo Fast-Track", "त्वरित लाइव डेमो")[0])
+        st.caption(tr("One-click instant login to any role dashboard:", "किसी भी भूमिका डैशबोर्ड में एक क्लिक से लॉगिन करें:")[0])
+        if st.button("🛡️ " + tr("Admin Console", "एडमिन कंसोल")[0], type="primary", use_container_width=True, help=tr("1-क्लिक एडमिन कंसोल", "1-Click Admin Console")[0]):
             login_as("ADMIN")
             st.rerun()
-        if st.button("🏠 1-Click Household Portal", use_container_width=True):
+        if st.button("🏠 " + tr("Household Portal", "घरेलू पोर्टल")[0], use_container_width=True, help=tr("घरेलू रीसाइक्लिंग पोर्टल", "Household Recycling Portal")[0]):
             login_as("HOUSEHOLD")
             st.rerun()
-        if st.button("🛺 1-Click Kabadiwala Terminal", use_container_width=True):
+        if st.button("🛺 " + tr("Collector Terminal", "कबाड़ीवाला टर्मिनल")[0], use_container_width=True, help=tr("कबाड़ीवाला जॉब टर्मिनल", "Kabadiwala Terminal")[0]):
             login_as("COLLECTOR")
             st.rerun()
-        if st.button("🏢 1-Click Commercial Business", use_container_width=True):
+        if st.button("🏢 " + tr("Commercial Business", "कमर्शियल बिजनेस")[0], use_container_width=True, help=tr("वाणिज्यिक थोक अपशिष्ट", "Commercial Bulk Waste")[0]):
             login_as("BUSINESS")
             st.rerun()
-        if st.button("🏭 1-Click Recycler Mill", use_container_width=True):
+        if st.button("🏭 " + tr("Recycler Mill", "रीसाइक्लिंग मिल")[0], use_container_width=True, help=tr("रीसाइक्लिंग कारखाना पोर्टल", "Recycling Factory Portal")[0]):
             login_as("RECYCLER")
             st.rerun()
 
-    st.markdown("""
+    # Luxury Hero Banner
+    hero_title, hero_title_alt = tr("ScrapSetu 2.0", "स्क्रैपसेतु 2.0")
+    hero_sub, hero_sub_alt = tr("ScrapSetu Circular Intelligence", "स्क्रैपसेतु चक्रीय अर्थव्यवस्था")
+    hero_tag, hero_tag_alt = tr("Verified CPCB EPR Network • 3-Point Biometric KYC • 100% Digital UPI", "सत्यापित सीपीसीबी नेटवर्क • 3-बिंदु बायोमेट्रिक सत्यापन • 100% डिजिटल यूपीआई")
+
+    st.markdown(f"""
     <div style="background: radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.18) 0%, rgba(11, 21, 16, 0.95) 75%); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 1.5rem; padding: 2.2rem 1.5rem 1.8rem 1.5rem; text-align: center; margin-bottom: 1.5rem; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(16, 185, 129, 0.25);">
         <div style="display:inline-flex; align-items:center; justify-content:center; width:64px; height:64px; border-radius:50%; background:rgba(16, 185, 129, 0.15); border:1px solid #10B981; margin-bottom:0.8rem; box-shadow:0 0 25px rgba(16, 185, 129, 0.35);">
             <span style="font-size:2.2rem;">♻️</span>
         </div>
         <h1 style="color:#F4FDF8; font-weight:900; font-size:2.8rem; margin:0 0 0.3rem 0; letter-spacing:-0.03em; text-shadow:0 0 25px rgba(16, 185, 129, 0.35);">
-            ScrapSetu <span style="color:#10B981;">2.0</span>
+            {hero_title}
         </h1>
         <p style="color:#6EE7B7; font-size:1.05rem; font-weight:600; margin:0 0 0.8rem 0; letter-spacing:0.02em;">
-            ScrapSetu Circular Intelligence • भारत का डिजिटल रीसाइक्लिंग सेतु
+            {tr_span(hero_sub, hero_sub_alt)}
         </p>
         <div style="display:inline-flex; align-items:center; gap:0.5rem; background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.3); padding:0.35rem 1rem; border-radius:9999px; font-size:0.8rem; color:#A7F3D0;">
-            <span style="color:#10B981;">●</span> Verified CPCB EPR Network • 3-Point Biometric KYC • 100% Digital UPI Settlements
+            <span style="color:#10B981;">●</span> {tr_span(hero_tag, hero_tag_alt)}
         </div>
     </div>
     """, unsafe_allow_html=True)
 
     t1, t2, t3, t4 = st.columns(4)
     with t1:
-        st.markdown('''<div class="kpi-card"><div class="kpi-val">2,845.9 MT</div><div class="kpi-lbl">Landfill Diversion</div><div style="font-size:0.75rem; color:#34D399; margin-top:5px; font-weight:700;">↑ Audited CPCB</div></div>''', unsafe_allow_html=True)
+        st.markdown(f'''<div class="kpi-card"><div class="kpi-val">2,845.9 MT</div><div class="kpi-lbl">{tr_span("Landfill Diversion", "लैंडफिल से बचाया कचरा")}</div><div style="font-size:0.75rem; color:#34D399; margin-top:5px; font-weight:700;">{tr_span("↑ Audited CPCB", "↑ सीपीसीबी द्वारा प्रमाणित")}</div></div>''', unsafe_allow_html=True)
     with t2:
-        st.markdown('''<div class="kpi-card"><div class="kpi-val">4,268 MT</div><div class="kpi-lbl">CO₂e Avoided</div><div style="font-size:0.75rem; color:#34D399; margin-top:5px; font-weight:700;">↑ IPCC Model</div></div>''', unsafe_allow_html=True)
+        st.markdown(f'''<div class="kpi-card"><div class="kpi-val">4,268 MT</div><div class="kpi-lbl">{tr_span("CO₂e Avoided", "बचाया गया कार्बन उत्सर्जन")}</div><div style="font-size:0.75rem; color:#34D399; margin-top:5px; font-weight:700;">{tr_span("↑ IPCC Model", "↑ आईपीसीसी गणना मॉडल")}</div></div>''', unsafe_allow_html=True)
     with t3:
-        st.markdown('''<div class="kpi-card"><div class="kpi-val">1,420 Active</div><div class="kpi-lbl">Certified Kabadiwalas</div><div style="font-size:0.75rem; color:#34D399; margin-top:5px; font-weight:700;">↑ 3-Point KYC</div></div>''', unsafe_allow_html=True)
+        st.markdown(f'''<div class="kpi-card"><div class="kpi-val">1,420 Active</div><div class="kpi-lbl">{tr_span("Certified Kabadiwalas", "सत्यापित कबाड़ीवाले")}</div><div style="font-size:0.75rem; color:#34D399; margin-top:5px; font-weight:700;">{tr_span("↑ 3-Point KYC", "↑ 3-बिंदु पहचान सत्यापित")}</div></div>''', unsafe_allow_html=True)
     with t4:
-        st.markdown('''<div class="kpi-card"><div class="kpi-val">₹5.49 Cr</div><div class="kpi-lbl">Direct Citizen Payouts</div><div style="font-size:0.75rem; color:#34D399; margin-top:5px; font-weight:700;">↑ 100% Digital UPI</div></div>''', unsafe_allow_html=True)
+        st.markdown(f'''<div class="kpi-card"><div class="kpi-val">₹5.49 Cr</div><div class="kpi-lbl">{tr_span("Direct Citizen Payouts", "नागरिकों को सीधा भुगतान")}</div><div style="font-size:0.75rem; color:#34D399; margin-top:5px; font-weight:700;">{tr_span("↑ 100% Digital UPI", "↑ 100% डिजिटल यूपीआई")}</div></div>''', unsafe_allow_html=True)
 
     st.write("")
-    auth_tab_login, auth_tab_register = st.tabs(["🔐 Sign In (लॉग इन)", "📝 Create Dynamic Account (पंजीकरण)"])
+    login_tab_title = tr("🔐 Sign In", "🔐 लॉग इन")[0]
+    reg_tab_title = tr("📝 Create Dynamic Account", "📝 नया खाता बनाएं")[0]
+    auth_tab_login, auth_tab_register = st.tabs([login_tab_title, reg_tab_title])
 
     with auth_tab_login:
         col_l1, col_l2, col_l3 = st.columns([1, 2, 1])
         with col_l2:
-            st.markdown("#### Enter Your Credentials")
+            st.markdown("#### " + tr("Enter Your Credentials", "अपना विवरण दर्ज करें")[0])
             with st.form("login_form"):
-                in_role = st.selectbox(
-                    "Sign in As (भूमिका):",
-                    ["🏠 Household Citizen", "🛺 Kabadiwala / Collector", "🏢 Commercial Business", "🏭 Material Recycler", "🛡️ Administrator"]
-                )
-                in_email = st.text_input("Registered Phone / Email Address", value="9876543210")
-                in_pass = st.text_input("Password / MPIN", type="password", value="password123")
+                role_opts = [
+                    tr("🏠 Household Citizen", "🏠 घरेलू नागरिक")[0],
+                    tr("🛺 Kabadiwala / Collector", "🛺 कबाड़ीवाला साथी")[0],
+                    tr("🏢 Commercial Business", "🏢 कमर्शियल प्रतिष्ठान")[0],
+                    tr("🏭 Material Recycler", "🏭 रीसाइक्लिंग मिल")[0],
+                    tr("🛡️ Administrator", "🛡️ प्रशासक")[0]
+                ]
+                in_role = st.selectbox(tr("Sign in As:", "इस रूप में लॉग इन करें:")[0], role_opts)
+                in_email = st.text_input(tr("Registered Phone / Email Address", "पंजीकृत फोन / ईमेल")[0], value="9876543210")
+                in_pass = st.text_input(tr("Password / PIN", "पासवर्ड / पिन")[0], type="password", value="password123")
                 
-                login_btn = st.form_submit_button("Authenticate & Open Dashboard", type="primary", use_container_width=True)
+                login_btn = st.form_submit_button(tr("Authenticate & Open Dashboard", "सत्यापित करें व डैशबोर्ड खोलें")[0], type="primary", use_container_width=True)
                 if login_btn:
                     matched = False
                     for k, acc in DEMO_ROLES.items():
                         if in_email.lower().strip() in [acc["email"].lower(), "9876543210"]:
-                            if "Household" in in_role: login_as("HOUSEHOLD")
-                            elif "Kabadiwala" in in_role: login_as("COLLECTOR")
-                            elif "Business" in in_role: login_as("BUSINESS")
-                            elif "Recycler" in in_role: login_as("RECYCLER")
+                            if "Household" in in_role or "घरेलू" in in_role: login_as("HOUSEHOLD")
+                            elif "Kabadiwala" in in_role or "कबाड़ीवाला" in in_role: login_as("COLLECTOR")
+                            elif "Commercial" in in_role or "कमर्शियल" in in_role: login_as("BUSINESS")
+                            elif "Recycler" in in_role or "रीसाइक्लिंग" in in_role: login_as("RECYCLER")
                             else: login_as("ADMIN")
                             matched = True
-                            st.success(f"Welcome back! Loading {st.session_state.current_role} dashboard...")
+                            st.success(tr("Welcome back! Loading dashboard...", "स्वागत है! डैशबोर्ड लोड हो रहा है...")[0])
                             st.rerun()
                             break
                     if not matched:
@@ -923,100 +962,102 @@ if not st.session_state.is_logged_in:
                         st.rerun()
 
             st.divider()
-            st.markdown("##### ⚡ Evaluator Quick Role Switcher (1-Click)")
+            st.markdown("##### ⚡ " + tr("Quick Demo Access", "त्वरित डेमो लॉगिन")[0])
             eb1, eb2, eb3 = st.columns(3)
             with eb1:
-                if st.button("🏠 Household", key="eq_h", use_container_width=True):
+                if st.button("🏠 " + tr("Household", "घरेलू नागरिक")[0], key="eq_h", use_container_width=True):
                     login_as("HOUSEHOLD")
                     st.rerun()
             with eb2:
-                if st.button("🛺 Kabadiwala", key="eq_c", use_container_width=True):
+                if st.button("🛺 " + tr("Collector", "कबाड़ीवाला")[0], key="eq_c", use_container_width=True):
                     login_as("COLLECTOR")
                     st.rerun()
             with eb3:
-                if st.button("🛡️ Admin Console", key="eq_a", type="primary", use_container_width=True):
+                if st.button("🛡️ " + tr("Admin Console", "एडमिन कंसोल")[0], key="eq_a", type="primary", use_container_width=True):
                     login_as("ADMIN")
                     st.rerun()
 
     with auth_tab_register:
-        st.markdown("#### Dynamic Multi-Role Registration Portal with 3-Point KYC")
-        st.caption("Select your role to reveal tailored compliance onboarding:")
+        st.markdown("#### " + tr("Dynamic Multi-Role Registration Portal with 3-Point KYC", "3-बिंदु पहचान सत्यापन सहित बहु-भूमिका पंजीकरण पोर्टल")[0])
+        st.caption(tr("Select your role to reveal tailored compliance onboarding:", "अपनी भूमिका चुनें:")[0])
         
+        role_reg_keys = ["HOUSEHOLD", "COLLECTOR", "BUSINESS", "RECYCLER", "ADMIN"]
+        role_reg_labels = {
+            "HOUSEHOLD": tr("🏠 Household Citizen / Resident", "🏠 घरेलू नागरिक / निवासी")[0],
+            "COLLECTOR": tr("🛺 Kabadiwala / Collector Partner", "🛺 कबाड़ीवाला संग्रह साथी")[0],
+            "BUSINESS": tr("🏢 Commercial Waste Generator (Malls, IT Parks)", "🏢 वाणिज्यिक अपशिष्ट जनरेटर")[0],
+            "RECYCLER": tr("🏭 Recycling Facility / Wholesale Mill", "🏭 रीसाइक्लिंग कारखाना")[0],
+            "ADMIN": tr("🛡️ Platform Governance Authority", "🛡️ प्लेटफॉर्म प्रशासनिक प्राधिकरण")[0]
+        }
         chosen_role = st.selectbox(
-            "Select Registration Role Category:",
-            ["HOUSEHOLD", "COLLECTOR", "BUSINESS", "RECYCLER", "ADMIN"],
-            format_func=lambda x: {
-                "HOUSEHOLD": "🏠 Household Citizen / Resident",
-                "COLLECTOR": "🛺 Kabadiwala / Collector Partner",
-                "BUSINESS": "🏢 Commercial Waste Generator (Malls, IT Parks)",
-                "RECYCLER": "🏭 Recycling Facility / Wholesale Mill",
-                "ADMIN": "🛡️ Platform Governance & Regulatory Authority"
-            }[x]
+            tr("Select Registration Role Category:", "पंजीकरण भूमिका श्रेणी चुनें:")[0],
+            role_reg_keys,
+            format_func=lambda x: role_reg_labels[x]
         )
 
         with st.form("dynamic_reg_form"):
-            st.markdown("##### 1. Basic Account Credentials")
+            st.markdown("##### 1. " + tr("Basic Account Credentials", "खाता विवरण")[0])
             r_c1, r_c2 = st.columns(2)
             with r_c1:
-                reg_name = st.text_input("Full Name / Entity Name", "Deepak Verma")
-                reg_phone = st.text_input("Phone Number (+91)", "+91 98765 00000")
+                reg_name = st.text_input(tr("Full Name / Entity Name", "पूरा नाम / संस्था का नाम")[0], "Deepak Verma")
+                reg_phone = st.text_input(tr("Phone Number (+91)", "फोन नंबर (+91)")[0], "+91 98765 00000")
             with r_c2:
-                reg_email = st.text_input("Official Email Address", "deepak@scrapsetu.in")
-                reg_pass = st.text_input("Create Security PIN / Password", type="password", value="Secret@2026")
+                reg_email = st.text_input(tr("Official Email Address", "ईमेल पता")[0], "deepak@scrapsetu.in")
+                reg_pass = st.text_input(tr("Create Security PIN / Password", "सुरक्षा पिन बनाएं")[0], type="password", value="Secret@2026")
 
-            st.markdown("##### 2. Role-Specific Profile Details")
+            st.markdown("##### 2. " + tr("Role-Specific Profile Details", "भूमिका प्रोफ़ाइल विवरण")[0])
             if chosen_role == "HOUSEHOLD":
                 rh1, rh2 = st.columns(2)
                 with rh1:
-                    reg_addr = st.text_input("Residential Doorstep Address", "Apt 402, Green Valley Apartments, Mayur Vihar Phase-1")
+                    reg_addr = st.text_input(tr("Residential Doorstep Address", "आवासीय पता")[0], "Apt 402, Green Valley Apartments, Mayur Vihar Phase-1")
                 with rh2:
-                    reg_pin = st.text_input("Pincode", "110091")
+                    reg_pin = st.text_input(tr("Pincode", "पिनकोड")[0], "110091")
 
             elif chosen_role == "COLLECTOR":
-                st.info("🛺 Kabadiwala Partner Profile: Mobile terminal, EcoRoute TSP navigation, and TrustWeigh Bluetooth digital scale.")
+                st.info(tr("🛺 Kabadiwala Profile: Mobile terminal, EcoRoute TSP navigation, and TrustWeigh digital scale.", "🛺 कबाड़ीवाला प्रोफ़ाइल: मोबाइल टर्मिनल, इको-रूट टीएसपी नेविगेशन, और डिजिटल तौल पैमाना।")[0])
                 cv1, cv2, cv3 = st.columns(3)
                 with cv1:
-                    reg_veh = st.selectbox("Vehicle Type", ["E-Rickshaw Loader", "Three-Wheeler Tempo", "Mini Truck (Tata Ace)", "Cycle Rickshaw"])
+                    reg_veh = st.selectbox(tr("Vehicle Type", "वाहन का प्रकार")[0], [tr("E-Rickshaw Loader", "ई-रिक्शा लोडर")[0], tr("Three-Wheeler Tempo", "थ्री-व्हीलर टेम्पो")[0], tr("Mini Truck", "छोटा हाथी (मिनी ट्रक)")[0], tr("Cycle Rickshaw", "साइकिल रिक्शा")[0]])
                 with cv2:
-                    reg_veh_no = st.text_input("Vehicle Registration No.", "DL 1 ER 7721")
+                    reg_veh_no = st.text_input(tr("Vehicle Registration No.", "वाहन पंजीकरण संख्या")[0], "DL 1 ER 7721")
                 with cv3:
-                    reg_upi = st.text_input("Instant Payout UPI VPA", "ramesh@paytm")
-                reg_cap = st.slider("Daily Vehicle Capacity (kg)", 50, 1000, 350)
+                    reg_upi = st.text_input(tr("Instant Payout UPI VPA", "यूपीआई वीपीए")[0], "ramesh@paytm")
+                reg_cap = st.slider(tr("Daily Vehicle Capacity (kg)", "दैनिक वाहन क्षमता (किग्रा)")[0], 50, 1000, 350)
 
             elif chosen_role == "BUSINESS":
-                st.info("🏢 Commercial Bulk Generator: Recurring multi-facility contracts, GST e-invoices, and CPCB EPR credit certificates.")
+                st.info(tr("🏢 Commercial Bulk Generator: Recurring multi-facility contracts, GST e-invoices, and EPR credit certificates.", "🏢 वाणिज्यिक अपशिष्ट जनरेटर: आवर्ती अनुबंध, जीएसटी ई-चालान, और ईपीआर प्रमाण पत्र।")[0])
                 cb1, cb2 = st.columns(2)
                 with cb1:
-                    reg_biz_name = st.text_input("Company Legal Name", "GreenTech Solutions India Pvt Ltd")
+                    reg_biz_name = st.text_input(tr("Company Legal Name", "कंपनी का नाम")[0], "GreenTech Solutions India Pvt Ltd")
                 with cb2:
-                    reg_gst = st.text_input("GSTIN Number (15 Digits)", "07AAAAA0000A1Z5")
+                    reg_gst = st.text_input(tr("GSTIN Number (15 Digits)", "जीएसटीआईएन संख्या")[0], "07AAAAA0000A1Z5")
 
             elif chosen_role == "RECYCLER":
-                st.info("🏭 Recycler Facility: Wholesale buying rate sheet manager and digital weighbridge gate pass slips.")
+                st.info(tr("🏭 Recycler Facility: Wholesale buying rate sheet manager and digital weighbridge gate pass slips.", "🏭 रीसाइक्लिंग मिल: थोक खरीद दर पत्रक और डिजिटल वेजब्रिज गेट पास।")[0])
                 cr1, cr2 = st.columns(2)
                 with cr1:
-                    reg_fac = st.text_input("Processing Facility Name", "EcoPlast Reclaimers Pvt Ltd")
+                    reg_fac = st.text_input(tr("Processing Facility Name", "प्रसंस्करण संयंत्र का नाम")[0], "EcoPlast Reclaimers Pvt Ltd")
                 with cr2:
-                    reg_cpcb = st.text_input("CPCB / SPCB License Number", "CPCB/PWM/DEL-2024/092")
+                    reg_cpcb = st.text_input(tr("CPCB / SPCB License Number", "सीपीसीबी लाइसेंस संख्या")[0], "CPCB/PWM/DEL-2024/092")
 
             elif chosen_role == "ADMIN":
-                st.info("🛡️ Platform Administrator: Regulatory verification queue, Mandi rate authority, and cloud database connectivity.")
+                st.info(tr("🛡️ Platform Administrator: Regulatory verification queue, Mandi rate authority, and cloud database connectivity.", "🛡️ प्लेटफॉर्म प्रशासक: सत्यापन कतार, मंडी दर प्राधिकरण, और क्लाउड डेटाबेस।")[0])
 
-            st.markdown("##### 3. Mandatory 3-Point KYC Verification Dossier")
+            st.markdown("##### 3. " + tr("Mandatory 3-Point KYC Verification Dossier", "अनिवार्य 3-बिंदु पहचान सत्यापन दस्तावेज")[0])
             k_c1, k_c2, k_c3 = st.columns(3)
             with k_c1:
-                st.markdown("**1. 📄 Aadhaar Card**")
-                u_aadh_no = st.text_input("Aadhaar Number (12 Digits)", "5482-9182-4912")
-                u_aadh_file = st.file_uploader("Upload Aadhaar", type=["pdf", "png", "jpg", "jpeg"], key="reg_aadh")
+                st.markdown("**1. 📄 " + tr("Aadhaar Card", "आधार कार्ड")[0] + "**")
+                u_aadh_no = st.text_input(tr("Aadhaar Number (12 Digits)", "आधार संख्या (12 अंक)")[0], "5482-9182-4912")
+                u_aadh_file = st.file_uploader(tr("Upload Aadhaar", "आधार अपलोड करें")[0], type=["pdf", "png", "jpg", "jpeg"], key="reg_aadh")
             with k_c2:
-                st.markdown("**2. 🪪 Driving Licence**")
-                u_dl_no = st.text_input("Driving Licence Number", "DL-04-2022-00455")
-                u_dl_file = st.file_uploader("Upload Driving Licence", type=["pdf", "png", "jpg", "jpeg"], key="reg_dl")
+                st.markdown("**2. 🪪 " + tr("Driving Licence", "ड्राइविंग लाइसेंस")[0] + "**")
+                u_dl_no = st.text_input(tr("Driving Licence Number", "ड्राइविंग लाइसेंस संख्या")[0], "DL-04-2022-00455")
+                u_dl_file = st.file_uploader(tr("Upload Driving Licence", "लाइसेंस अपलोड करें")[0], type=["pdf", "png", "jpg", "jpeg"], key="reg_dl")
             with k_c3:
-                st.markdown("**3. 🤳 Live Camera Selfie**")
-                u_selfie = st.camera_input("Take Live Selfie:")
+                st.markdown("**3. 🤳 " + tr("Live Camera Selfie", "लाइव कैमरा सेल्फी")[0] + "**")
+                u_selfie = st.camera_input(tr("Take Live Selfie:", "लाइव सेल्फी लें:")[0])
 
-            reg_submit = st.form_submit_button("🚀 Complete 3-Point Registration & Enter Portal", type="primary", use_container_width=True)
+            reg_submit = st.form_submit_button("🚀 " + tr("Complete 3-Point Registration & Enter Portal", "पंजीकरण पूरा करें व पोर्टल में प्रवेश करें")[0], type="primary", use_container_width=True)
             if reg_submit:
                 st.session_state.is_logged_in = True
                 st.session_state.current_role = chosen_role
@@ -1039,7 +1080,7 @@ if not st.session_state.is_logged_in:
                     "reviewed_by": "Deepak Verma (Admin)" if chosen_role in ["HOUSEHOLD", "ADMIN"] else None,
                 }
                 st.session_state.kyc_records.append(new_kyc_entry)
-                st.success(f"🎉 Registration successful! Welcome to your tailored {chosen_role} Dashboard.")
+                st.success(tr("Registration successful! Welcome to your dashboard.", "पंजीकरण सफल! आपके डैशबोर्ड में स्वागत है।")[0])
                 st.rerun()
 
     st.stop()
@@ -1049,25 +1090,26 @@ if not st.session_state.is_logged_in:
 # SCENARIO B: LOGGED-IN DEDICATED ROLE DASHBOARD
 # =============================================================
 
-# Bilingual Active Language Indicator & Top User Bar
-active_lang_name = "English" if st.session_state.lang == "en" else "हिंदी"
-other_lang_name = "हिंदी" if st.session_state.lang == "en" else "English"
-hover_tooltip_text = "हिंदी: स्क्रैपसेतु 2.0 चक्रीय रीसाइक्लिंग प्लेटफॉर्म" if st.session_state.lang == "en" else "English: ScrapSetu 2.0 Circular Recycling Platform"
+# Strict Bilingual Top User Bar
+is_hi = (st.session_state.get("lang", "en") == "hi")
+active_lang_display = "हिंदी" if is_hi else "English"
+alt_lang_hover = "Hover for English translation" if is_hi else "हिंदी अनुवाद हेतु कर्सर लाएं"
+portal_badge_text = tr(f"{st.session_state.current_role} PORTAL", f"{st.session_state.current_role} पोर्टल")[0]
+portal_badge_alt = tr(f"{st.session_state.current_role} PORTAL", f"{st.session_state.current_role} पोर्टल")[1]
 
 st.markdown(f"""
 <div class="top-user-bar">
     <div>
         <span style="font-size:1.3rem; font-weight:900; letter-spacing:-0.02em; color:#F4FDF8;">ScrapSetu 2.0</span> • 
         <b style="color:#A7F3D0;">{st.session_state.user_name}</b> 
-        <span class="user-badge" style="margin-left:0.6rem;">{st.session_state.current_role} PORTAL</span>
+        <span class="user-badge bilingual-hover-tip" data-trans="{portal_badge_alt}" style="margin-left:0.6rem;">{portal_badge_text}</span>
     </div>
     <div style="display:flex; align-items:center; gap:1.2rem;">
-        <div class="bilingual-badge bilingual-hover-tip" data-trans="{hover_tooltip_text}">
-            🌐 <b>Language:</b> {active_lang_name} 
-            <span style="font-size:0.75rem; color:#A7F3D0; margin-left:4px;">(Hover for {other_lang_name} / अनुवाद)</span>
+        <div class="bilingual-badge bilingual-hover-tip" data-trans="{alt_lang_hover}">
+            🌐 <b>{tr("Language", "भाषा")[0]}:</b> {active_lang_display}
         </div>
         <div style="font-size:0.85rem; color:#A7F3D0;">
-            <code>{st.session_state.user_email}</code> • 🟢 Live Connected
+            <code>{st.session_state.user_email}</code> • 🟢 {tr("Live Connected", "लाइव कनेक्टेड")[0]}
         </div>
     </div>
 </div>
@@ -1077,26 +1119,27 @@ st.markdown(f"""
 t_col1, t_col2, t_col3 = st.columns([2, 1, 1])
 with t_col1:
     if st.session_state.current_role != "ADMIN":
-        if st.button("⚡ 1-Click Administrator Console", type="primary"):
+        if st.button("⚡ " + tr("1-Click Administrator Console", "1-क्लिक एडमिन कंसोल")[0], type="primary", help=tr("1-क्लिक एडमिन कंसोल", "1-Click Administrator Console")[0]):
             st.session_state.current_role = "ADMIN"
             st.session_state.user_name = "Deepak Verma"
             st.session_state.user_email = "admin@scrapsetu.in"
             st.rerun()
     else:
-        st.success("🛡️ You are currently viewing the Platform Administrator Console.")
+        st.success("🛡️ " + tr("You are currently viewing the Platform Administrator Console.", "आप वर्तमान में प्लेटफॉर्म प्रशासक कंसोल देख रहे हैं।")[0])
 
 with t_col2:
     switch_to = st.selectbox(
-        "Instant Role Switcher:",
+        tr("Instant Role Switcher:", "भूमिका बदलें:")[0],
         ["ADMIN", "HOUSEHOLD", "COLLECTOR", "BUSINESS", "RECYCLER"],
-        index=["ADMIN", "HOUSEHOLD", "COLLECTOR", "BUSINESS", "RECYCLER"].index(st.session_state.current_role)
+        index=["ADMIN", "HOUSEHOLD", "COLLECTOR", "BUSINESS", "RECYCLER"].index(st.session_state.current_role),
+        help=tr("Switch active dashboard role", "सक्रिय भूमिका डैशबोर्ड बदलें")[0]
     )
     if switch_to != st.session_state.current_role:
         login_as(switch_to)
         st.rerun()
 
 with t_col3:
-    if st.button("🚪 Sign Out (लॉग आउट)", use_container_width=True):
+    if st.button("🚪 " + tr("Sign Out", "लॉग आउट")[0], use_container_width=True, help=tr("लॉग आउट करें", "Sign Out of Portal")[0]):
         st.session_state.is_logged_in = False
         st.rerun()
 
@@ -1108,8 +1151,9 @@ current_role = st.session_state.current_role
 # 1. 🏠 DEDICATED HOUSEHOLD DASHBOARD
 # =============================================================
 if current_role == "HOUSEHOLD":
-    st.subheader(f"🏠 Household Recycling Dashboard — Welcome, {st.session_state.user_name}!")
-    st.caption("Schedule zero-charge doorstep scrap pickups, identify materials & calculate weight via AI ScrapVision, and track verified collectors.")
+    h_title = tr(f"Household Recycling Dashboard — Welcome, {st.session_state.user_name}!", f"घरेलू रीसाइक्लिंग डैशबोर्ड — स्वागत है, {st.session_state.user_name}!")[0]
+    st.subheader("🏠 " + h_title)
+    st.caption(tr("Schedule zero-charge doorstep scrap pickups, identify materials & calculate weight via AI ScrapVision, and track verified collectors.", "मुफ़्त डोरस्टेप स्क्रैप पिकअप शेड्यूल करें, एआई स्क्रैप-विजन द्वारा सामग्री व वजन जांचें, और सत्यापित कबाड़ीवाले ट्रैक करें।")[0])
 
     user_pickups = [p for p in st.session_state.pickups if p["role"] == "HOUSEHOLD"]
     completed_u = [p for p in user_pickups if p["status"] == "COMPLETED"]
@@ -1118,37 +1162,46 @@ if current_role == "HOUSEHOLD":
 
     hk1, hk2, hk3, hk4 = st.columns(4)
     with hk1:
-        st.markdown(f'<div class="kpi-card"><div class="kpi-val">{u_kg:.1f} kg</div><div class="kpi-lbl">Total Recycled Scrap</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">{u_kg:.1f} kg</div><div class="kpi-lbl">{tr_span("Total Recycled Scrap", "कुल पुनर्चक्रित कचरा")}</div></div>', unsafe_allow_html=True)
     with hk2:
-        st.markdown(f'<div class="kpi-card"><div class="kpi-val">₹{u_earned:,.2f}</div><div class="kpi-lbl">Cash / UPI Earned</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">₹{u_earned:,.2f}</div><div class="kpi-lbl">{tr_span("Cash / UPI Earned", "अर्जित नकद / यूपीआई")}</div></div>', unsafe_allow_html=True)
     with hk3:
-        st.markdown(f'<div class="kpi-card"><div class="kpi-val">{len(user_pickups)} Orders</div><div class="kpi-lbl">Doorstep Pickups</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">{len(user_pickups)} Orders</div><div class="kpi-lbl">{tr_span("Doorstep Pickups", "डोरस्टेप पिकअप संख्या")}</div></div>', unsafe_allow_html=True)
     with hk4:
-        st.markdown(f'<div class="kpi-card"><div class="kpi-val">{round(u_kg*1.45, 1)} kg</div><div class="kpi-lbl">CO₂ Emissions Prevented</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">{round(u_kg*1.45, 1)} kg</div><div class="kpi-lbl">{tr_span("CO₂ Emissions Prevented", "बचाया गया CO₂ उत्सर्जन")}</div></div>', unsafe_allow_html=True)
 
-    h_tab1, h_tab2, h_tab3 = st.tabs(["📦 Book Doorstep Pickup", "🔍 AI ScrapVision Classifier & Weight Engine", "🧾 Digital Waste Passports"])
+    h_t1 = tr("📦 Book Doorstep Pickup", "📦 डोरस्टेप पिकअप बुक करें")[0]
+    h_t2 = tr("🔍 AI ScrapVision Classifier & Weight Engine", "🔍 एआई स्क्रैप-विजन वर्गीकरण व वजन इंजन")[0]
+    h_t3 = tr("🧾 Digital Waste Passports", "🧾 डिजिटल वेस्ट पासपोर्ट प्रमाण पत्र")[0]
+    h_tab1, h_tab2, h_tab3 = st.tabs([h_t1, h_t2, h_t3])
 
     with h_tab1:
         h_col1, h_col2 = st.columns([1, 1], gap="large")
         with h_col1:
-            st.markdown("#### 📦 Schedule Next Pickup")
+            st.markdown("#### 📦 " + tr("Schedule Next Pickup", "अगला पिकअप शेड्यूल करें")[0])
             with st.form("household_book"):
-                h_cat = st.selectbox("Scrap Category", [f"{c['icon']} {c['name']} (₹{c['rate']}/kg)" for c in st.session_state.categories])
-                h_qty = st.number_input("Estimated Weight (kg)", min_value=1.0, value=25.0, step=1.0)
-                h_slot = st.selectbox("Preferred Time Window", ["Morning (9 AM - 12 PM)", "Afternoon (12 PM - 3 PM)", "Evening (3 PM - 6 PM)"])
-                h_addr = st.text_input("Pickup Address", "South Extension II, Block C, New Delhi")
+                cat_choices = [f"{c['icon']} {c['hindi'] if is_hi else c['name']} (₹{c['rate']}/kg)" for c in st.session_state.categories]
+                h_cat = st.selectbox(tr("Scrap Category", "कचरा श्रेणी")[0], cat_choices)
+                h_qty = st.number_input(tr("Estimated Weight (kg)", "अनुमानित वजन (किग्रा)")[0], min_value=1.0, value=25.0, step=1.0)
+                slot_choices = [
+                    tr("Morning (9 AM - 12 PM)", "सुबह (9 बजे - 12 बजे)")[0],
+                    tr("Afternoon (12 PM - 3 PM)", "दोपहर (12 बजे - 3 बजे)")[0],
+                    tr("Evening (3 PM - 6 PM)", "शाम (3 बजे - 6 बजे)")[0]
+                ]
+                h_slot = st.selectbox(tr("Preferred Time Window", "सुविधाजनक समय स्लॉट")[0], slot_choices)
+                h_addr = st.text_input(tr("Pickup Address", "पिकअप का पता")[0], "South Extension II, Block C, New Delhi")
 
                 sel_r = 15.5
                 c_key = "paper"
                 for c in st.session_state.categories:
-                    if c["name"] in h_cat:
+                    if c["name"] in h_cat or c["hindi"] in h_cat:
                         sel_r = c["rate"]
                         c_key = c["id"]
                         break
                 expected_payout = round(h_qty * sel_r, 2)
-                st.info(f"💡 Expected Mandi Value: **₹{expected_payout:,.2f}** (@ ₹{sel_r}/kg). Verified with TrustWeigh digital scale at your doorstep.")
+                st.info(f"💡 {tr('Expected Mandi Value', 'अनुमानित मंडी मूल्य')[0]}: **₹{expected_payout:,.2f}** (@ ₹{sel_r}/kg).")
 
-                if st.form_submit_button("Confirm Booking (पिकअप बुक करें)", type="primary", use_container_width=True):
+                if st.form_submit_button(tr("Confirm Booking", "पिकअप बुक करें")[0], type="primary", use_container_width=True):
                     nid = f"REQ-{len(st.session_state.pickups)+101}"
                     new_order = {
                         "id": nid,
@@ -1158,110 +1211,113 @@ if current_role == "HOUSEHOLD":
                         "area": h_addr,
                         "lat": 28.5684 + (len(st.session_state.pickups) * 0.002),
                         "lng": 77.2195 + (len(st.session_state.pickups) * 0.002),
-                        "materials": f"{h_cat.split('(')[0]} ({h_qty}kg)",
+                        "materials": f"{h_cat.split('(')[0].strip()} ({h_qty}kg)",
                         "est_weight": h_qty,
                         "est_val": expected_payout,
                         "slot": h_slot,
                         "status": "OPEN",
                         "assigned_collector": None,
                         "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-                        "photo_svg": get_scrap_svg(c_key, f"Resident Scrap Photo — {h_cat.split('(')[0]}"),
-                        "ai_vision": f"Doorstep scrap package of {h_cat.split('(')[0]}. Volumetric inspection shows clean segregated materials ready for collector verification.",
+                        "photo_svg": get_scrap_svg(c_key, f"Resident Scrap Photo — {h_cat.split('(')[0].strip()}"),
+                        "ai_vision": f"Doorstep scrap package of {h_cat.split('(')[0].strip()}. Volumetric inspection shows clean segregated materials ready for collector verification.",
                         "ai_weight_details": f"Calculated: {h_qty} kg | Mandi Benchmark Rate: ₹{sel_r}/kg"
                     }
                     st.session_state.pickups.append(new_order)
-                    st.success(f"🎉 Pickup {nid} scheduled! Scrap photo and AI weight estimation broadcasted to verified kabadiwalas.")
+                    st.success(tr(f"Pickup {nid} scheduled! Broadcasted to nearest verified collectors.", f"पिकअप {nid} शेड्यूल हुआ! नजदीकी सत्यापित कबाड़ीवालों को भेजा गया।")[0])
                     st.rerun()
 
         with h_col2:
-            st.markdown("#### 🗺️ Neighborhood Collector Radar Map")
+            st.markdown("#### 🗺️ " + tr("Neighborhood Collector Radar Map", "नजदीकी कबाड़ीवाला रडार मैप")[0])
             m = folium.Map(location=[28.5684, 77.2195], zoom_start=13)
             folium.Marker([28.5684, 77.2195], tooltip="My Doorstep Location", icon=folium.Icon(color="green", icon="home")).add_to(m)
             folium.Marker([28.5720, 77.2250], tooltip="Ramu Paswan (Kavach Certified)", icon=folium.Icon(color="blue", icon="truck", prefix="fa")).add_to(m)
             folium.Marker([28.5610, 77.2110], tooltip="Mohammad Farooq (Mini Truck)", icon=folium.Icon(color="orange", icon="truck", prefix="fa")).add_to(m)
             st_folium(m, height=270, use_container_width=True)
 
-            st.caption("Active Orders:")
+            st.caption(tr("Active Orders:", "सक्रिय ऑर्डर्स:")[0])
             for p in reversed(user_pickups):
                 with st.expander(f"{p['id']} - {p['materials']} ({p['status']})"):
-                    st.write(f"**Status:** `{p['status']}`")
-                    st.write(f"**Estimated Valuation:** ₹{p['est_val']}")
+                    st.write(f"**{tr('Status', 'स्थिति')[0]}:** `{p['status']}`")
+                    st.write(f"**{tr('Estimated Valuation', 'अनुमानित मूल्य')[0]}:** ₹{p['est_val']}")
                     if p.get("receipt_number"):
-                        st.success(f"Receipt #{p['receipt_number']} • Cryptographic SHA-256 Sealed ✓")
+                        st.success(tr(f"Receipt #{p['receipt_number']} • Cryptographic SHA-256 Sealed ✓", f"रसीद #{p['receipt_number']} • क्रिप्टोग्राफिक SHA-256 सीलबंद ✓")[0])
 
-    # ---------------- 2. ENHANCED SCRAPVISION AI TAB ----------------
+    # ---------------- 2. ENHANCED SCRAPVISION AI TAB (BASE64 FIXED) ----------------
     with h_tab2:
-        st.markdown("#### 🔍 ScrapVision AI Material Recognition & Volumetric Weight Engine")
-        st.caption("Multimodal neural vision model describes visual scene details, calculates volumetric weight, and estimates live Mandi payout:")
+        st.markdown("#### 🔍 " + tr("ScrapVision AI Material Recognition & Volumetric Weight Engine", "एआई स्क्रैप-विजन सामग्री पहचान व वॉल्यूमेट्रिक वजन इंजन")[0])
+        st.caption(tr("Multimodal neural vision model describes visual scene details, calculates volumetric weight, and estimates live Mandi payout:", "मल्टीमॉडल न्यूरल विजन मॉडल दृश्य का विश्लेषण करता है, वजन की गणना करता है और लाइव मंडी भाव बताता है:")[0])
 
         sv_c1, sv_c2 = st.columns([1, 1], gap="large")
         with sv_c1:
-            st.markdown("##### 1. Capture or Select Scrap Photo")
-            sample_choice = st.selectbox(
-                "Choose High-Resolution Scrap Sample:",
-                [
-                    "🧴 Transparent Optical PET Bottles & Containers (Plastic)",
-                    "📦 Baled Corrugated Kraft Cardboard & Cartons (Paper)",
-                    "✨ Stripped Millberry Pure Copper Wire (Metal)",
-                    "💻 Telecom Server Boards & Component E-Waste (Electronics)"
-                ]
-            )
+            st.markdown("##### 1. " + tr("Capture or Select Scrap Photo", "स्क्रैप फोटो चुनें या अपलोड करें")[0])
+            sample_choices = [
+                tr("🧴 Transparent Optical PET Bottles & Containers", "🧴 पारदर्शी पीईटी पानी व पेय की बोतलें")[0],
+                tr("📦 Baled Corrugated Kraft Cardboard & Cartons", "📦 बंडल किया हुआ क्राफ्ट गत्ता व कार्टन")[0],
+                tr("✨ Stripped Millberry Pure Copper Wire", "✨ छिला हुआ शुद्ध मिलबेरी तांबे का तार")[0],
+                tr("💻 Telecom Server Boards & Component E-Waste", "💻 टेलीकॉम सर्वर बोर्ड व इलेक्ट्रॉनिक ई-कचरा")[0]
+            ]
+            sample_choice = st.selectbox(tr("Choose High-Resolution Scrap Sample:", "उच्च-रिज़ॉल्यूशन स्क्रैप नमूना चुनें:")[0], sample_choices)
 
-            input_method = st.radio("Photo Input Source:", ["Use Neural Demo Preset", "Upload Custom Scrap Photo", "Live Camera Snapshot"], horizontal=True)
+            source_choices = [
+                tr("Neural Demo Preset", "न्यूरल डेमो नमूना")[0],
+                tr("Upload Custom Scrap Photo", "कस्टम फोटो अपलोड करें")[0],
+                tr("Live Camera Snapshot", "लाइव कैमरा स्नैपशॉट")[0]
+            ]
+            input_method = st.radio(tr("Photo Input Source:", "फोटो इनपुट स्रोत:")[0], source_choices, horizontal=True)
 
             up_img = None
-            if input_method == "Upload Custom Scrap Photo":
-                up_img = st.file_uploader("Upload Scrap Photo (JPG/PNG)", type=["jpg", "jpeg", "png", "webp"])
-            elif input_method == "Live Camera Snapshot":
-                up_img = st.camera_input("Capture Scrap Pile with Camera")
+            if input_method == source_choices[1]:
+                up_img = st.file_uploader(tr("Upload Scrap Photo (JPG/PNG)", "स्क्रैप फोटो अपलोड करें")[0], type=["jpg", "jpeg", "png", "webp"])
+            elif input_method == source_choices[2]:
+                up_img = st.camera_input(tr("Capture Scrap Pile with Camera", "कैमरे से स्क्रैप का फोटो लें")[0])
 
-            if "PET" in sample_choice:
+            if "PET" in sample_choice or "बोतलें" in sample_choice:
                 mat_key = "plastic"
-                mat_name = "Rigid Plastics (PET Optical Clear #1)"
+                mat_name = tr("Rigid Plastics (PET Optical Clear #1)", "कठोर प्लास्टिक (पीईटी ऑप्टिकल ग्रेड 1)")[0]
                 conf = 98.4
                 calc_wt = 5.4
                 rate_val = 32.0
-                obs_text = "Observed loose pile of 42 optical clear PET beverage bottles lightly compressed with PP caps segregated. Surface reflectance indicates dry state (<1.2% moisture). Volumetric 3D bounding box calculated at 0.158 m³ with loose bulk packing density of 34.2 kg/m³."
-                comp_breakdown = "• 94.2% PET Clear Flakes\n• 4.8% Polypropylene Caps\n• 1.0% Non-Polymer Residue"
-            elif "Cardboard" in sample_choice or "Kraft" in sample_choice:
+                obs_text = tr("Observed loose pile of 42 optical clear PET beverage bottles lightly compressed with PP caps segregated. Surface reflectance indicates dry state (<1.2% moisture). Volumetric 3D bounding box calculated at 0.158 m³ with loose bulk packing density of 34.2 kg/m³.", "42 पारदर्शी पीईटी पेय की बोतलों का ढेर देखा गया। पीपी ढक्कन अलग किए गए हैं। सतह पर कोई नमी नहीं है (<1.2% नमी)। 3D बाउंडिंग बॉक्स वॉल्यूम 0.158 m³ और घनत्व 34.2 kg/m³ आंका गया।")[0]
+                comp_breakdown = tr("• 94.2% PET Clear Flakes\\n• 4.8% Polypropylene Caps\\n• 1.0% Non-Polymer Residue", "• 94.2% पीईटी फ्लेक्स\\n• 4.8% पॉलीप्रोपाइलीन कैप्स\\n• 1.0% अन्य अशुद्धियां")[0]
+            elif "Cardboard" in sample_choice or "गत्ता" in sample_choice:
                 mat_key = "paper"
-                mat_name = "Corrugated Carton (Kraft Gatta #20)"
+                mat_name = tr("Corrugated Carton (Kraft Gatta #20)", "क्राफ़्ट गत्ता व कार्टन (#20)")[0]
                 conf = 97.6
                 calc_wt = 22.0
                 rate_val = 16.5
-                obs_text = "Bundled double-fluted corrugated kraft cardboard cartons with clean dry daily newspapers, bound with twine. Low humidity (<4%), zero wet food contamination. Volumetric space 0.185 m³ with baled paper density 119 kg/m³."
-                comp_breakdown = "• 88.5% Kraft Fluting & Linerboard\n• 9.5% Newsprint\n• 2.0% Twine & Adhesive Tape"
-            elif "Copper" in sample_choice:
+                obs_text = tr("Bundled double-fluted corrugated kraft cardboard cartons with clean dry daily newspapers, bound with twine. Low humidity (<4%), zero wet food contamination. Volumetric space 0.185 m³ with baled paper density 119 kg/m³.", "रस्सी से बंधे दोहरे क्राफ्ट गत्ते के बक्से और सूखे समाचार पत्र। कम नमी (<4%), कोई गीला कचरा नहीं। वॉल्यूम 0.185 m³ और घनत्व 119 kg/m³ आंका गया।")[0]
+                comp_breakdown = tr("• 88.5% Kraft Linerboard\\n• 9.5% Newsprint\\n• 2.0% Twine & Adhesive Tape", "• 88.5% क्राफ्ट लाइनरबोर्ड\\n• 9.5% समाचार पत्र\\n• 2.0% सुतली व चिपकने वाला टेप")[0]
+            elif "Copper" in sample_choice or "तांबे" in sample_choice:
                 mat_key = "metal"
-                mat_name = "Millberry Copper Wire (99.9% Electrolytic)"
+                mat_name = tr("Millberry Copper Wire (99.9% Electrolytic)", "शुद्ध मिलबेरी तांबे का तार (99.9%)")[0]
                 conf = 99.2
                 calc_wt = 4.8
                 rate_val = 685.0
-                obs_text = "Stripped bright millberry copper wire coils (99.9% electrolytic purity) with heavy armoured conduit cables. Zero insulation PVC burning residue. Bulk metal density 8.92 g/cm³."
-                comp_breakdown = "• 99.2% Pure Electrolytic Copper\n• 0.8% Tin-Coated Strands"
+                obs_text = tr("Stripped bright millberry copper wire coils (99.9% electrolytic purity) with heavy armoured conduit cables. Zero insulation PVC burning residue. Bulk metal density 8.92 g/cm³.", "छिले हुए चमकदार मिलबेरी तांबे के तार के बंडल (99.9% शुद्धता)। पीवीसी इन्सुलेशन अवशेष शून्य है। धातु का घनत्व 8.92 g/cm³ है।")[0]
+                comp_breakdown = tr("• 99.2% Pure Electrolytic Copper\\n• 0.8% Tin-Coated Strands", "• 99.2% शुद्ध इलेक्ट्रोलाइटिक कॉपर\\n• 0.8% टिन लेपित तार")[0]
             else:
                 mat_key = "ewaste"
-                mat_name = "Telecom Server Motherboards & E-Waste"
+                mat_name = tr("Telecom Server Motherboards & E-Waste", "टेलीकॉम सर्वर मदरबोर्ड व ई-कचरा")[0]
                 conf = 96.8
                 calc_wt = 14.5
                 rate_val = 95.0
-                obs_text = "Post-consumer telecommunications server motherboards, RAM sticks with gold contact fingers, and switched-mode power supplies. RoHS compliant, lead-free solder."
-                comp_breakdown = "• 62.0% FR-4 Laminate PCB\n• 24.5% Aluminium & Copper Heatsinks\n• 13.5% Precious Metal Pinouts"
+                obs_text = tr("Post-consumer telecommunications server motherboards, RAM sticks with gold contact fingers, and switched-mode power supplies. RoHS compliant, lead-free solder.", "दूरसंचार सर्वर मदरबोर्ड, रैम स्टिक्स (गोल्ड पिन्स) और पावर सप्लाई यूनिट्स। RoHS मानकों के अनुरूप, सीसा रहित सोल्डर।")[0]
+                comp_breakdown = tr("• 62.0% FR-4 Laminate PCB\\n• 24.5% Aluminium & Copper Heatsinks\\n• 13.5% Precious Metal Pinouts", "• 62.0% एफआर-4 पीसीबी\\n• 24.5% एल्युमिनियम व तांबा हीटसिंक\\n• 13.5% कीमती धातु पिन्स")[0]
 
-            st.markdown("##### Visual Inspection Preview:")
+            st.markdown("##### " + tr("Visual Inspection Preview:", "दृश्य निरीक्षण पूर्वावलोकन:")[0])
             if up_img:
-                st.image(up_img, caption="Customer Uploaded Scrap Photo", use_column_width=True)
+                st.image(up_img, caption=tr("Customer Uploaded Scrap Photo", "ग्राहक द्वारा अपलोड की गई फोटो")[0], use_container_width=True)
             else:
                 img_data_uri = get_scrap_svg(mat_key, sample_choice.split("(")[0].strip())
-                st.markdown(f'<img src="{img_data_uri}" style="width:100%; border-radius:12px; border:1px solid rgba(16, 185, 129, 0.4); margin-bottom:8px;">', unsafe_allow_html=True)
+                st.markdown(f'<img src="{img_data_uri}" style="width:100%; border-radius:12px; border:1px solid rgba(16, 185, 129, 0.4); margin-bottom:8px; display:block;">', unsafe_allow_html=True)
 
         with sv_c2:
             st.markdown(f"""
             <div style="background:#062316; border:1px solid rgba(16, 185, 129, 0.45); border-radius:14px; padding:18px; margin-bottom:14px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <b style="color:#6EE7B7; font-size:1.15rem;">🤖 What the AI Vision Model Sees:</b>
+                    <b style="color:#6EE7B7; font-size:1.15rem;">🤖 {tr("What the AI Vision Model Sees:", "एआई विजन मॉडल का दृश्य विश्लेषण:")[0]}</b>
                     <span style="background:rgba(16, 185, 129, 0.25); color:#34D399; padding:3px 10px; border-radius:999px; font-weight:800; font-size:12px; border:1px solid #10B981;">
-                        {conf}% Confidence ✓
+                        {conf}% {tr("Confidence ✓", "सटीकता ✓")[0]}
                     </span>
                 </div>
                 <hr style="margin:10px 0; border-color:rgba(16, 185, 129, 0.25);">
@@ -1269,31 +1325,31 @@ if current_role == "HOUSEHOLD":
                     "{obs_text}"
                 </p>
                 <div style="background:#091A12; border:1px solid rgba(16, 185, 129, 0.2); border-radius:8px; padding:10px; font-size:0.85rem; color:#A7F3D0;">
-                    <b>Material Composition:</b><br>
+                    <b>{tr("Material Composition:", "सामग्री संरचना:")[0]}</b><br>
                     {comp_breakdown.replace(chr(92)+'n', '<br>')}
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-            st.markdown("##### ⚖️ Calculated Volumetric Weight & Real-Time Payout")
+            st.markdown("##### ⚖️ " + tr("Calculated Volumetric Weight & Real-Time Payout", "गणना किया गया वॉल्यूमेट्रिक वजन व वास्तविक भुगतान")[0])
             cw_col1, cw_col2 = st.columns(2)
             with cw_col1:
-                st.metric("AI Calculated Weight", f"{calc_wt} kg", delta="±0.3 kg Volumetric")
+                st.metric(tr("AI Calculated Weight", "एआई आकलित वजन")[0], f"{calc_wt} kg", delta=tr("±0.3 kg Volumetric", "±0.3 किग्रा आयतन")[0])
             with cw_col2:
-                st.metric("Benchmark Mandi Rate", f"₹{rate_val}/kg", delta="Verified Rate")
+                st.metric(tr("Benchmark Mandi Rate", "बेंचमार्क मंडी दर")[0], f"₹{rate_val}/kg", delta=tr("Verified Rate", "सत्यापित दर")[0])
 
-            fine_wt = st.slider("Fine-Tune / Confirm Actual Weight (kg):", min_value=1.0, max_value=100.0, value=float(calc_wt), step=0.5)
+            fine_wt = st.slider(tr("Fine-Tune / Confirm Actual Weight (kg):", "वजन समायोजित या पुष्टि करें (किग्रा):")[0], min_value=1.0, max_value=100.0, value=float(calc_wt), step=0.5)
             live_payout = round(fine_wt * rate_val, 2)
 
             st.markdown(f"""
             <div style="background:#091A12; border:1px solid #10B981; border-radius:12px; padding:14px; margin-bottom:14px; text-align:center;">
-                <span style="color:#A1B2A9; font-size:0.85rem;">Estimated Doorstep Payout:</span><br>
+                <span style="color:#A1B2A9; font-size:0.85rem;">{tr("Estimated Doorstep Payout:", "अनुमानित डोरस्टेप भुगतान:")[0]}</span><br>
                 <b style="color:#34D399; font-size:2rem; font-family:monospace;">₹{live_payout:,.2f}</b><br>
-                <span style="color:#6EE7B7; font-size:0.8rem;">100% Guaranteed via TrustWeigh Scale</span>
+                <span style="color:#6EE7B7; font-size:0.8rem;">{tr("100% Guaranteed via TrustWeigh Scale", "डिजिटल कांटे द्वारा 100% सटीक गारंटी")[0]}</span>
             </div>
             """, unsafe_allow_html=True)
 
-            if st.button("🚀 Confirm Weight & Book Doorstep Pickup with Photo", type="primary", use_container_width=True):
+            if st.button("🚀 " + tr("Confirm Weight & Book Doorstep Pickup with Photo", "वजन की पुष्टि करें व फोटो सहित पिकअप बुक करें")[0], type="primary", use_container_width=True):
                 nid = f"REQ-{len(st.session_state.pickups)+101}"
                 new_ai_order = {
                     "id": nid,
@@ -1303,10 +1359,10 @@ if current_role == "HOUSEHOLD":
                     "area": "South Extension II, Block C, New Delhi",
                     "lat": 28.5684 + (len(st.session_state.pickups) * 0.002),
                     "lng": 77.2195 + (len(st.session_state.pickups) * 0.002),
-                    "materials": f"{mat_name.split('(')[0]} ({fine_wt}kg)",
+                    "materials": f"{mat_name.split('(')[0].strip()} ({fine_wt}kg)",
                     "est_weight": fine_wt,
                     "est_val": live_payout,
-                    "slot": "Morning (9 AM - 12 PM)",
+                    "slot": tr("Morning (9 AM - 12 PM)", "सुबह (9 बजे - 12 बजे)")[0],
                     "status": "OPEN",
                     "assigned_collector": None,
                     "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
@@ -1315,26 +1371,26 @@ if current_role == "HOUSEHOLD":
                     "ai_weight_details": f"Calculated: {fine_wt} kg | Payout: ₹{live_payout:,.2f} | Confidence: {conf}%"
                 }
                 st.session_state.pickups.append(new_ai_order)
-                st.success(f"🎉 Pickup {nid} booked with AI scrap photo & volumetric weight attached! Verified collectors can now inspect it on their terminal.")
+                st.success(tr(f"Pickup {nid} booked with AI scrap photo & volumetric weight attached! Verified collectors can now inspect it on their terminal.", f"पिकअप {nid} बुक हो गया! कबाड़ीवाले अब इसे अपने टर्मिनल पर फोटो सहित देख सकते हैं।")[0])
                 st.rerun()
 
     with h_tab3:
-        st.markdown("#### 🧾 Digital Waste Passports (Cradle-to-Gate Certificates)")
-        st.caption("Every completed transaction generates an immutable cryptographic SHA-256 seal:")
-        st.markdown("""
+        st.markdown("#### 🧾 " + tr("Digital Waste Passports", "डिजिटल वेस्ट पासपोर्ट")[0])
+        st.caption(tr("Every completed transaction generates an immutable cryptographic SHA-256 seal:", "प्रत्येक पूर्ण लेन-देन पर क्रिप्टोग्राफिक SHA-256 डिजिटल सील जारी होती है:")[0])
+        st.markdown(f"""
         <div class="receipt-container">
             <div class="receipt-header">
                 <span style="font-size:1.2rem; font-weight:800; color:#34D399;">SCRAPSETU DIGITAL WASTE PASSPORT</span><br>
-                <span>Receipt Number: RCP-2026-DEL-0894</span><br>
+                <span>{tr("Receipt Number", "रसीद संख्या")[0]}: RCP-2026-DEL-0894</span><br>
                 <span>CPCB Traceable • Merkle Block #184920</span>
             </div>
-            <div class="receipt-row"><span>Citizen Generator:</span><span>Pooja Verma (Household)</span></div>
-            <div class="receipt-row"><span>Collector Partner:</span><span>Ramu Paswan (Kavach Certified)</span></div>
-            <div class="receipt-row"><span>Weighing Hardware:</span><span>TrustWeigh BT Scale (±0.05kg)</span></div>
-            <div class="receipt-row"><span>Material Category:</span><span>Rigid Plastics (PET / HDPE)</span></div>
-            <div class="receipt-row"><span>Net Weight:</span><span>24.8 kg</span></div>
-            <div class="receipt-row"><span>Settled Benchmark Rate:</span><span>₹28.00 / kg</span></div>
-            <div class="receipt-total"><span>Total UPI Payout:</span><span>₹694.40 Settled</span></div>
+            <div class="receipt-row"><span>{tr("Citizen Generator:", "नागरिक अपशिष्ट जनरेटर:")[0]}</span><span>Pooja Verma</span></div>
+            <div class="receipt-row"><span>{tr("Collector Partner:", "कबाड़ीवाला साथी:")[0]}</span><span>Ramu Paswan</span></div>
+            <div class="receipt-row"><span>{tr("Weighing Hardware:", "तौल उपकरण:")[0]}</span><span>TrustWeigh BT Scale (±0.05kg)</span></div>
+            <div class="receipt-row"><span>{tr("Material Category:", "कचरा श्रेणी:")[0]}</span><span>Rigid Plastics (PET / HDPE)</span></div>
+            <div class="receipt-row"><span>{tr("Net Weight:", "शुद्ध वजन:")[0]}</span><span>24.8 kg</span></div>
+            <div class="receipt-row"><span>{tr("Settled Benchmark Rate:", "तयशुदा दर:")[0]}</span><span>₹28.00 / kg</span></div>
+            <div class="receipt-total"><span>{tr("Total UPI Payout:", "कुल यूपीआई भुगतान:")[0]}</span><span>₹694.40 Settled</span></div>
             <hr style="border-top:1px dashed rgba(16, 185, 129, 0.4); margin:8px 0;">
             <div style="font-size:0.75rem; word-break:break-all; color:#94A3B8;">
                 SHA-256 Seal: 9e7b28fc083a3d5b0018a1a310bb2447d25e0a9437d8fca02d13bb22283a0058
@@ -1347,91 +1403,92 @@ if current_role == "HOUSEHOLD":
 # 2. 🛺 DEDICATED KABADIWALA (COLLECTOR) DASHBOARD
 # =============================================================
 elif current_role == "COLLECTOR":
-    st.subheader(f"🛺 कबाड़ीवाला जॉब टर्मिनल (Collector Terminal) — {st.session_state.user_name}")
-    st.caption("Mobile-first accessible terminal with Customer Scrap Photo Inspection, EcoRoute TSP navigation & Smart Buyer Matching.")
+    c_title = tr("Collector Job Terminal", "कबाड़ीवाला जॉब टर्मिनल")[0] + f" — {st.session_state.user_name}"
+    st.subheader("🛺 " + c_title)
+    st.caption(tr("Mobile-first accessible terminal with Customer Scrap Photo Inspection, EcoRoute TSP navigation & Smart Buyer Matching.", "ग्राहक स्क्रैप फोटो जांच, इको-रूट टीएसपी नेविगेशन व स्मार्ट खरीदार मिलान सहित मोबाइल टर्मिनल।")[0])
 
     kc1, kc2, kc3, kc4 = st.columns(4)
     with kc1:
-        st.markdown('<div class="kpi-card"><div class="kpi-val">187.5 / 250 kg</div><div class="kpi-lbl">Daily Vehicle Capacity (75%)</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">187.5 / 250 kg</div><div class="kpi-lbl">{tr_span("Daily Vehicle Capacity (75%)", "दैनिक वाहन क्षमता (75%)")}</div></div>', unsafe_allow_html=True)
     with kc2:
-        st.markdown('<div class="kpi-card"><div class="kpi-val">₹6,895.00</div><div class="kpi-lbl">Today Collections Settled</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">₹6,895.00</div><div class="kpi-lbl">{tr_span("Today Collections Settled", "आज का कुल संग्रह निपटान")}</div></div>', unsafe_allow_html=True)
     with kc3:
-        st.markdown('<div class="kpi-card"><div class="kpi-val">3 Orders</div><div class="kpi-lbl">Completed Pickups</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">3 Orders</div><div class="kpi-lbl">{tr_span("Completed Pickups", "पूर्ण किए गए पिकअप")}</div></div>', unsafe_allow_html=True)
     with kc4:
-        st.markdown('<div class="kpi-card"><div class="kpi-val">38% Fuel Saved</div><div class="kpi-lbl">EcoRoute TSP Savings</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">38% Fuel Saved</div><div class="kpi-lbl">{tr_span("EcoRoute Fuel Savings", "इको-रूट ईंधन बचत")}</div></div>', unsafe_allow_html=True)
 
-    col_tab1, col_tab_match, col_tab_pool, col_tab_pass, col_tab_voice, col_tab2, col_tab3 = st.tabs([
-        "📍 नजदीकी ऑर्डर्स व फोटो जांच (Jobs & Photos)",
-        "🎯 स्मार्ट बायर मैचिंग (Smart Buyer Matching)",
-        "🤝 सहयोगात्मक स्क्रैप पूलिंग (Scrap Pooling)",
-        "📜 स्क्रैप पासपोर्ट व ट्रैसेबिलिटी (Scrap Passport)",
-        "🎤 बोलकर चलाएं (Voice Mode)",
-        "🗺️ EcoRoute TSP रूट प्लानर",
-        "🪪 3-Point KYC सत्यापन"
+    ct1_name = tr("📍 Nearby Open Jobs & Photos", "📍 नजदीकी ऑर्डर्स व फोटो जांच")[0]
+    ct2_name = tr("🎯 Smart Buyer Matching", "🎯 स्मार्ट खरीदार मिलान")[0]
+    ct3_name = tr("🤝 Scrap Pooling", "🤝 सहयोगात्मक स्क्रैप पूलिंग")[0]
+    ct4_name = tr("📜 Scrap Passport & Traceability", "📜 स्क्रैप पासपोर्ट व ट्रैसेबिलिटी")[0]
+    ct5_name = tr("🗺️ EcoRoute TSP Route Planner", "🗺️ इको-रूट टीएसपी रूट प्लानर")[0]
+    ct6_name = tr("🪪 3-Point KYC Identity", "🪪 3-बिंदु पहचान सत्यापन")[0]
+
+    col_tab1, col_tab_match, col_tab_pool, col_tab_pass, col_tab2, col_tab3 = st.tabs([
+        ct1_name, ct2_name, ct3_name, ct4_name, ct5_name, ct6_name
     ])
 
-    # ---------------- 1. JOBS & CUSTOMER SCRAP PHOTO INSPECTION ----------------
+    # ---------------- 1. JOBS & CUSTOMER SCRAP PHOTO INSPECTION (BASE64 FIXED) ----------------
     with col_tab1:
         k_col1, k_col2 = st.columns([1, 1], gap="large")
         with k_col1:
-            st.markdown("#### 📍 नजदीकी खुले पिकअप व ग्राहक फोटो जांच")
-            st.caption("कबाड़ीवाला साथी ऑर्डर स्वीकारने से पहले ग्राहक द्वारा अपलोड की गई स्क्रैप फोटो व AI विवरण देख सकते हैं:")
+            st.markdown("#### 📍 " + tr("Nearby Open Pickups & Scrap Photo Inspection", "नजदीकी खुले पिकअप व ग्राहक फोटो जांच")[0])
+            st.caption(tr("Inspect customer scrap photo & AI volumetric weight before accepting pickup orders:", "ऑर्डर स्वीकारने से पहले ग्राहक की स्क्रैप फोटो व वजन विवरण जांचें:")[0])
+            
             open_jobs = [p for p in st.session_state.pickups if p["status"] == "OPEN"]
             if open_jobs:
                 for job in open_jobs:
                     dist = haversine_km(28.5684, 77.2195, job["lat"], job["lng"])
                     with st.container(border=True):
-                        # Photo and Details layout
                         jc1, jc2 = st.columns([1, 2])
                         with jc1:
                             photo_data = job.get("photo_svg", get_scrap_svg("plastic", job["materials"]))
-                            st.markdown(f'<img src="{photo_data}" style="width:100%; height:110px; object-fit:cover; border-radius:10px; border:1px solid rgba(16, 185, 129, 0.4);">', unsafe_allow_html=True)
-                            st.caption("📷 स्क्रैप फोटो संलग्न")
+                            st.markdown(f'<img src="{photo_data}" style="width:100%; height:110px; object-fit:cover; border-radius:10px; border:1px solid rgba(16, 185, 129, 0.4); display:block;">', unsafe_allow_html=True)
+                            st.caption("📷 " + tr("Scrap Photo Attached", "स्क्रैप फोटो संलग्न")[0])
                         with jc2:
                             st.markdown(f"**{job['materials']}**")
-                            st.caption(f"ग्राहक: **{job['user']}** • दूरी: **{dist} किमी**")
-                            st.caption(f"स्थान: {job['area']}")
-                            st.markdown(f"**अनुमानित कमाई: ₹{job['est_val']:,.2f}**")
+                            st.caption(f"{tr('Customer', 'ग्राहक')[0]}: **{job['user']}** • {tr('Distance', 'दूरी')[0]}: **{dist} km**")
+                            st.caption(f"{tr('Location', 'स्थान')[0]}: {job['area']}")
+                            st.markdown(f"**{tr('Est. Payout', 'अनुमानित कमाई')[0]}: ₹{job['est_val']:,.2f}**")
 
-                        # Photo Inspection Lightbox Expander
-                        with st.expander(f"🔍 ग्राहक स्क्रैप फोटो व AI विवरण जांचें ({job['id']})"):
-                            st.markdown("##### 📷 पूर्ण स्क्रैप फोटोग्राफ:")
-                            st.markdown(f'<img src="{photo_data}" style="width:100%; border-radius:12px; border:1px solid rgba(16, 185, 129, 0.6); margin-bottom:10px;">', unsafe_allow_html=True)
+                        with st.expander(f"🔍 " + tr(f"Inspect Scrap Photo & AI Details ({job['id']})", f"ग्राहक स्क्रैप फोटो व AI विवरण जांचें ({job['id']})")[0]):
+                            st.markdown("##### 📷 " + tr("Full Scrap Photograph:", "पूर्ण स्क्रैप फोटोग्राफ:")[0])
+                            st.markdown(f'<img src="{photo_data}" style="width:100%; border-radius:12px; border:1px solid rgba(16, 185, 129, 0.6); margin-bottom:10px; display:block;">', unsafe_allow_html=True)
                             st.markdown(f"""
                             <div style="background:#091A12; border:1px solid rgba(16, 185, 129, 0.3); border-radius:10px; padding:12px; font-size:13px; color:#A7F3D0; margin-bottom:10px;">
-                                <b>🤖 AI विजन मॉडल का दृश्य विवरण:</b><br>
+                                <b>🤖 {tr("AI Vision Model Scene Analysis:", "एआई विजन मॉडल का दृश्य विवरण:")[0]}</b><br>
                                 "{job.get('ai_vision', 'Segregated post-consumer recyclable material.')}"<br><br>
-                                <b>वजन व दर विश्लेषण:</b> {job.get('ai_weight_details', f"{job['est_weight']} kg")}<br>
-                                <b>संपर्क:</b> {job.get('phone', '+91 98290 22002')}
+                                <b>{tr("Weight & Confidence Breakdown:", "वजन व दर विश्लेषण:")[0]}</b> {job.get('ai_weight_details', f"{job['est_weight']} kg")}<br>
+                                <b>{tr("Contact Phone:", "संपर्क फोन:")[0]}</b> {job.get('phone', '+91 98290 22002')}
                             </div>
                             """, unsafe_allow_html=True)
 
-                        if st.button(f"✅ पिकअप स्वीकार करें (Accept {job['id']})", key=f"k_acc_{job['id']}", type="primary", use_container_width=True):
+                        if st.button(tr(f"✅ Accept Pickup Job ({job['id']})", f"✅ पिकअप स्वीकार करें ({job['id']})")[0], key=f"k_acc_{job['id']}", type="primary", use_container_width=True):
                             job["status"] = "ACCEPTED"
                             job["assigned_collector"] = st.session_state.user_name
-                            st.success(f"पिकअप {job['id']} स्वीकार कर लिया गया! ग्राहक का फोन और पता अनलॉक हुआ।")
+                            st.success(tr(f"Pickup {job['id']} accepted! Customer contact & address unlocked.", f"पिकअप {job['id']} स्वीकार कर लिया गया! ग्राहक का फोन और पता अनलॉक हुआ।")[0])
                             st.rerun()
             else:
-                st.info("वर्तमान में कोई खुला पिकअप नहीं है। सभी ऑर्डर्स पूरे हो चुके हैं।")
+                st.info(tr("No open pickups currently available. All scheduled orders have been collected.", "वर्तमान में कोई खुला पिकअप नहीं है। सभी ऑर्डर्स पूरे हो चुके हैं।")[0])
 
         with k_col2:
-            st.markdown("#### ⚖️ TrustWeigh तौल दर्ज करें व डिजिटल रसीद बनाएं")
+            st.markdown("#### ⚖️ " + tr("TrustWeigh Scale Entry & Digital Receipt", "तौल दर्ज करें व डिजिटल रसीद बनाएं")[0])
             accepted_jobs = [p for p in st.session_state.pickups if p["status"] == "ACCEPTED"]
             if accepted_jobs:
-                sel_j = st.selectbox("चुनें चालू पिकअप:", [p["id"] for p in accepted_jobs])
+                sel_j = st.selectbox(tr("Select Active Pickup:", "चुनें चालू पिकअप:")[0], [p["id"] for p in accepted_jobs])
                 tgt = next(p for p in accepted_jobs if p["id"] == sel_j)
                 
                 with st.form("weigh_form"):
-                    st.write(f"**ग्राहक:** {tgt['user']} (📞 {tgt.get('phone', '+91 98290 00000')})")
-                    w_gross = st.number_input("सकल वजन (Gross Weight in kg):", min_value=1.0, value=float(tgt["est_weight"])+0.5)
-                    w_tare = st.number_input("खाली बोरी/कंटेनर वजन (Tare Weight in kg):", min_value=0.0, value=0.5)
+                    st.write(f"**{tr('Customer', 'ग्राहक')[0]}:** {tgt['user']} (📞 {tgt.get('phone', '+91 98290 00000')})")
+                    w_gross = st.number_input(tr("Gross Weight (kg):", "सकल वजन (किग्रा):")[0], min_value=1.0, value=float(tgt["est_weight"])+0.5)
+                    w_tare = st.number_input(tr("Tare / Container Weight (kg):", "खाली कंटेनर वजन (किग्रा):")[0], min_value=0.0, value=0.5)
                     w_net = round(w_gross - w_tare, 2)
-                    st.write(f"**वास्तविक शुद्ध वजन (Net Calibrated Weight):** `{w_net} kg`")
-                    w_rt = st.number_input("सहमति दर (Agreed Rate ₹/kg):", min_value=1.0, value=28.0)
+                    st.write(f"**{tr('Net Calibrated Weight:', 'वास्तविक शुद्ध वजन:')[0]}** `{w_net} kg`")
+                    w_rt = st.number_input(tr("Agreed Rate (₹/kg):", "सहमति दर (₹/किग्रा):")[0], min_value=1.0, value=28.0)
                     w_tot = round(w_net * w_rt, 2)
-                    st.markdown(f"### कुल देय राशि: ₹{w_tot:,.2f}")
+                    st.markdown(f"### {tr('Total Payout:', 'कुल देय राशि:')[0]} ₹{w_tot:,.2f}")
                     
-                    if st.form_submit_button("⚖️ डिजिटल रसीद जारी करें व UPI भुगतान पूरा करें", type="primary", use_container_width=True):
+                    if st.form_submit_button("⚖️ " + tr("Issue Digital Receipt & Complete UPI Payout", "डिजिटल रसीद जारी करें व भुगतान पूरा करें")[0], type="primary", use_container_width=True):
                         r_no = f"RCP-2026-DEL-{int(time.time())%100000}"
                         r_h = generate_receipt_hash(r_no, tgt["user"], st.session_state.user_name, w_tot, w_net, str(datetime.datetime.now()))
                         tgt["status"] = "COMPLETED"
@@ -1445,24 +1502,34 @@ elif current_role == "COLLECTOR":
                             "details": f"Issued receipt {r_no} for {w_net}kg (₹{w_tot})",
                             "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
                         })
-                        st.success(f"रसीद #{r_no} जारी हुई! SHA-256 क्रिप्टोग्राफिक सील लॉक हुई।")
+                        st.success(tr(f"Receipt #{r_no} issued! SHA-256 seal locked.", f"रसीद #{r_no} जारी हुई! क्रिप्टोग्राफिक सील लॉक हुई।")[0])
                         st.rerun()
             else:
-                st.info("कोई चालू पिकअप नहीं है जिसे तौलना हो। कृपया बायीं ओर से नया पिकअप स्वीकार करें।")
+                st.info(tr("No active accepted orders to weigh. Please accept a pickup from the left panel.", "कोई चालू पिकअप नहीं है जिसे तौलना हो। कृपया बायीं ओर से नया पिकअप स्वीकार करें।")[0])
 
     # ---------------- 2. SMART BUYER MATCHING TAB ----------------
     with col_tab_match:
-        st.markdown("#### 🎯 स्मार्ट बायर मैचिंग (Smart Buyer Matching)")
-        st.caption("कबाड़ीवाले के पास उपलब्ध वजन व वाहन के अनुसार सबसे ज्यादा **शुद्ध मुनाफा (Net Proceeds)** देने वाले रीसाइक्लर की सिफारिश:")
+        st.markdown("#### 🎯 " + tr("Smart Buyer Matching", "स्मार्ट खरीदार मिलान")[0])
+        st.caption(tr("Recommends recyclers to maximize Net Proceeds (Gross Proceeds minus Transport Fuel Cost):", "परिवहन भाड़ा घटाकर सर्वाधिक शुद्ध मुनाफा देने वाले रीसाइक्लर की सिफारिश:")[0])
 
         sm_c1, sm_c2 = st.columns([1, 2], gap="medium")
         with sm_c1:
             with st.container(border=True):
-                st.markdown("##### 📦 उपलब्ध स्क्रैप लॉट")
-                sm_mat = st.selectbox("सामग्री (Category):", ["Plastic (PET / HDPE)", "Paper & Cardboard", "Copper Wire", "Aluminium Section"])
-                sm_wt = st.number_input("उपलब्ध वजन (Weight in kg):", min_value=10, max_value=2000, value=180, step=10)
-                sm_veh = st.selectbox("परिवहन वाहन (Vehicle Tier):", ["THREE_WHEELER (E-Rickshaw: ₹50 + ₹12/km)", "MINI_TRUCK (Tata Ace: ₹90 + ₹18/km)", "HAND_CART (Manual: ₹20 + ₹8/km)"])
-                sm_dist_filter = st.slider("अधिकतम दूरी (Max Distance km):", 5, 50, 30)
+                st.markdown("##### 📦 " + tr("Available Scrap Lot", "उपलब्ध स्क्रैप लॉट")[0])
+                mat_opts = [
+                    tr("Plastic (PET / HDPE)", "प्लास्टिक (पीईटी / एचडीपीई)")[0],
+                    tr("Paper & Cardboard", "कागज़ और गत्ता")[0],
+                    tr("Copper Wire", "तांबे का तार")[0],
+                    tr("Aluminium Section", "एल्युमिनियम सेक्शन")[0]
+                ]
+                sm_mat = st.selectbox(tr("Category:", "सामग्री श्रेणी:")[0], mat_opts)
+                sm_wt = st.number_input(tr("Weight (kg):", "उपलब्ध वजन (किग्रा):")[0], min_value=10, max_value=2000, value=180, step=10)
+                sm_veh = st.selectbox(tr("Transport Vehicle:", "परिवहन वाहन:")[0], [
+                    "THREE_WHEELER (E-Rickshaw: ₹50 + ₹12/km)",
+                    "MINI_TRUCK (Tata Ace: ₹90 + ₹18/km)",
+                    "HAND_CART (Manual: ₹20 + ₹8/km)"
+                ])
+                sm_dist_filter = st.slider(tr("Max Distance (km):", "अधिकतम दूरी (किमी):")[0], 5, 50, 30)
 
         with sm_c2:
             v_type = "THREE_WHEELER" if "THREE_WHEELER" in sm_veh else ("MINI_TRUCK" if "MINI_TRUCK" in sm_veh else "HAND_CART")
@@ -1488,57 +1555,58 @@ elif current_role == "COLLECTOR":
 
             if eligible:
                 top = eligible[0]
+                rec_badge = tr("🌟 TOP RECOMMENDATION", "🌟 सर्वश्रेष्ठ शुद्ध मुनाफा सिफारिश")[0]
                 st.markdown(f"""
                 <div style="background:#062316; border:2px solid #10B981; border-radius:18px; padding:18px; color:white; margin-bottom:14px;">
                     <span style="background:#10B981; color:#052e16; font-size:10px; font-weight:900; padding:3px 10px; border-radius:999px; text-transform:uppercase;">
-                        🌟 TOP RECOMMENDATION (सर्वश्रेष्ठ शुद्ध मुनाफा)
+                        {rec_badge}
                     </span>
                     <h3 style="color:#ffffff; margin:6px 0 2px 0;">{top['name']}</h3>
-                    <p style="color:#86efac; font-size:12px; margin-bottom:8px;">स्थान: {top['loc']} • दूरी: <b>{top['dist']} किमी</b> • CPCB मान्यता: {top['cpcb']}</p>
+                    <p style="color:#86efac; font-size:12px; margin-bottom:8px;">{tr('Location', 'स्थान')[0]}: {top['loc']} • {tr('Distance', 'दूरी')[0]}: <b>{top['dist']} km</b> • CPCB: {top['cpcb']}</p>
                     <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; background:rgba(0,0,0,0.5); padding:10px; border-radius:12px;">
-                        <div><span style="font-size:11px; color:#9ca3af;">सकल मूल्य (Gross)</span><br><b style="font-size:16px; color:#ffffff;">₹{top['gross']:,.2f}</b><br><span style="font-size:10px; color:#a7f3d0;">@ ₹{top['rate']}/kg</span></div>
-                        <div><span style="font-size:11px; color:#9ca3af;">अनुमानित भाड़ा (Transport)</span><br><b style="font-size:16px; color:#f87171;">-₹{top['t_cost']:,.2f}</b><br><span style="font-size:10px; color:#fca5a5;">{top['dist']} km @ {v_type}</span></div>
-                        <div><span style="font-size:11px; color:#a7f3d0;">शुद्ध प्राप्ति (Net Proceeds)</span><br><b style="font-size:20px; color:#34D399;">₹{top['net']:,.2f}</b><br><span style="font-size:10px; color:#86efac;">सर्वाधिक कमाई</span></div>
+                        <div><span style="font-size:11px; color:#9ca3af;">{tr('Gross Value', 'सकल मूल्य')[0]}</span><br><b style="font-size:16px; color:#ffffff;">₹{top['gross']:,.2f}</b><br><span style="font-size:10px; color:#a7f3d0;">@ ₹{top['rate']}/kg</span></div>
+                        <div><span style="font-size:11px; color:#9ca3af;">{tr('Transport Fuel', 'परिवहन भाड़ा')[0]}</span><br><b style="font-size:16px; color:#f87171;">-₹{top['t_cost']:,.2f}</b><br><span style="font-size:10px; color:#fca5a5;">{top['dist']} km @ {v_type}</span></div>
+                        <div><span style="font-size:11px; color:#a7f3d0;">{tr('Net Proceeds', 'शुद्ध प्राप्ति')[0]}</span><br><b style="font-size:20px; color:#34D399;">₹{top['net']:,.2f}</b><br><span style="font-size:10px; color:#86efac;">{tr('Max Net Return', 'सर्वाधिक कमाई')[0]}</span></div>
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
 
-                st.markdown("##### 📋 अन्य उपलब्ध रीसाइक्लर विकल्प (Comparable Buyer Offers)")
+                st.markdown("##### 📋 " + tr("Comparable Buyer Offers", "अन्य उपलब्ध रीसाइक्लर विकल्प")[0])
                 for alt in eligible:
                     with st.container(border=True):
                         ac1, ac2, ac3 = st.columns([2, 1, 1])
                         with ac1:
                             st.markdown(f"**{alt['name']}**")
-                            st.caption(f"दूरी: {alt['dist']} km • न्यूनतम लॉट: {alt['min_kg']} kg")
+                            st.caption(f"{tr('Distance', 'दूरी')[0]}: {alt['dist']} km • {tr('Min Lot', 'न्यूनतम लॉट')[0]}: {alt['min_kg']} kg")
                         with ac2:
-                            st.markdown(f"दर: **₹{alt['rate']}/kg**")
-                            st.caption(f"भाड़ा: ₹{alt['t_cost']:,.0f}")
+                            st.markdown(f"{tr('Rate', 'दर')[0]}: **₹{alt['rate']}/kg**")
+                            st.caption(f"{tr('Transport', 'भाड़ा')[0]}: ₹{alt['t_cost']:,.0f}")
                         with ac3:
-                            st.markdown(f"**शुद्ध: ₹{alt['net']:,.2f}**")
-                            if st.button("चुनें (Select)", key=f"sel_b_{alt['name'][:8]}", use_container_width=True):
-                                st.success(f"{alt['name']} चुना गया! लॉट #LOT-2026-PET-8821 बायर को असाइन हुआ।")
+                            st.markdown(f"**{tr('Net', 'शुद्ध')[0]}: ₹{alt['net']:,.2f}**")
+                            if st.button(tr("Select Buyer", "रीसाइक्लर चुनें")[0], key=f"sel_b_{alt['name'][:8]}", use_container_width=True):
+                                st.success(tr(f"{alt['name']} selected! Lot assigned.", f"{alt['name']} चुना गया! लॉट असाइन हुआ।")[0])
 
             if ineligible:
-                st.markdown("##### ⚠️ अनुपयुक्त रीसाइक्लर (Incompatible Buyers)")
+                st.markdown("##### ⚠️ " + tr("Incompatible Buyers", "अनुपयुक्त रीसाइक्लर")[0])
                 for inel in ineligible:
                     with st.container(border=True):
-                        st.markdown(f"**{inel['name']}** (दूरी: {inel['dist']} km • दर: ₹{inel['rate']}/kg)")
+                        st.markdown(f"**{inel['name']}** ({tr('Distance', 'दूरी')[0]}: {inel['dist']} km • {tr('Rate', 'दर')[0]}: ₹{inel['rate']}/kg)")
                         if not inel["meets_min"]:
-                            st.warning(f"❌ न्यूनतम लॉट आवश्यकता पूरी नहीं: आवश्यक {inel['min_kg']} kg, आपके पास केवल {sm_wt} kg है।")
+                            st.warning(tr(f"Minimum quantity requirement not met: Requires {inel['min_kg']} kg, you have {sm_wt} kg.", f"न्यूनतम लॉट आवश्यकता पूरी नहीं: आवश्यक {inel['min_kg']} किग्रा, आपके पास केवल {sm_wt} किग्रा है।")[0])
                         elif inel["dist"] > sm_dist_filter:
-                            st.warning(f"❌ अधिकतम सीमा ({sm_dist_filter} km) से अधिक दूरी: {inel['dist']} km।")
+                            st.warning(tr(f"Exceeds max distance threshold ({sm_dist_filter} km): Distance is {inel['dist']} km.", f"अधिकतम दूरी सीमा ({sm_dist_filter} किमी) से अधिक दूरी: {inel['dist']} किमी।")[0])
 
     # ---------------- 3. COLLABORATIVE SCRAP POOLING TAB ----------------
     with col_tab_pool:
-        st.markdown("#### 🤝 सहयोगात्मक स्क्रैप पूलिंग (Collaborative Scrap Pooling)")
-        st.caption("छोटे कबाड़ीवाले आपस में स्क्रैप मिलाकर बड़ी बल्क लॉट बनाते हैं और सीधा रीसाइक्लर से +15% से +25% तक प्रीमियम दर पाते हैं:")
+        st.markdown("#### 🤝 " + tr("Collaborative Scrap Pooling", "सहयोगात्मक स्क्रैप पूलिंग")[0])
+        st.caption(tr("Combine scrap lots with neighboring collectors to satisfy bulk buyer minimums and earn +15% to +25% bonus rates:", "छोटे कबाड़ीवाले आपस में स्क्रैप मिलाकर बड़ी बल्क लॉट बनाते हैं और सीधा रीसाइक्लर से +15% से +25% तक प्रीमियम दर पाते हैं:")[0])
 
         pool_c1, pool_c2 = st.columns([1, 1], gap="large")
         with pool_c1:
-            st.markdown("##### 📦 सक्रिय पूलिंग ग्रुप (Active Pooling Consignments)")
+            st.markdown("##### 📦 " + tr("Active Pooling Consignments", "सक्रिय पूलिंग ग्रुप")[0])
             pools_data = [
-                {"id": "POOL-001", "name": "इंदिरानगर PET प्लास्टिक बल्क पूल", "cat": "Plastic (PET)", "target": 1000, "pledged": 640, "rate": 34.0, "solo": 28.0, "deadline": "कल शाम 5 बजे", "hub": "इंदिरानगर रिकवरी यार्ड"},
-                {"id": "POOL-002", "name": "कोरमंगला कार्डबोर्ड व गत्ता मेगा लॉट", "cat": "Cardboard", "target": 2000, "pledged": 1750, "rate": 18.5, "solo": 14.0, "deadline": "2 दिन में", "hub": "कोरमंगला 4th ब्लॉक यार्ड"},
+                {"id": "POOL-001", "name": tr("Indiranagar PET Plastic Bulk Pool", "इंदिरानगर PET प्लास्टिक बल्क पूल")[0], "cat": "Plastic (PET)", "target": 1000, "pledged": 640, "rate": 34.0, "solo": 28.0, "deadline": tr("Tomorrow 5 PM", "कल शाम 5 बजे")[0], "hub": tr("Indiranagar Recovery Yard", "इंदिरानगर रिकवरी यार्ड")[0]},
+                {"id": "POOL-002", "name": tr("Koramangala Cardboard Mega Lot", "कोरमंगला कार्डबोर्ड व गत्ता मेगा लॉट")[0], "cat": "Cardboard", "target": 2000, "pledged": 1750, "rate": 18.5, "solo": 14.0, "deadline": tr("In 2 Days", "2 दिन में")[0], "hub": tr("Koramangala 4th Block Yard", "कोरमंगला 4th ब्लॉक यार्ड")[0]},
             ]
 
             for p in pools_data:
@@ -1547,204 +1615,158 @@ elif current_role == "COLLECTOR":
                 bonus = p["rate"] - p["solo"]
                 with st.container(border=True):
                     st.markdown(f"**{p['name']}** (`{p['id']}`)")
-                    st.caption(f"सामग्री: **{p['cat']}** • हब: {p['hub']} • अंतिम समय: {p['deadline']}")
+                    st.caption(f"{tr('Material', 'सामग्री')[0]}: **{p['cat']}** • {tr('Hub', 'हब')[0]}: {p['hub']} • {tr('Deadline', 'समय सीमा')[0]}: {p['deadline']}")
                     st.progress(pct / 100)
-                    st.write(f"प्रगति: **{p['pledged']} / {p['target']} kg ({pct}%)** • शेष: **{rem} kg**")
-                    st.markdown(f"बल्क दर: **₹{p['rate']}/kg** *(अकेले बेचने पर केवल ₹{p['solo']}/kg, पूलिंग बोनस: +₹{bonus}/kg)*")
+                    st.write(f"{tr('Progress', 'प्रगति')[0]}: **{p['pledged']} / {p['target']} kg ({pct}%)** • {tr('Remaining', 'शेष')[0]}: **{rem} kg**")
+                    st.markdown(f"{tr('Bulk Rate', 'बल्क दर')[0]}: **₹{p['rate']}/kg** *({tr('Solo Rate', 'अकेले बेचने पर दर')[0]}: ₹{p['solo']}/kg, {tr('Pool Bonus', 'पूलिंग बोनस')[0]}: +₹{bonus}/kg)*")
 
         with pool_c2:
-            st.markdown("##### ✍️ अपने स्क्रैप का योगदान दें (Pledge Scrap to Pool)")
+            st.markdown("##### ✍️ " + tr("Pledge Scrap to Pool", "अपने स्क्रैप का योगदान दें")[0])
             with st.form("pledge_form"):
-                p_choice = st.selectbox("चुनें पूलिंग ग्रुप:", [f"{p['id']} — {p['name']}" for p in pools_data])
-                pl_kg = st.number_input("योगदान हेतु वजन (Pledged Weight in kg):", min_value=10, max_value=500, value=50, step=5)
+                p_choice = st.selectbox(tr("Select Pooling Group:", "चुनें पूलिंग ग्रुप:")[0], [f"{p['id']} — {p['name']}" for p in pools_data])
+                pl_kg = st.number_input(tr("Pledged Weight (kg):", "योगदान वजन (किग्रा):")[0], min_value=10, max_value=500, value=50, step=5)
                 
                 est_p = pl_kg * 34.0
                 est_b = pl_kg * 6.0
-                st.info(f"💡 **अनुमानित भुगतान:** ₹{est_p:,.2f} | **पूलिंग अतिरिक्त बोनस:** +₹{est_b:,.2f}")
-                st.caption("🔒 निष्पक्षता नियम: आपका योगदान सुरक्षित रहेगा। 100% पूरा होने से पहले आप कभी भी वापस ले सकते हैं।")
+                st.info(f"💡 **{tr('Expected Payout', 'अनुमानित भुगतान')[0]}:** ₹{est_p:,.2f} | **{tr('Pooling Extra Bonus', 'पूलिंग अतिरिक्त बोनस')[0]}:** +₹{est_b:,.2f}")
+                st.caption("🔒 " + tr("Fairness Guarantee: Your contribution is locked and can be withdrawn anytime before 100% target completion.", "निष्पक्षता गारंटी: आपका योगदान सुरक्षित रहेगा। 100% पूरा होने से पहले कभी भी वापस ले सकते हैं।")[0])
                 
-                if st.form_submit_button("🤝 पूल में स्क्रैप लॉक करें (Lock Pledge)", type="primary", use_container_width=True):
-                    st.success(f"सफलतापूर्वक {pl_kg} kg स्क्रैप पूल में जोड़ा गया! आपकी हिस्सेदारी 14.2% आरक्षित हुई।")
+                if st.form_submit_button("🤝 " + tr("Lock Pledge into Pool", "पूल में स्क्रैप लॉक करें")[0], type="primary", use_container_width=True):
+                    st.success(tr(f"Successfully pledged {pl_kg} kg! Your pool allocation share is 14.2%.", f"सफलतापूर्वक {pl_kg} किग्रा स्क्रैप पूल में जोड़ा गया! आपकी हिस्सेदारी 14.2% आरक्षित हुई।")[0])
 
     # ---------------- 4. SCRAP PASSPORT TAB ----------------
     with col_tab_pass:
-        st.markdown("#### 📜 डिजिटल स्क्रैप पासपोर्ट व ट्रैसेबिलिटी (Scrap Passport)")
-        st.caption("कचरा संग्रहण से लेकर रीसाइक्लिंग प्लांट तक 8-चरणीय ब्लॉकचेन-सीलबंद जीवनचक्र:")
+        st.markdown("#### 📜 " + tr("Digital Scrap Passport & Material Traceability", "डिजिटल स्क्रैप पासपोर्ट व ट्रैसेबिलिटी")[0])
+        st.caption(tr("Cryptographically verifiable 8-step lifecycle traceability from collection to processing:", "कचरा संग्रहण से लेकर रीसाइक्लिंग प्लांट तक 8-चरणीय ब्लॉकचेन-सीलबंद जीवनचक्र:")[0])
 
-        st.markdown("""
+        st.markdown(f"""
         <div style="background:#0B1510; border:1px solid rgba(16, 185, 129, 0.4); border-radius:16px; padding:16px; margin-bottom:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <div>
                     <span style="font-size:11px; background:rgba(16, 185, 129, 0.2); color:#34D399; font-weight:bold; padding:2px 8px; border-radius:999px; border:1px solid #10B981;">CPCB AUDIT TRAIL</span>
-                    <h3 style="color:#F4FDF8; margin:4px 0 0 0;">पासपोर्ट आईडी: WP-2024-00124 (LOT-2026-PET-8821)</h3>
-                    <p style="color:#A1B2A9; font-size:12px;">सामग्री: <b>Plastic (Grade A PET Flakes)</b> • स्रोत: इंदिरानगर, बैंगलोर</p>
+                    <h3 style="color:#F4FDF8; margin:4px 0 0 0;">{tr('Passport ID', 'पासपोर्ट आईडी')[0]}: WP-2024-00124 (LOT-2026-PET-8821)</h3>
+                    <p style="color:#A1B2A9; font-size:12px;">{tr('Material', 'सामग्री')[0]}: <b>Plastic (Grade A PET Flakes)</b> • {tr('Source', 'स्रोत')[0]}: Indiranagar, Bengaluru</p>
                 </div>
                 <div style="text-align:right;">
                     <span style="font-size:24px;">🏁</span><br>
-                    <b style="color:#34D399; font-size:13px;">स्थिति: RECEIVED & VERIFIED ✓</b>
+                    <b style="color:#34D399; font-size:13px;">{tr('Status: RECEIVED & VERIFIED ✓', 'स्थिति: प्राप्त व सत्यापित ✓')[0]}</b>
                 </div>
             </div>
             <hr style="border-top:1px solid rgba(16, 185, 129, 0.2); margin:10px 0;">
             <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; font-size:12px; color:#E2E8F0;">
-                <div>संग्रहण वजन: <b>60.0 kg</b></div>
-                <div>वेजब्रिज वजन: <b style="color:#FBBF24;">56.5 kg</b></div>
-                <div>वजन विसंगति: <b style="color:#F87171;">-3.5 kg (-5.8%)</b></div>
-                <div>निपटान राशि: <b style="color:#34D399;">₹1,921.00</b></div>
+                <div>{tr('Collected Weight', 'संग्रहण वजन')[0]}: <b>60.0 kg</b></div>
+                <div>{tr('Weighbridge Weight', 'वेजब्रिज वजन')[0]}: <b style="color:#FBBF24;">56.5 kg</b></div>
+                <div>{tr('Weight Discrepancy', 'वजन विसंगति')[0]}: <b style="color:#F87171;">-3.5 kg (-5.8%)</b></div>
+                <div>{tr('Settled Amount', 'निपटान राशि')[0]}: <b style="color:#34D399;">₹1,921.00</b></div>
             </div>
             <div style="background:#1C1506; border:1px solid #B45309; border-radius:8px; padding:8px; font-size:11px; color:#FDE68A; margin-top:8px;">
-                ⚠️ <b>वेजब्रिज विसंगति सूचना:</b> धूल व नमी कटौती (-3.5 kg) रीसाइक्लर वेजब्रिज पर सत्यापित हुई। डिजिटल रसीद शुद्ध वजन पर लॉक हुई।
+                ⚠️ <b>{tr('Weighbridge Discrepancy Alert:', 'वेजब्रिज विसंगति सूचना:')[0]}</b> {tr('Moisture and dust deduction (-3.5 kg) verified at recycler scale. Digital receipt locked to verified net weight.', 'धूल व नमी कटौती (-3.5 किग्रा) रीसाइक्लर वेजब्रिज पर सत्यापित हुई। रसीद शुद्ध वजन पर लॉक हुई।')[0]}
             </div>
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown("##### 📍 8-चरणीय ट्रैसेबिलिटी यात्रा (Full Traceability Timeline)")
+        st.markdown("##### 📍 " + tr("8-Step Traceability Timeline", "8-चरणीय ट्रैसेबिलिटी यात्रा")[0])
         t_steps = [
-            ("1. Generated", "प्रिया शर्मा द्वारा इंदिरानगर घर पर प्लास्टिक पृथक्करण", "Today 09:30 AM", "✅"),
-            ("2. Booked", "ScrapSetu ऐप द्वारा पिकअप स्लॉट शेड्यूलिंग", "Today 09:45 AM", "✅"),
-            ("3. Collected", "रमेश कुमार द्वारा ई-रिक्शा पर लोडिंग", "Today 10:45 AM", "✅"),
-            ("4. Weighed", "TrustWeigh डिजिटल स्केल द्वारा 60.0 kg का सत्यापन", "Today 11:00 AM", "✅"),
-            ("5. Buyer Matched", "स्मार्ट मैचिंग द्वारा EcoTransform प्लांट #04 का चयन (₹34/kg)", "Today 11:30 AM", "✅"),
-            ("6. Handed Over", "पिकअप हब से रीसाइक्लर प्लांट को डिस्पैच", "Today 01:15 PM", "✅"),
-            ("7. Received", "50T वेजब्रिज पर 56.5 kg शुद्ध वजन की पुष्टि (#WB-9921)", "Today 02:45 PM", "✅"),
-            ("8. Processed", "rPET फूड-ग्रेड पेलेट्स में परिवर्तन व CPCB EPR प्रमाणन", "Today 04:00 PM", "🔄"),
+            ("1. Generated", tr("Plastic segregation at domestic residence", "प्रिया शर्मा द्वारा इंदिरानगर घर पर प्लास्टिक पृथक्करण")[0], "Today 09:30 AM", "✅"),
+            ("2. Booked", tr("Pickup slot scheduled via ScrapSetu app", "ScrapSetu ऐप द्वारा पिकअप स्लॉट शेड्यूलिंग")[0], "Today 09:45 AM", "✅"),
+            ("3. Collected", tr("E-Rickshaw loader pickup executed by Ramesh Kumar", "रमेश कुमार द्वारा ई-रिक्शा पर लोडिंग")[0], "Today 10:45 AM", "✅"),
+            ("4. Weighed", tr("TrustWeigh digital scale confirmed 60.0 kg", "TrustWeigh डिजिटल स्केल द्वारा 60.0 kg का सत्यापन")[0], "Today 11:00 AM", "✅"),
+            ("5. Buyer Matched", tr("Smart match selected EcoTransform Plant #04 (₹34/kg)", "स्मार्ट मैचिंग द्वारा EcoTransform प्लांट का चयन")[0], "Today 11:30 AM", "✅"),
+            ("6. Handed Over", tr("Dispatched from collection hub to recycler facility", "पिकअप हब से रीसाइक्लर प्लांट को डिस्पैच")[0], "Today 01:15 PM", "✅"),
+            ("7. Received", tr("50T weighbridge confirmed 56.5 kg net intake (#WB-9921)", "50T वेजब्रिज पर 56.5 kg शुद्ध वजन की पुष्टि")[0], "Today 02:45 PM", "✅"),
+            ("8. Processed", tr("Converted to food-grade rPET flakes with CPCB EPR credit", "rPET फूड-ग्रेड पेलेट्स में परिवर्तन व CPCB प्रमाणन")[0], "Today 04:00 PM", "🔄"),
         ]
         for s, d, tm, icon in t_steps:
             st.markdown(f"- {icon} **{s}**: {d} *({tm})*")
 
-    # ---------------- 5. VOICE-FIRST MODE TAB ----------------
-    with col_tab_voice:
-        st.markdown("#### 🎤 बोलकर चलाएं (Voice-First Kabadiwala Mode)")
-        st.caption("अशिक्षित व अनौपचारिक कबाड़ीवालों के लिए सुलभ वॉयस कमांड इंजन:")
-
-        v_c1, v_c2 = st.columns([1, 1], gap="large")
-        with v_c1:
-            st.markdown("##### 🎙️ वॉयस कमांड का परीक्षण करें (Voice Command Simulator)")
-            voice_choice = st.selectbox(
-                "चुने या बोलें (Select Hindi Voice Phrase):",
-                [
-                    "आज के पिकअप दिखाओ",
-                    "पास के स्क्रैप जॉब्स दिखाओ",
-                    "मेरी आज की कमाई दिखाओ",
-                    "प्लास्टिक के बायर्स दिखाओ",
-                    "स्क्रैप पूल दिखाओ",
-                    "पिकअप कम्प्लीट करना है"
-                ]
-            )
-
-            if st.button("🗣️ कमांड प्रोसेस करें (Execute Voice Command)", type="primary", use_container_width=True):
-                st.session_state.last_voice_cmd = voice_choice
-                st.session_state.audit_logs.append({
-                    "action": "VOICE_COMMAND_EXECUTED",
-                    "user": st.session_state.user_name,
-                    "details": f"Processed voice command '{voice_choice}'",
-                    "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-                })
-                st.rerun()
-
-        with v_c2:
-            st.markdown("##### 📋 सिस्टम प्रतिक्रिया व पुष्टि (Action Feedback)")
-            curr_cmd = st.session_state.get("last_voice_cmd", "आज के पिकअप दिखाओ")
-            st.success(f"**पहचाना गया आदेश:** '{curr_cmd}'")
-
-            if curr_cmd == "आज के पिकअप दिखाओ" or curr_cmd == "पास के स्क्रैप जॉब्स दिखाओ":
-                st.info("✅ **कार्रवाई:** कबाड़ीवाला टर्मिनल के नजदीकी खुले ऑर्डर्स लोड किए गए।")
-            elif curr_cmd == "मेरी आज की कमाई दिखाओ":
-                st.info("✅ **कार्रवाई:** आज की कुल कमाई ₹1,250.00 (4 पिकअप पूरे) स्क्रीन पर प्रदर्शित है।")
-            elif curr_cmd == "प्लास्टिक के बायर्स दिखाओ":
-                st.info("✅ **कार्रवाई:** स्मार्ट बायर मैचिंग में प्लास्टिक रीसाइक्लर्स की सूची सक्रिय की गई।")
-            elif curr_cmd == "स्क्रैप पूल दिखाओ":
-                st.info("✅ **कार्रवाई:** सहयोगात्मक पूलिंग ग्रुप लोड किए गए।")
-            elif curr_cmd == "पिकअप कम्प्लीट करना है":
-                st.warning("⚠️ **पुष्टि आवश्यक:** क्या आप ग्राहक प्रिया शर्मा का डिजिटल वजन व भुगतान पूरा करना चाहते हैं?")
-                st.button("हाँ, भुगतान पूरा करें (Confirm)", type="primary")
-
     with col_tab2:
-        st.markdown("#### 🗺️ EcoRoute TSP Smart Route Navigation")
-        st.caption("Travelling Salesperson Problem (TSP) algorithm orders all pending pickups into the shortest fuel-efficient loop:")
+        st.markdown("#### 🗺️ " + tr("EcoRoute TSP Smart Route Navigation", "इको-रूट टीएसपी स्मार्ट रूट नेविगेशन")[0])
+        st.caption(tr("Travelling Salesperson Problem (TSP) algorithm orders all pending pickups into the shortest fuel-efficient loop:", "कम से कम ईंधन खर्च में सारे पिकअप पूरे करने के लिए इष्टतम मार्ग क्रम:")[0])
 
-        st.markdown("""
+        st.markdown(f"""
         <div style="background:#062316; border:1px solid rgba(16, 185, 129, 0.4); border-radius:12px; padding:12px; margin-bottom:12px;">
-            <b style="color:#6EE7B7;">🚀 इष्टतम संग्रह मार्ग (Optimized Route Sequence):</b><br>
+            <b style="color:#6EE7B7;">🚀 {tr("Optimized Route Sequence:", "इष्टतम संग्रह मार्ग:")[0]}</b><br>
             <span style="color:#A7F3D0; font-size:13px;">
-                <b>स्टॉप 1:</b> South Extension II (REQ-101) ➡️ 
-                <b>स्टॉप 2:</b> Saket District Centre (REQ-103) ➡️ 
-                <b>स्टॉप 3:</b> EcoPlast Recycling Mill (Okhla Hub)
+                <b>Stop 1:</b> South Extension II (REQ-101) ➡️ 
+                <b>Stop 2:</b> Saket District Centre (REQ-103) ➡️ 
+                <b>Stop 3:</b> EcoPlast Recycling Mill (Okhla Hub)
             </span><br>
-            <span style="color:#34D399; font-size:12px;">कुल दूरी: <b>14.2 किमी</b> (38% की बचत • 2.8 लीटर ईंधन बचा)</span>
+            <span style="color:#34D399; font-size:12px;">{tr("Total Distance: 14.2 km (38% fuel saved • 2.8L conserved)", "कुल दूरी: 14.2 किमी (38% ईंधन की बचत • 2.8 लीटर बचा)")[0]}</span>
         </div>
         """, unsafe_allow_html=True)
 
         m_tsp = folium.Map(location=[28.5484, 77.2400], zoom_start=12)
-        folium.Marker([28.5684, 77.2195], tooltip="स्टॉप 1: South Extension II", icon=folium.Icon(color="green", icon="1", prefix="fa")).add_to(m_tsp)
-        folium.Marker([28.5284, 77.2185], tooltip="स्टॉप 2: Saket District Centre", icon=folium.Icon(color="blue", icon="2", prefix="fa")).add_to(m_tsp)
-        folium.Marker([28.5355, 77.2728], tooltip="स्टॉप 3: Okhla Recycling Plant", icon=folium.Icon(color="red", icon="flag")).add_to(m_tsp)
+        folium.Marker([28.5684, 77.2195], tooltip="Stop 1: South Extension II", icon=folium.Icon(color="green", icon="1", prefix="fa")).add_to(m_tsp)
+        folium.Marker([28.5284, 77.2185], tooltip="Stop 2: Saket District Centre", icon=folium.Icon(color="blue", icon="2", prefix="fa")).add_to(m_tsp)
+        folium.Marker([28.5355, 77.2728], tooltip="Stop 3: Okhla Recycling Plant", icon=folium.Icon(color="red", icon="flag")).add_to(m_tsp)
         folium.PolyLine([[28.5684, 77.2195], [28.5284, 77.2185], [28.5355, 77.2728]], color="#10B981", weight=4, opacity=0.8).add_to(m_tsp)
         st_folium(m_tsp, height=320, use_container_width=True)
 
     with col_tab3:
-        st.markdown("#### 🪪 3-Point KYC Identity & Safety Credentials")
-        st.caption("Aadhaar, Driving Licence, and Live Camera Selfie guarantee partner authenticity and citizen trust:")
+        st.markdown("#### 🪪 " + tr("3-Point KYC Identity & Safety Credentials", "3-बिंदु पहचान व सुरक्षा प्रमाण पत्र")[0])
+        st.caption(tr("Aadhaar, Driving Licence, and Live Camera Selfie guarantee partner authenticity:", "आधार, ड्राइविंग लाइसेंस, और लाइव सेल्फी भागीदार की प्रामाणिकता सुनिश्चित करते हैं:")[0])
 
         my_kyc = next((k for k in st.session_state.kyc_records if k["name"] == st.session_state.user_name), None)
         if my_kyc and "APPROVED" in my_kyc["status"]:
-            st.success("🟢 **KYC स्थिति: APPROVED (सत्यापित कबाड़ीवाला साथी ✓)** — CPCB व दिल्ली पुलिस रिकॉर्ड में पंजीकृत")
+            st.success("🟢 **" + tr("KYC Status: APPROVED ✓ — Registered with CPCB & Police Database", "केवाईसी स्थिति: APPROVED (सत्यापित कबाड़ीवाला साथी ✓) — सीपीसीबी व पुलिस रिकॉर्ड में पंजीकृत")[0] + "**")
             kc1, kc2, kc3 = st.columns(3)
             with kc1:
-                st.info(f"📄 **Aadhaar Card:**\n`{my_kyc['aadhaar_num']}`\n\nStatus: {my_kyc['aadhaar_status']}")
+                st.info(f"📄 **{tr('Aadhaar Card:', 'आधार कार्ड:')[0]}**\\n`{my_kyc['aadhaar_num']}`\\n\\nStatus: {my_kyc['aadhaar_status']}")
             with kc2:
-                st.info(f"🪪 **Driving Licence:**\n`{my_kyc['dl_num']}`\n\nStatus: {my_kyc['dl_status']}")
+                st.info(f"🪪 **{tr('Driving Licence:', 'ड्राइविंग लाइसेंस:')[0]}**\\n`{my_kyc['dl_num']}`\\n\\nStatus: {my_kyc['dl_status']}")
             with kc3:
-                st.info(f"🤳 **Live Face Match:**\nConfidence: 98.4%\n\nStatus: {my_kyc['selfie_status']}")
+                st.info(f"🤳 **{tr('Live Face Match:', 'लाइव चेहरा मिलान:')[0]}**\\nConfidence: 98.4%\\n\\nStatus: {my_kyc['selfie_status']}")
         else:
-            st.warning("⏳ **KYC स्थिति: सत्यापन प्रतीक्षारत (Pending Inspection)**")
+            st.warning("⏳ **" + tr("KYC Status: Pending Verification Inspection", "केवाईसी स्थिति: सत्यापन प्रतीक्षारत")[0] + "**")
 
 
 # =============================================================
 # 3. 🏢 DEDICATED COMMERCIAL BUSINESS DASHBOARD
 # =============================================================
 elif current_role == "BUSINESS":
-    st.subheader(f"🏢 Commercial Bulk Waste Dashboard — {st.session_state.user_name}")
-    st.caption("Manage industrial packaging scrap, recurring collection contracts, multi-warehouse bays & GST invoices.")
+    b_title = tr("Commercial Bulk Waste Dashboard", "वाणिज्यिक थोक अपशिष्ट डैशबोर्ड")[0] + f" — {st.session_state.user_name}"
+    st.subheader("🏢 " + b_title)
+    st.caption(tr("Manage industrial packaging scrap, recurring collection contracts, multi-warehouse bays & GST invoices.", "औद्योगिक पैकेजिंग कचरा, आवर्ती संग्रह अनुबंध, मल्टी-वेयरहाउस बे और जीएसटी चालान प्रबंधित करें।")[0])
 
     bk1, bk2, bk3, bk4 = st.columns(4)
     with bk1:
-        st.markdown('<div class="kpi-card"><div class="kpi-val">175.0 kg</div><div class="kpi-lbl">Total Commercial Tonnage</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">175.0 kg</div><div class="kpi-lbl">{tr_span("Total Commercial Tonnage", "कुल वाणिज्यिक वजन")}</div></div>', unsafe_allow_html=True)
     with bk2:
-        st.markdown('<div class="kpi-card"><div class="kpi-val">₹6,895.00</div><div class="kpi-lbl">GST Invoice Settlements</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">₹6,895.00</div><div class="kpi-lbl">{tr_span("GST Invoice Settlements", "जीएसटी चालान निपटान")}</div></div>', unsafe_allow_html=True)
     with bk3:
-        st.markdown('<div class="kpi-card"><div class="kpi-val">Weekly</div><div class="kpi-lbl">Recurring Contract</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">Weekly</div><div class="kpi-lbl">{tr_span("Recurring Contract", "आवर्ती अनुबंध")}</div></div>', unsafe_allow_html=True)
     with bk4:
-        st.markdown('<div class="kpi-card"><div class="kpi-val">CPCB CAT-I</div><div class="kpi-lbl">EPR Compliance Status</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">CPCB CAT-I</div><div class="kpi-lbl">{tr_span("EPR Compliance Status", "ईपीआर अनुपालन स्थिति")}</div></div>', unsafe_allow_html=True)
 
     b_col1, b_col2 = st.columns([1, 1], gap="large")
     with b_col1:
-        st.markdown("#### 🏭 Commercial Dispatch Bays")
+        st.markdown("#### 🏭 " + tr("Commercial Dispatch Bays", "वाणिज्यिक प्रेषण बे")[0])
         st.dataframe(pd.DataFrame([
             {"Facility": "Okhla Phase-III Central Bay 7", "Type": "Logistics & Pallets", "Status": "Active Primary"},
             {"Facility": "Saket District Centre Mall Outlet", "Type": "Retail Packaging", "Status": "Active Branch"},
         ]), hide_index=True, use_container_width=True)
 
         with st.form("book_commercial"):
-            st.markdown("##### Schedule Heavy Commercial Dispatch")
-            b_bay = st.selectbox("Dispatch Location", ["Okhla Phase-III Central Bay 7", "Saket District Centre Mall Outlet"])
-            b_ton = st.number_input("Estimated Bulk Load (kg)", min_value=50.0, value=250.0, step=25.0)
-            b_recur = st.checkbox("Set as Recurring Weekly Subscription", value=True)
-            if st.form_submit_button("Book Mini-Truck Heavy Vehicle Dispatch", type="primary"):
-                st.success(f"Commercial dispatch of {b_ton} kg booked! Assigned to mini-truck collector.")
+            st.markdown("##### " + tr("Schedule Heavy Commercial Dispatch", "भारी वाहन प्रेषण बुक करें")[0])
+            b_bay = st.selectbox(tr("Dispatch Location", "प्रेषण स्थान")[0], ["Okhla Phase-III Central Bay 7", "Saket District Centre Mall Outlet"])
+            b_ton = st.number_input(tr("Estimated Bulk Load (kg)", "अनुमानित वजन (किग्रा)")[0], min_value=50.0, value=250.0, step=25.0)
+            b_recur = st.checkbox(tr("Set as Recurring Weekly Subscription", "साप्ताहिक आवर्ती सदस्यता सेट करें")[0], value=True)
+            if st.form_submit_button(tr("Book Mini-Truck Heavy Vehicle Dispatch", "मिनी ट्रक प्रेषण बुक करें")[0], type="primary"):
+                st.success(tr(f"Commercial dispatch of {b_ton} kg booked! Assigned to mini-truck collector.", f"{b_ton} किग्रा का वाणिज्यिक प्रेषण बुक हुआ! मिनी-ट्रक को सौंपा गया।")[0])
 
     with b_col2:
-        st.markdown("#### 🧾 GST Invoices & EPR Credit Certificates")
+        st.markdown("#### 🧾 " + tr("GST Invoices & EPR Credit Certificates", "जीएसटी चालान व ईपीआर प्रमाण पत्र")[0])
         st.dataframe(pd.DataFrame([
             {"Invoice #": "RCP-2026-DEL-0894", "Weight": "175.0 kg", "Amount": "₹6,895.00", "Payment": "UPI Verified", "Date": "2026-10-10"},
             {"Invoice #": "RCP-2026-DEL-0712", "Weight": "210.0 kg", "Amount": "₹8,120.00", "Payment": "Bank Transfer", "Date": "2026-09-28"},
         ]), hide_index=True, use_container_width=True)
 
-        st.markdown("""
+        st.markdown(f"""
         <div style="background:#081C14; border:1px solid rgba(16, 185, 129, 0.4); border-radius:12px; padding:12px; margin-top:12px;">
-            <b style="color:#6EE7B7;">📄 Annual CPCB EPR Compliance Summary:</b><br>
+            <b style="color:#6EE7B7;">📄 {tr("Annual CPCB EPR Compliance Summary:", "वार्षिक सीपीसीबी ईपीआर सारांश:")[0]}</b><br>
             <span style="color:#A7F3D0; font-size:13px;">
-                Target: 1,500 kg • Diverted to Date: <b>1,840 kg (122% Achieved)</b><br>
-                Audited Scope 3 GHG Reduction: <b>2.76 Metric Tonnes CO₂e</b>
+                {tr("Target: 1,500 kg • Diverted to Date: <b>1,840 kg (122% Achieved)</b>", "लक्ष्य: 1,500 किग्रा • अब तक पुनर्चक्रित: <b>1,840 किग्रा (122% पूर्ण)</b>")[0]}<br>
+                {tr("Audited Scope 3 GHG Reduction: <b>2.76 Metric Tonnes CO₂e</b>", "सत्यापित कार्बन कमी: <b>2.76 मीट्रिक टन CO₂e</b>")[0]}
             </span>
         </div>
         """, unsafe_allow_html=True)
@@ -1754,74 +1776,78 @@ elif current_role == "BUSINESS":
 # 4. 🏭 DEDICATED RECYCLER DASHBOARD
 # =============================================================
 elif current_role == "RECYCLER":
-    st.subheader(f"🏭 Recycler Facility Portal — {st.session_state.user_name}")
-    st.caption("Publish factory buying rates, issue weighbridge intake slips, and manage circular throughput.")
+    r_title = tr("Recycler Facility Portal", "रीसाइक्लिंग कारखाना पोर्टल")[0] + f" — {st.session_state.user_name}"
+    st.subheader("🏭 " + r_title)
+    st.caption(tr("Publish factory buying rates, issue weighbridge intake slips, and manage circular throughput.", "कारखाना खरीद दरें प्रकाशित करें, वेजब्रिज पर्ची जारी करें और पुनर्चक्रण प्रबंधित करें।")[0])
 
     rk1, rk2, rk3, rk4 = st.columns(4)
     with rk1:
-        st.markdown('<div class="kpi-card"><div class="kpi-val">175.0 kg</div><div class="kpi-lbl">Inbound Throughput</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">175.0 kg</div><div class="kpi-lbl">{tr_span("Inbound Throughput", "आवक सामग्री")}</div></div>', unsafe_allow_html=True)
     with rk2:
-        st.markdown('<div class="kpi-card"><div class="kpi-val">₹6,895.00</div><div class="kpi-lbl">Raw Material Outlay</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">₹6,895.00</div><div class="kpi-lbl">{tr_span("Raw Material Outlay", "कच्चे माल का खर्च")}</div></div>', unsafe_allow_html=True)
     with rk3:
-        st.markdown('<div class="kpi-card"><div class="kpi-val">3 Rates</div><div class="kpi-lbl">Active Buying Offers</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">3 Rates</div><div class="kpi-lbl">{tr_span("Active Buying Offers", "सक्रिय खरीद दरें")}</div></div>', unsafe_allow_html=True)
     with rk4:
-        st.markdown('<div class="kpi-card"><div class="kpi-val">CPCB Verified</div><div class="kpi-lbl">License DEL/PWM/2024</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">CPCB Verified</div><div class="kpi-lbl">{tr_span("License DEL/PWM/2024", "लाइसेंस DEL/PWM/2024")}</div></div>', unsafe_allow_html=True)
 
     r_col1, r_col2 = st.columns([1, 1], gap="large")
     with r_col1:
-        st.markdown("#### Published Factory Buying Rate Sheet")
+        st.markdown("#### " + tr("Published Factory Buying Rate Sheet", "प्रकाशित कारखाना खरीद दर पत्रक")[0])
         st.dataframe(pd.DataFrame(st.session_state.recycler_offers), hide_index=True, use_container_width=True)
 
         with st.form("new_rate"):
-            st.markdown("##### + Post New Buying Offer")
-            n_cat = st.selectbox("Category", [c["name"] for c in st.session_state.categories])
-            n_rate = st.number_input("Buying Rate (₹/kg)", min_value=1.0, value=32.5)
-            n_lot = st.number_input("Min Lot Size (kg)", min_value=10, value=50)
-            if st.form_submit_button("+ Publish Rate to Regional Mandis", type="primary"):
+            st.markdown("##### + " + tr("Post New Buying Offer", "नई खरीद दर पोस्ट करें")[0])
+            n_cat = st.selectbox(tr("Category", "कचरा श्रेणी")[0], [c["hindi"] if is_hi else c["name"] for c in st.session_state.categories])
+            n_rate = st.number_input(tr("Buying Rate (₹/kg)", "खरीद दर (₹/किग्रा)")[0], min_value=1.0, value=32.5)
+            n_lot = st.number_input(tr("Min Lot Size (kg)", "न्यूनतम लॉट (किग्रा)")[0], min_value=10, value=50)
+            if st.form_submit_button("+ " + tr("Publish Rate to Regional Mandis", "क्षेत्रीय मंडियों में दर प्रकाशित करें")[0], type="primary"):
                 st.session_state.recycler_offers.append({"mill": "EcoPlast Reclaimers", "cat": n_cat, "rate": n_rate, "min_lot": n_lot, "location": "Okhla Industrial Area"})
-                st.success("New buying offer published live to all collectors!")
+                st.success(tr("New buying offer published live to all collectors!", "नई खरीद दर सभी कबाड़ीवालों को लाइव प्रकाशित हुई!")[0])
                 st.rerun()
 
     with r_col2:
-        st.markdown("#### Weighbridge Gate Intake Slip Generator")
+        st.markdown("#### " + tr("Weighbridge Gate Intake Slip Generator", "वेजब्रिज गेट इनटेक पर्ची जनरेटर")[0])
         with st.form("intake_gen"):
-            s_sup = st.text_input("Supplier / Collector Name", "Ramu Paswan (Kavach Certified)")
-            s_wt = st.number_input("Scale Net Weight (kg)", min_value=10.0, value=175.0)
-            s_rt = st.number_input("Purchase Price (₹/kg)", min_value=1.0, value=31.5)
-            st.write(f"**Total Settlement Outlay:** ₹{round(s_wt * s_rt, 2):,.2f}")
-            if st.form_submit_button("Record Weighbridge Slip", type="primary"):
-                st.success("Inbound weighbridge slip recorded and linked to collector ledger!")
+            s_sup = st.text_input(tr("Supplier / Collector Name", "आपूर्तिकर्ता / कबाड़ीवाले का नाम")[0], "Ramu Paswan (Kavach Certified)")
+            s_wt = st.number_input(tr("Scale Net Weight (kg)", "कांटे का शुद्ध वजन (किग्रा)")[0], min_value=10.0, value=175.0)
+            s_rt = st.number_input(tr("Purchase Price (₹/kg)", "खरीद मूल्य (₹/किग्रा)")[0], min_value=1.0, value=31.5)
+            st.write(f"**{tr('Total Settlement Outlay:', 'कुल निपटान खर्च:')[0]}** ₹{round(s_wt * s_rt, 2):,.2f}")
+            if st.form_submit_button(tr("Record Weighbridge Slip", "वेजब्रिज पर्ची दर्ज करें")[0], type="primary"):
+                st.success(tr("Inbound weighbridge slip recorded and linked to collector ledger!", "वेजब्रिज पर्ची दर्ज हुई और खाता बही से जुड़ी!")[0])
 
 
 # =============================================================
 # 5. 🛡️ DEDICATED ADMINISTRATOR DASHBOARD
 # =============================================================
 elif current_role == "ADMIN":
-    st.subheader(f"🛡️ Platform Governance & Regulatory Console — {st.session_state.user_name}")
-    st.caption("3-Point KYC inspection queue, AI Biometric Photo Matching, Mandi rate governance & Free Cloud Database Manager.")
+    a_title = tr("Platform Governance & Regulatory Console", "प्लेटफॉर्म नियामक व प्रशासनिक कंसोल")[0] + f" — {st.session_state.user_name}"
+    st.subheader("🛡️ " + a_title)
+    st.caption(tr("3-Point KYC inspection queue, AI Biometric Photo Matching, Mandi rate governance & Free Cloud Database Manager.", "3-बिंदु पहचान सत्यापन कतार, एआई बायोमेट्रिक फोटो मिलान, मंडी दर नियमन और क्लाउड डेटाबेस प्रबंधक।")[0])
 
     ak1, ak2, ak3, ak4 = st.columns(4)
     with ak1:
-        st.markdown(f'<div class="kpi-card"><div class="kpi-val">{len(st.session_state.pickups)} Orders</div><div class="kpi-lbl">Total Requests</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">{len(st.session_state.pickups)} Orders</div><div class="kpi-lbl">{tr_span("Total Requests", "कुल पिकअप अनुरोध")}</div></div>', unsafe_allow_html=True)
     with ak2:
-        st.markdown('<div class="kpi-card"><div class="kpi-val">100%</div><div class="kpi-lbl">Settlement Rate</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">100%</div><div class="kpi-lbl">{tr_span("Settlement Rate", "निपटान दर")}</div></div>', unsafe_allow_html=True)
     with ak3:
-        st.markdown('<div class="kpi-card"><div class="kpi-val">₹11,670.00</div><div class="kpi-lbl">Total Cashflow Settled</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">₹11,670.00</div><div class="kpi-lbl">{tr_span("Total Cashflow Settled", "कुल निपटाया गया नकद प्रवाह")}</div></div>', unsafe_allow_html=True)
     with ak4:
-        st.markdown('<div class="kpi-card"><div class="kpi-val">0 Disputes</div><div class="kpi-lbl">Dispute Status: Normal</div></div>', unsafe_allow_html=True)
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">0 Disputes</div><div class="kpi-lbl">{tr_span("Dispute Status: Normal", "विवाद स्थिति: सामान्य")}</div></div>', unsafe_allow_html=True)
+
+    at1_name = tr("📋 3-Point KYC Verification Queue", "📋 3-बिंदु पहचान सत्यापन कतार")[0]
+    at2_name = tr("🤖 AI Photo Matching & Biometrics", "🤖 एआई फोटो मिलान व बायोमेट्रिक्स")[0]
+    at3_name = tr("📈 Mandi Benchmark Rates", "📈 मंडी बेंचमार्क दरें")[0]
+    at4_name = tr("🛡️ EcoShield Anomaly Audit", "🛡️ इको-शील्ड विसंगति ऑडिट")[0]
+    at5_name = tr("🗄️ Free Cloud Database Manager", "🗄️ क्लाउड डेटाबेस प्रबंधक")[0]
+    at6_name = tr("📜 Cryptographic Audit Ledger", "📜 क्रिप्टोग्राफिक ऑडिट लेजर")[0]
 
     a_tab1, a_tab_biom, a_tab2, a_tab3, a_tab4, a_tab5 = st.tabs([
-        "📋 3-Point KYC Verification Queue",
-        "🤖 AI Photo Matching & Biometrics (Aadhaar / DL vs Live)",
-        "📈 Mandi Benchmark Rates",
-        "🛡️ EcoShield Anomaly Audit",
-        "🗄️ Free Cloud Database Manager",
-        "📜 Cryptographic Audit Ledger"
+        at1_name, at2_name, at3_name, at4_name, at5_name, at6_name
     ])
 
     with a_tab1:
-        st.markdown("#### 📋 3-Point KYC Verification Queue")
-        st.caption("Review uploaded Government Aadhaar Cards, Driving Licences, and Live Biometric Selfies to authorize doorstep collection partners:")
+        st.markdown("#### 📋 " + tr("3-Point KYC Verification Queue", "3-बिंदु पहचान सत्यापन कतार")[0])
+        st.caption(tr("Review uploaded Government Aadhaar Cards, Driving Licences, and Live Biometric Selfies:", "अपलोड किए गए आधार कार्ड, ड्राइविंग लाइसेंस, और लाइव सेल्फी की समीक्षा करें:")[0])
 
         kyc_df = pd.DataFrame([
             {
@@ -1839,10 +1865,10 @@ elif current_role == "ADMIN":
         st.dataframe(kyc_df, hide_index=True, use_container_width=True)
 
         st.divider()
-        st.markdown("#### 🔍 Interactive 3-Card KYC Dossier Inspector")
+        st.markdown("#### 🔍 " + tr("Interactive 3-Card KYC Dossier Inspector", "पहचान दस्तावेज निरीक्षक")[0])
         all_candidates = st.session_state.kyc_records
         target_name = st.selectbox(
-            "Select Applicant Dossier to Inspect:",
+            tr("Select Applicant Dossier to Inspect:", "जांच हेतु आवेदक फ़ाइल चुनें:")[0],
             [k["name"] for k in all_candidates],
             index=next((i for i, k in enumerate(all_candidates) if "PENDING" in k["status"]), 0)
         )
@@ -1853,13 +1879,13 @@ elif current_role == "ADMIN":
             st.markdown(f"""
             <div style="background:#0B1510; border:1px solid rgba(16, 185, 129, 0.3); border-radius:12px; padding:14px; text-align:center;">
                 <div style="font-size:28px;">📄</div>
-                <b style="color:#F4FDF8;">Government Aadhaar Card</b>
-                <div style="font-size:11px; color:#A1B2A9; margin:4px 0;">UIDAI Verified ID Proof</div>
+                <b style="color:#F4FDF8;">{tr('Government Aadhaar Card', 'भारत सरकार आधार कार्ड')[0]}</b>
+                <div style="font-size:11px; color:#A1B2A9; margin:4px 0;">{tr('UIDAI Verified ID Proof', 'सत्यापित पहचान प्रमाण')[0]}</div>
                 <div style="background:#0E1D16; border-radius:6px; padding:6px; font-family:monospace; font-size:12px; color:#34D399;">
                     UID: {cand['aadhaar_num']}
                 </div>
                 <div style="margin-top:6px; font-size:11px; color:#10B981; font-weight:bold;">
-                    Status: {cand['aadhaar_status']}
+                    {tr('Status', 'स्थिति')[0]}: {cand['aadhaar_status']}
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -1868,13 +1894,13 @@ elif current_role == "ADMIN":
             st.markdown(f"""
             <div style="background:#0B1510; border:1px solid rgba(16, 185, 129, 0.3); border-radius:12px; padding:14px; text-align:center;">
                 <div style="font-size:28px;">🪪</div>
-                <b style="color:#F4FDF8;">Driving Licence (DL)</b>
-                <div style="font-size:11px; color:#A1B2A9; margin:4px 0;">Ministry of Road Transport</div>
+                <b style="color:#F4FDF8;">{tr('Driving Licence (DL)', 'ड्राइविंग लाइसेंस')[0]}</b>
+                <div style="font-size:11px; color:#A1B2A9; margin:4px 0;">{tr('Ministry of Road Transport', 'परिवहन विभाग')[0]}</div>
                 <div style="background:#0E1D16; border-radius:6px; padding:6px; font-family:monospace; font-size:12px; color:#38BDF8;">
                     DL No: {cand['dl_num']}
                 </div>
                 <div style="margin-top:6px; font-size:11px; color:#10B981; font-weight:bold;">
-                    Status: {cand['dl_status']}
+                    {tr('Status', 'स्थिति')[0]}: {cand['dl_status']}
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -1883,13 +1909,13 @@ elif current_role == "ADMIN":
             st.markdown(f"""
             <div style="background:#0B1510; border:1px solid rgba(16, 185, 129, 0.3); border-radius:12px; padding:14px; text-align:center;">
                 <div style="font-size:28px;">🤳</div>
-                <b style="color:#F4FDF8;">Live Biometric Selfie</b>
-                <div style="font-size:11px; color:#A1B2A9; margin:4px 0;">Anti-Spoofing Face Match</div>
+                <b style="color:#F4FDF8;">{tr('Live Biometric Selfie', 'लाइव बायोमेट्रिक सेल्फी')[0]}</b>
+                <div style="font-size:11px; color:#A1B2A9; margin:4px 0;">{tr('Anti-Spoofing Face Match', 'एंटी-स्पूफिंग चेहरा मिलान')[0]}</div>
                 <div style="background:#0E1D16; border-radius:6px; padding:6px; font-family:monospace; font-size:12px; color:#34D399;">
                     Biometric Similarity: 98.4%
                 </div>
                 <div style="margin-top:6px; font-size:11px; color:#10B981; font-weight:bold;">
-                    Status: {cand['selfie_status']}
+                    {tr('Status', 'स्थिति')[0]}: {cand['selfie_status']}
                 </div>
             </div>
             """, unsafe_allow_html=True)
@@ -1898,7 +1924,7 @@ elif current_role == "ADMIN":
         d_b1, d_b2 = st.columns([1, 1])
         with d_b1:
             if cand["status"] != "APPROVED ✓":
-                if st.button(f"✅ Approve 3-Point KYC for {cand['name']}", type="primary", use_container_width=True):
+                if st.button(f"✅ " + tr(f"Approve 3-Point KYC for {cand['name']}", f"{cand['name']} का 3-बिंदु केवाईसी स्वीकृत करें")[0], type="primary", use_container_width=True):
                     cand["status"] = "APPROVED ✓"
                     cand["reviewed_by"] = st.session_state.user_name
                     cand["aadhaar_status"] = "Verified UIDAI ✓"
@@ -1910,13 +1936,13 @@ elif current_role == "ADMIN":
                         "details": f"Approved 3-point KYC for {cand['name']}",
                         "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
                     })
-                    st.success(f"🎉 {cand['name']} KYC has been APPROVED! Partner is now authorized for doorstep pickups.")
+                    st.success(tr(f"KYC approved for {cand['name']}! Partner is now authorized for doorstep pickups.", f"{cand['name']} का केवाईसी स्वीकृत हुआ! साथी अब डोरस्टेप पिकअप के लिए अधिकृत है।")[0])
                     st.rerun()
             else:
-                st.info(f"✅ {cand['name']} holds an active approved credential.")
+                st.info("✅ " + tr(f"{cand['name']} holds an active approved credential.", f"{cand['name']} का क्रेडेंशियल सक्रिय व स्वीकृत है।")[0])
 
         with d_b2:
-            if st.button(f"❌ Reject / Request Re-upload for {cand['name']}", use_container_width=True):
+            if st.button("❌ " + tr(f"Reject / Request Re-upload for {cand['name']}", f"{cand['name']} का दस्तावेज अस्वीकार / पुनः अपलोड अनुरोध")[0], use_container_width=True):
                 cand["status"] = "REJECTED (Re-upload requested)"
                 st.session_state.audit_logs.append({
                     "action": "REJECT_KYC",
@@ -1924,24 +1950,23 @@ elif current_role == "ADMIN":
                     "details": f"Requested document re-upload for {cand['name']}",
                     "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
                 })
-                st.warning(f"Notification sent to {cand['name']} to re-upload clear documents.")
+                st.warning(tr(f"Notification sent to {cand['name']} to re-upload clear documents.", f"{cand['name']} को स्पष्ट दस्तावेज पुनः अपलोड करने की सूचना भेजी गई।")[0])
                 st.rerun()
 
-    # ---------------- 2. ENHANCED BIOMETRIC PHOTO MATCHING ----------------
+    # ---------------- 2. ENHANCED BIOMETRIC PHOTO MATCHING (BASE64 FIXED) ----------------
     with a_tab_biom:
-        st.markdown("#### 🤖 AI Photo Matching Engine: Aadhaar Card / DL vs Live Photo")
-        st.caption("AI facial biometric verification comparing government identity cards against live camera selfies with anti-spoofing:")
+        st.markdown("#### 🤖 " + tr("AI Photo Matching Engine: Aadhaar Card / DL vs Live Photo", "एआई फोटो मिलान इंजन: आधार / ड्राइविंग लाइसेंस बनाम लाइव फोटो")[0])
+        st.caption(tr("AI facial biometric verification comparing government identity cards against live camera selfies with anti-spoofing:", "सरकारी पहचान पत्र बनाम लाइव कैमरे की सेल्फी का चेहरे के 68 लैंडमार्क बिंदुओं द्वारा मिलान:")[0])
 
-        st.info("💡 **Feature Capability**: Upload an Indian Aadhaar Card or Driving Licence along with a live camera selfie to run biometric face similarity, anti-spoofing verification, and automatic OCR data extraction.")
+        st.info("💡 " + tr("Upload an Indian Aadhaar Card or Driving Licence along with a live camera selfie to run biometric face similarity, anti-spoofing verification, and automatic OCR data extraction.", "आधार कार्ड या ड्राइविंग लाइसेंस के साथ लाइव सेल्फी अपलोड करें और बायोमेट्रिक मिलान व ओसीआर डेटा एक्सट्रैक्शन चलाएं।")[0])
 
-        # Preset test selector
         p_col1, p_col2, p_col3 = st.columns(3)
         with p_col1:
-            load_aadhaar = st.button("📌 Load Demo Aadhaar Match (Ramesh Kumar)", use_container_width=True)
+            load_aadhaar = st.button("📌 " + tr("Load Demo Aadhaar Match", "डेमो आधार मिलान लोड करें")[0], use_container_width=True)
         with p_col2:
-            load_dl = st.button("🪪 Load Demo DL Match (Shyam Sundar)", use_container_width=True)
+            load_dl = st.button("🪪 " + tr("Load Demo DL Match", "डेमो ड्राइविंग लाइसेंस मिलान लोड करें")[0], use_container_width=True)
         with p_col3:
-            load_mismatch = st.button("⚠️ Load Demo Mismatch (Different Face)", use_container_width=True)
+            load_mismatch = st.button("⚠️ " + tr("Load Demo Mismatch", "डेमो बेमेल (Mismatch) लोड करें")[0], use_container_width=True)
 
         if "bio_test_type" not in st.session_state:
             st.session_state.bio_test_type = "AADHAAR"
@@ -1956,46 +1981,55 @@ elif current_role == "ADMIN":
         bio_col1, bio_col2 = st.columns(2, gap="large")
 
         with bio_col1:
-            st.markdown("##### 1. Government ID Document (Aadhaar / DL)")
+            st.markdown("##### 1. " + tr("Government ID Document (Aadhaar / DL)", "सरकारी पहचान दस्तावेज (आधार / ड्राइविंग लाइसेंस)")[0])
+            doc_cat_opts = [
+                tr("Aadhaar Card (UIDAI)", "आधार कार्ड (UIDAI)")[0],
+                tr("Commercial Driving Licence (Parivahan)", "वाणिज्यिक ड्राइविंग लाइसेंस (परिवहन)")[0]
+            ]
             doc_choice = st.radio(
-                "Document Category:",
-                ["Aadhaar Card (UIDAI)", "Commercial Driving Licence (Parivahan)"],
+                tr("Document Category:", "दस्तावेज श्रेणी:")[0],
+                doc_cat_opts,
                 index=1 if st.session_state.bio_test_type == "DL" else 0,
                 horizontal=True
             )
-            doc_upload = st.file_uploader("Upload ID Card (PNG/JPG)", type=["png", "jpg", "jpeg", "webp"], key="st_doc_upload")
+            doc_upload = st.file_uploader(tr("Upload ID Card (PNG/JPG)", "आईडी कार्ड अपलोड करें")[0], type=["png", "jpg", "jpeg", "webp"], key="st_doc_upload")
 
             if doc_upload:
-                st.image(doc_upload, caption="Uploaded Government Document", use_column_width=True)
+                st.image(doc_upload, caption=tr("Uploaded Government Document", "अपलोड किया गया सरकारी दस्तावेज")[0], use_container_width=True)
             elif st.session_state.bio_test_type == "DL":
                 dl_svg = get_dl_card_svg("Shyam Sundar Sharma", "RJ-14-2022-00455", "LMV-TR")
-                st.markdown(f'<img src="{dl_svg}" style="width:100%; border-radius:12px; border:1px solid #38BDF8;">', unsafe_allow_html=True)
+                st.markdown(f'<img src="{dl_svg}" style="width:100%; border-radius:12px; border:1px solid #38BDF8; display:block;">', unsafe_allow_html=True)
             else:
                 aadh_svg = get_aadhaar_card_svg("Ramesh Kumar Sahu", "4129 6638 6621", "15/08/1988")
-                st.markdown(f'<img src="{aadh_svg}" style="width:100%; border-radius:12px; border:1px solid #CBD5E1;">', unsafe_allow_html=True)
+                st.markdown(f'<img src="{aadh_svg}" style="width:100%; border-radius:12px; border:1px solid #CBD5E1; display:block;">', unsafe_allow_html=True)
 
         with bio_col2:
-            st.markdown("##### 2. Live Photograph (Live Camera / Selfie)")
-            live_method = st.radio("Live Photo Mode:", ["Visual Simulation", "Live Camera Input", "Upload Selfie File"], horizontal=True)
+            st.markdown("##### 2. " + tr("Live Photograph (Live Camera / Selfie)", "लाइव फोटोग्राफ (लाइव कैमरा / सेल्फी)")[0])
+            live_method_opts = [
+                tr("Visual Simulation", "दृश्य सिमुलेशन")[0],
+                tr("Live Camera Input", "लाइव कैमरा इनपुट")[0],
+                tr("Upload Selfie File", "सेल्फी फाइल अपलोड करें")[0]
+            ]
+            live_method = st.radio(tr("Live Photo Mode:", "लाइव फोटो मोड:")[0], live_method_opts, horizontal=True)
 
             live_img = None
-            if live_method == "Live Camera Input":
-                live_img = st.camera_input("Capture Live Verification Selfie")
-            elif live_method == "Upload Selfie File":
-                live_img = st.file_uploader("Upload Live Selfie Photo", type=["png", "jpg", "jpeg", "webp"], key="st_selfie_upload")
+            if live_method == live_method_opts[1]:
+                live_img = st.camera_input(tr("Capture Live Verification Selfie", "लाइव सत्यापन सेल्फी लें")[0])
+            elif live_method == live_method_opts[2]:
+                live_img = st.file_uploader(tr("Upload Live Selfie Photo", "लाइव सेल्फी अपलोड करें")[0], type=["png", "jpg", "jpeg", "webp"], key="st_selfie_upload")
 
             if live_img:
-                st.image(live_img, caption="Captured Live Verification Selfie", use_column_width=True)
+                st.image(live_img, caption=tr("Captured Live Verification Selfie", "खींची गई लाइव सेल्फी")[0], use_container_width=True)
             else:
                 is_match_sim = (st.session_state.bio_test_type != "MISMATCH")
                 sim_name = "Ramesh Kumar Sahu" if st.session_state.bio_test_type == "AADHAAR" else "Shyam Sundar Sharma"
                 selfie_svg = get_selfie_svg(sim_name, is_match=is_match_sim)
-                st.markdown(f'<img src="{selfie_svg}" style="width:100%; border-radius:12px; border:1px solid {"#10B981" if is_match_sim else "#EF4444"};">', unsafe_allow_html=True)
+                st.markdown(f'<img src="{selfie_svg}" style="width:100%; border-radius:12px; border:1px solid {"#10B981" if is_match_sim else "#EF4444"}; display:block;">', unsafe_allow_html=True)
 
         st.divider()
 
-        if st.button("⚡ Run AI Biometric Photo Match", type="primary", use_container_width=True):
-            with st.spinner("Analyzing biometric landmarks, inter-pupillary distance, and document security watermark..."):
+        if st.button("⚡ " + tr("Run AI Biometric Photo Match", "एआई बायोमेट्रिक फोटो मिलान चलाएं")[0], type="primary", use_container_width=True):
+            with st.spinner(tr("Analyzing biometric landmarks, inter-pupillary distance, and document security watermark...", "बायोमेट्रिक लैंडमार्क, पुतलियों की दूरी और सुरक्षा वॉटरमार्क का विश्लेषण हो रहा है...")[0]):
                 time.sleep(0.6)
 
                 is_mismatch = (st.session_state.bio_test_type == "MISMATCH")
@@ -2003,16 +2037,16 @@ elif current_role == "ADMIN":
                 liveness = 98.6
 
                 if not is_mismatch:
-                    st.success(f"🎉 **Biometric Face Match Confirmed! (Similarity Score: {score}%)**")
+                    st.success("🎉 **" + tr(f"Biometric Face Match Confirmed! (Similarity Score: {score}%)", f"बायोमेट्रिक चेहरा मिलान सफल! (समानता स्कोर: {score}%)")[0] + "**")
                     b1, b2, b3 = st.columns(3)
                     with b1:
-                        st.metric("Facial Match", f"{score}%", "High Confidence ✓")
+                        st.metric(tr("Facial Match", "चेहरा समानता")[0], f"{score}%", tr("High Confidence ✓", "उच्च सटीकता ✓")[0])
                     with b2:
-                        st.metric("Liveness Score", f"{liveness}%", "Anti-Spoofing Passed ✓")
+                        st.metric(tr("Liveness Score", "जीवंतता स्कोर")[0], f"{liveness}%", tr("Anti-Spoof Passed ✓", "एंटी-स्पूफ सफल ✓")[0])
                     with b3:
-                        st.metric("Audit Status", "VERIFIED", "E-KYC Passed ✓")
+                        st.metric(tr("Audit Status", "ऑडिट स्थिति")[0], "VERIFIED", tr("E-KYC Passed ✓", "ई-केवाईसी सफल ✓")[0])
 
-                    st.markdown("##### 📋 OCR Extracted Credentials:")
+                    st.markdown("##### 📋 " + tr("OCR Extracted Credentials:", "ओसीआर द्वारा निकाले गए विवरण:")[0])
                     if st.session_state.bio_test_type == "DL":
                         st.json({
                             "document_type": "DRIVING_LICENCE",
@@ -2035,29 +2069,29 @@ elif current_role == "ADMIN":
                             "biometric_seal": "SHA256:7f8a92b9381c0029adbe991a0f8b1c"
                         })
 
-                    if st.button("✅ Authorize Partner in Platform Registry Now", use_container_width=True):
+                    if st.button("✅ " + tr("Authorize Partner in Platform Registry Now", "साथी को प्लेटफॉर्म रजिस्ट्री में अधिकृत करें")[0], use_container_width=True):
                         st.session_state.audit_logs.append({
                             "action": "AI_PHOTO_MATCH_VERIFIED",
                             "user": st.session_state.user_name,
                             "details": f"Biometric photo match approved with score {score}%",
                             "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
                         })
-                        st.success("Partner credentials activated across all doorstep collection zones!")
+                        st.success(tr("Partner credentials activated across all doorstep collection zones!", "साथी क्रेडेंशियल सभी डोरस्टेप संग्रह क्षेत्रों में सक्रिय हुए!")[0])
                 else:
-                    st.error(f"❌ **Biometric Mismatch Detected (Similarity Score: {score}%)**")
-                    st.warning("The facial geometry on the live photograph does not align with the government ID card photograph. Request document re-upload.")
+                    st.error("❌ **" + tr(f"Biometric Mismatch Detected (Similarity Score: {score}%)", f"बायोमेट्रिक बेमेल का पता चला (समानता स्कोर: {score}%)")[0] + "**")
+                    st.warning(tr("The facial geometry on the live photograph does not align with the government ID card photograph. Request document re-upload.", "लाइव फोटो का चेहरा सरकारी पहचान पत्र के चेहरे से मेल नहीं खाता। दस्तावेज पुनः अपलोड करने का अनुरोध करें।")[0])
 
     with a_tab2:
-        st.markdown("#### Mandi Benchmark Rate Editor")
-        st.caption("Adjust official wholesale benchmark rates broadcast across national recycling clusters:")
+        st.markdown("#### " + tr("Mandi Benchmark Rate Editor", "मंडी बेंचमार्क थोक दर संपादक")[0])
+        st.caption(tr("Adjust official wholesale benchmark rates broadcast across national recycling clusters:", "राष्ट्रीय रीसाइक्लिंग क्लस्टर में प्रसारित आधिकारिक थोक दरों को समायोजित करें:")[0])
         for c in st.session_state.categories:
             c1, c2, c3 = st.columns([2, 1, 1])
             with c1:
-                st.write(f"**{c['icon']} {c['name']}** ({c['hindi']})")
+                st.write(f"**{c['icon']} {c['hindi'] if is_hi else c['name']}**")
             with c2:
-                new_r = st.number_input(f"Rate for {c['name']}", min_value=1.0, value=float(c['rate']), key=f"ad_{c['id']}")
+                new_r = st.number_input(f"{tr('Rate for', 'दर:')[0]} {c['hindi'] if is_hi else c['name']}", min_value=1.0, value=float(c['rate']), key=f"ad_{c['id']}")
             with c3:
-                if st.button(f"Update {c['name']}", key=f"up_{c['id']}"):
+                if st.button(f"{tr('Update', 'अद्यतन करें')[0]} {c['hindi'] if is_hi else c['name']}", key=f"up_{c['id']}"):
                     c["rate"] = new_r
                     st.session_state.audit_logs.append({
                         "action": "UPDATE_MANDI_RATE",
@@ -2065,41 +2099,41 @@ elif current_role == "ADMIN":
                         "details": f"Updated {c['name']} to ₹{new_r}/kg",
                         "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
                     })
-                    st.success(f"{c['name']} benchmark updated to ₹{new_r}/kg!")
+                    st.success(tr(f"{c['name']} benchmark updated to ₹{new_r}/kg!", f"{c['hindi']} की दर ₹{new_r}/किग्रा अद्यतन हुई!")[0])
                     st.rerun()
 
     with a_tab3:
-        st.markdown("#### 🛡️ EcoShield Anomaly & Anti-Fraud Audit")
-        st.caption("Automated heuristic models monitor transactions for weight spikes or pricing anomalies:")
+        st.markdown("#### 🛡️ " + tr("EcoShield Anomaly & Anti-Fraud Audit", "इको-शील्ड विसंगति व धोखाधड़ी ऑडिट")[0])
+        st.caption(tr("Automated heuristic models monitor transactions for weight spikes or pricing anomalies:", "स्वचालित मॉडल वजन और मूल्य निर्धारण विसंगतियों की निगरानी करते हैं:")[0])
         st.dataframe(pd.DataFrame([
             {"Anomaly ID": "ANM-2026-081", "Entity": "Domestic Account #482", "Detected Issue": "Weight spike: 320 kg for domestic apartment", "Severity": "MEDIUM", "Status": "RESOLVED (Verified Home Renovation)"},
             {"Anomaly ID": "ANM-2026-082", "Entity": "Collector Ramu Paswan", "Detected Issue": "Copper price spread +14% above Mandi", "Severity": "LOW", "Status": "CLEARED (Grade 1 Millberry)"},
         ]), hide_index=True, use_container_width=True)
 
     with a_tab4:
-        st.markdown("#### 🗄️ Free Cloud Database Connectivity Manager")
-        st.caption("Connect ScrapSetu to free cloud databases (Supabase, MongoDB Atlas, Neon) for permanent persistence across deployments:")
+        st.markdown("#### 🗄️ " + tr("Free Cloud Database Connectivity Manager", "क्लाउड डेटाबेस कनेक्टिविटी प्रबंधक")[0])
+        st.caption(tr("Connect ScrapSetu to free cloud databases (Supabase, MongoDB Atlas, Neon) for permanent persistence:", "स्थायी डेटा भंडारण के लिए स्क्रैपसेतु को मुफ्त क्लाउड डेटाबेस से कनेक्ट करें:")[0])
 
         db_cfg = st.session_state.cloud_db_config
         db_c1, db_c2, db_c3, db_c4 = st.columns(4)
         with db_c1:
-            st.metric("Active Cloud Provider", db_cfg["provider"].split()[0])
+            st.metric(tr("Active Cloud Provider", "सक्रिय क्लाउड प्रदाता")[0], db_cfg["provider"].split()[0])
         with db_c2:
-            st.metric("Connection Health", "ONLINE ✓", delta="SSL Enforced")
+            st.metric(tr("Connection Health", "कनेक्शन स्थिति")[0], "ONLINE ✓", delta="SSL Enforced")
         with db_c3:
-            st.metric("Records Synced", f"{db_cfg['sync_count']} Rows", delta="+12 today")
+            st.metric(tr("Records Synced", "सिंक किए गए रिकॉर्ड")[0], f"{db_cfg['sync_count']} Rows", delta="+12 today")
         with db_c4:
-            st.metric("Roundtrip Latency", "34 ms", delta="Optimal")
+            st.metric(tr("Roundtrip Latency", "लेटेंसी")[0], "34 ms", delta="Optimal")
 
         st.markdown(f"""
         <div style="background:#062316; border:1px solid rgba(16, 185, 129, 0.4); border-radius:12px; padding:12px; margin-bottom:1rem;">
-            <b style="color:#6EE7B7;">🟢 Live Database Cluster Status:</b> 
-            <span style="color:#A7F3D0;">Currently connected to <b>{db_cfg['provider']}</b>. All transactions, Mandi rates, and KYC documents synchronize in real-time.</span>
+            <b style="color:#6EE7B7;">🟢 {tr("Live Database Cluster Status:", "लाइव डेटाबेस क्लस्टर स्थिति:")[0]}</b> 
+            <span style="color:#A7F3D0;">{tr('Currently connected to', 'वर्तमान में कनेक्टेड:')[0]} <b>{db_cfg['provider']}</b>.</span>
         </div>
         """, unsafe_allow_html=True)
 
         preset_choice = st.selectbox(
-            "Select Free Cloud Database Provider:",
+            tr("Select Free Cloud Database Provider:", "मुफ्त क्लाउड डेटाबेस प्रदाता चुनें:")[0],
             [
                 "Supabase PostgreSQL (100% Free 500MB - Best & Recommended for Relational Model)",
                 "MongoDB Atlas (100% Free M0 Sandbox 512MB - NoSQL Document Database)",
@@ -2118,15 +2152,15 @@ elif current_role == "ADMIN":
 
         with st.form("db_connect_form"):
             new_uri = st.text_input(
-                "Database Connection String / URI:",
+                tr("Database Connection String / URI:", "डेटाबेस कनेक्शन यूआरआई:")[0],
                 value=db_cfg.get("connection_uri", default_uris[key_provider]),
-                help="Paste your free connection string from Supabase, MongoDB Atlas, or Neon."
+                help="Paste connection URI"
             )
             col_b1, col_b2 = st.columns(2)
             with col_b1:
-                submit_db = st.form_submit_button("⚡ Test & Connect Cloud Database", type="primary", use_container_width=True)
+                submit_db = st.form_submit_button("⚡ " + tr("Test & Connect Cloud Database", "क्लाउड डेटाबेस कनेक्ट करें")[0], type="primary", use_container_width=True)
             with col_b2:
-                sync_now = st.form_submit_button("🔄 Force Immediate Cloud Sync", use_container_width=True)
+                sync_now = st.form_submit_button("🔄 " + tr("Force Immediate Cloud Sync", "तत्काल क्लाउड सिंक करें")[0], use_container_width=True)
 
             if submit_db:
                 db_cfg["provider"] = preset_choice.split("(")[0].strip()
@@ -2140,15 +2174,78 @@ elif current_role == "ADMIN":
                     "details": f"Connected to {db_cfg['provider']}",
                     "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
                 })
-                st.success(f"🎉 Successfully verified and connected to {db_cfg['provider']}! All platform data is now actively stored in the cloud.")
+                st.success(tr(f"Successfully connected to {db_cfg['provider']}!", f"{db_cfg['provider']} से सफलतापूर्वक कनेक्ट हुआ!")[0])
                 st.rerun()
 
             if sync_now:
-                st.success("✅ Real-time data pipeline synchronized records to the cloud database cluster.")
+                st.success(tr("Real-time data pipeline synchronized records to cloud cluster.", "डेटा सफलतापूर्वक क्लाउड क्लस्टर में सिंक हुआ।")[0])
 
     with a_tab5:
-        st.markdown("#### 📜 Immutable Cryptographic Audit Ledger")
+        st.markdown("#### 📜 " + tr("Immutable Cryptographic Audit Ledger", "अपरिवर्तनीय ऑडिट लेजर")[0])
         st.dataframe(pd.DataFrame(st.session_state.audit_logs), hide_index=True, use_container_width=True)
+
+
+# =============================================================
+# PERSISTENT BOTTOM VOICE & AI NAVIGATION COMMAND ASSISTANT
+# =============================================================
+st.divider()
+
+st.markdown(f"""
+<div style="background: linear-gradient(135deg, #072418 0%, #0A1C13 100%); border: 1.5px solid #10B981; border-radius: 1.25rem; padding: 1.4rem; margin-top: 1rem; box-shadow: 0 10px 30px rgba(0,0,0,0.7);">
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+            <span style="font-size:1.3rem;">🎙️</span>
+            <b style="color:#6EE7B7; font-size:1.15rem; margin-left:6px;">{tr("Voice & AI Navigation Command Assistant", "वॉयस व एआई नेविगेशन कमांड सहायक")[0]}</b>
+            <p style="color:#A7F3D0; font-size:0.85rem; margin:4px 0 0 0;">
+                {tr("Speak or choose where to navigate — instantly redirect to any workspace or feature:", "बोलें या चुनें कि आप क्या देखना चाहते हैं — सीधे उस पेज पर नेविगेट करें:")[0]}
+            </p>
+        </div>
+        <div style="background:rgba(16, 185, 129, 0.2); border:1px solid #10B981; border-radius:999px; padding:4px 12px; font-size:0.8rem; color:#34D399; font-weight:700;">
+            ● {tr("VOICE READY", "वॉयस तैयार")[0]}
+        </div>
+    </div>
+</div>
+""", unsafe_allow_html=True)
+
+nav_options_map = {
+    tr("📦 Show Open Scrap Pickups & Photos", "📦 खुले स्क्रैप ऑर्डर्स व फोटो जांच देखें")[0]: {"role": "COLLECTOR"},
+    tr("🔍 Open AI ScrapVision Material & Weight Engine", "🔍 एआई स्क्रैप-विजन वजन व सामग्री इंजन खोलें")[0]: {"role": "HOUSEHOLD"},
+    tr("🎯 Open Smart Buyer Matching & Recycler Offers", "🎯 स्मार्ट खरीदार मिलान व रीसाइक्लर ऑफर खोलें")[0]: {"role": "COLLECTOR"},
+    tr("🤝 Show Collaborative Scrap Pooling Groups", "🤝 सहयोगात्मक स्क्रैप पूलिंग ग्रुप खोलें")[0]: {"role": "COLLECTOR"},
+    tr("📜 View Digital Scrap Passport & Traceability", "📜 डिजिटल स्क्रैप पासपोर्ट व ट्रैसेबिलिटी देखें")[0]: {"role": "COLLECTOR"},
+    tr("🗺️ Open EcoRoute TSP Fuel Navigation Planner", "🗺️ इको-रूट टीएसपी रूट प्लानर खोलें")[0]: {"role": "COLLECTOR"},
+    tr("🪪 View 3-Point KYC Identity Credentials", "🪪 3-बिंदु पहचान सत्यापन क्रेडेंशियल देखें")[0]: {"role": "COLLECTOR"},
+    tr("🤖 Run AI Biometric Photo Matching (Aadhaar/DL vs Live)", "🤖 एआई बायोमेट्रिक फोटो मिलान (आधार/डीएल vs लाइव) चलाएं")[0]: {"role": "ADMIN"},
+    tr("📈 Manage Mandi Wholesale Benchmark Rates", "📈 मंडी थोक बेंचमार्क दरें प्रबंधित करें")[0]: {"role": "ADMIN"},
+    tr("🛡️ Open EcoShield Anomaly & Anti-Fraud Audit", "🛡️ इको-शील्ड विसंगति व धोखाधड़ी ऑडिट खोलें")[0]: {"role": "ADMIN"},
+    tr("🗄️ Manage Free Cloud Database Connectivity", "🗄️ मुफ्त क्लाउड डेटाबेस कनेक्टिविटी खोलें")[0]: {"role": "ADMIN"},
+    tr("🏢 Open Commercial Bulk Generator Dashboard", "🏢 वाणिज्यिक अपशिष्ट जनरेटर डैशबोर्ड खोलें")[0]: {"role": "BUSINESS"},
+    tr("🏭 Open Recycler Facility Wholesale Rate Portal", "🏭 रीसाइक्लिंग कारखाना दर पोर्टल खोलें")[0]: {"role": "RECYCLER"},
+}
+
+cmd_col1, cmd_col2, cmd_col3 = st.columns([3, 1, 1])
+
+with cmd_col1:
+    chosen_nav = st.selectbox(
+        tr("What would you like to see or navigate to?", "आप क्या देखना या नेविगेट करना चाहते हैं?")[0],
+        list(nav_options_map.keys()),
+        label_visibility="collapsed"
+    )
+
+with cmd_col2:
+    voice_mic_btn = st.button("🎙️ " + tr("Simulate Voice Mic", "माइक बोलें")[0], use_container_width=True, help=tr("Listen to voice phrase & redirect", "आवाज सुनकर पेज पर जाएं")[0])
+
+with cmd_col3:
+    exec_nav_btn = st.button("⚡ " + tr("Navigate Now", "नेविगेट करें")[0], type="primary", use_container_width=True)
+
+if voice_mic_btn or exec_nav_btn:
+    target_info = nav_options_map[chosen_nav]
+    target_role = target_info["role"]
+    
+    st.session_state.current_role = target_role
+    st.toast(tr(f"Redirecting to: {chosen_nav}...", f"नेविगेट किया जा रहा है: {chosen_nav}...")[0], icon="🚀")
+    time.sleep(0.3)
+    st.rerun()
 
 # Footer
 st.divider()
