@@ -253,3 +253,221 @@ export interface KycDossier {
   appliedDate: string;
   reviewedBy?: string | null;
 }
+
+// -------------------------------------------------------------
+// FEATURE 1: SMART BUYER MATCHING
+// -------------------------------------------------------------
+export interface TransportEstimate {
+  vehicleType: string;
+  baseFare: number;
+  ratePerKm: number;
+  distanceKm: number;
+  totalTransportCost: number;
+}
+
+export interface BuyerMatchOffer {
+  offerId: string;
+  recyclerId: string;
+  recyclerName: string;
+  facilityName: string;
+  facilityAddress: string;
+  distanceKm: number;
+  buyingPricePerKg: number;
+  minQuantityKg: number;
+  maxCapacityKg: number;
+  currentIntakeKg: number;
+  availableCapacityKg: number;
+  gradeAccepted: string;
+  paymentTerms: string;
+  handlingFeePerKg: number;
+  weightKg: number;
+  grossValue: number;
+  transportEstimate: TransportEstimate;
+  handlingFeeTotal: number;
+  netProceeds: number;
+  effectiveRatePerKg: number;
+  isEligible: boolean;
+  meetsMinQuantity: boolean;
+  meetsCapacity: boolean;
+  recommendationRank?: number;
+  recommendationReason: string;
+  disqualificationReason?: string;
+}
+
+export interface SmartBuyerMatchResponse {
+  eligibleBuyers: BuyerMatchOffer[];
+  incompatibleBuyers: BuyerMatchOffer[];
+  recommendedBuyer: BuyerMatchOffer | null;
+  meta: {
+    lotId?: string;
+    categoryName: string;
+    weightKg: number;
+    collectorLocation: { lat: number; lng: number };
+    vehicleType: string;
+    timestamp: string;
+  };
+}
+
+// -------------------------------------------------------------
+// FEATURE 2: COLLABORATIVE SCRAP POOLING
+// -------------------------------------------------------------
+export interface ScrapPoolItem {
+  id: string;
+  poolCode: string;
+  title: string;
+  description?: string | null;
+  category: {
+    id: string;
+    name: string;
+    hindiName: string;
+    slug: string;
+  };
+  targetWeightKg: number;
+  currentPledgedKg: number;
+  remainingKg: number;
+  progressPercentage: number;
+  targetPricePerKg: number;
+  baselinePricePerKg: number;
+  premiumSpreadPerKg: number;
+  estimatedTotalBulkValue: number;
+  collectionDeadline: string;
+  status: 'OPEN' | 'TARGET_REACHED' | 'MATCHED' | 'DISPATCHED' | 'SETTLED' | 'CANCELLED';
+  hubLocationName: string;
+  hubAddress: string;
+  hubLat: number;
+  hubLng: number;
+  distanceKm?: number;
+  creatorName: string;
+  participantsCount: number;
+  matchedBuyer?: {
+    id: string;
+    name: string;
+    facilityName?: string;
+  } | null;
+  disbursementStatus: string;
+  paymentReference?: string | null;
+  settlementNotes?: string | null;
+  createdAt: string;
+}
+
+export interface PoolParticipantPledge {
+  pledgeId: string;
+  collectorId: string;
+  collectorName: string;
+  vehicleType: string;
+  pledgedWeightKg: number;
+  verifiedWeightKg?: number | null;
+  sharePercentage: number;
+  estGrossPayout: number;
+  poolingAdvantageInr: number;
+  allocatedPayout?: number | null;
+  status: 'PLEDGED' | 'VERIFIED' | 'WITHDRAWN' | 'SETTLED' | 'REJECTED';
+  pledgedAt: string;
+  lotNumber?: string;
+}
+
+export interface PoolActivityEntry {
+  id: string;
+  actorId?: string;
+  actorName: string;
+  action: string;
+  details?: string;
+  timestamp: string;
+}
+
+export interface PoolDetailResponse {
+  pool: ScrapPoolItem;
+  participantsBreakdown: PoolParticipantPledge[];
+  activities: PoolActivityEntry[];
+}
+
+// -------------------------------------------------------------
+// FEATURE 3: SCRAP PASSPORT TRACEABILITY
+// -------------------------------------------------------------
+export interface ScrapPassportEvent {
+  id: string;
+  stage: string;
+  actorRole: string;
+  actorName: string;
+  location?: string;
+  evidenceType: 'SELF_REPORTED' | 'SYSTEM_RECORDED' | 'INDEPENDENTLY_VERIFIED';
+  details?: any;
+  eventHash: string;
+  timestamp: string;
+}
+
+export interface ScrapPassportData {
+  lotNumber: string;
+  qrCodeData: string;
+  status: string;
+  category: {
+    id: string;
+    name: string;
+    hindiName: string;
+    slug: string;
+    icon: string;
+  };
+  grade: string;
+  declaredWeightKg: number;
+  collectedWeightKg?: number | null;
+  receivedWeightKg?: number | null;
+  weightDiscrepancyKg?: number | null;
+  discrepancyPercentage?: number | null;
+  hasDiscrepancy: boolean;
+  isDisputed: boolean;
+  disputeReason?: string | null;
+  agreedRatePerKg?: number | null;
+  estimatedGrossValue?: number | null;
+  estimatedNetProceeds?: number | null;
+  processingMethod?: string | null;
+  processingBatchNumber?: string | null;
+  processingNotes?: string | null;
+  processingConfirmedAt?: string | null;
+  cpcbComplianceRef?: string | null;
+  currentHashSha256: string;
+  createdAt: string;
+  generator: {
+    name: string;
+    originLocation: string;
+  };
+  collector: {
+    name: string;
+    vehicleType: string;
+    reliabilityRating: number;
+    phone?: string;
+  };
+  buyer?: {
+    name: string;
+    address: string;
+    phone?: string;
+  } | null;
+  environmentalImpact: {
+    carbonSavedKg: number;
+    waterSavedLiters: number;
+    treesEquivalent: number;
+  };
+  events: ScrapPassportEvent[];
+  isAuthorizedDetailView: boolean;
+}
+
+// -------------------------------------------------------------
+// FEATURE 4: VOICE COMMAND ENGINE
+// -------------------------------------------------------------
+export interface VoiceCommandResponse {
+  success: boolean;
+  logId?: string;
+  intent: string;
+  commandText: string;
+  confidence: number;
+  recognizedAction: string;
+  targetRoute?: string;
+  modalTarget?: string;
+  parameters?: Record<string, any>;
+  requiresConfirmation: boolean;
+  hindiTitle: string;
+  englishTitle: string;
+  hindiConfirmationMessage: string;
+  englishConfirmationMessage: string;
+  suggestedQuickActions: Array<{ labelHi: string; labelEn: string; command: string }>;
+}
+

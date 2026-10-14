@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import {
@@ -21,49 +21,105 @@ import {
   ExternalLink,
   Printer,
   Sparkles,
+  AlertTriangle,
+  Eye,
+  EyeOff,
+  Truck,
+  Layers,
+  ChevronRight,
+  Award,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { WastePassportTimeline } from '@/components/workflows/WastePassportTimeline';
 import { formatINR, formatKg, formatDate, truncateHash } from '@/lib/utils';
+import { apiClient } from '@/lib/api-client';
 
 export default function WastePassportDetailPage() {
   const params = useParams();
   const rawParam = params?.receiptNumber as string;
   const receiptNumber = rawParam && rawParam !== 'default' ? rawParam : 'WP-2024-00124';
-  const [copied, setCopied] = useState(false);
 
-  // Mock passport record for demo verification matching Mockup Row 3 Panel 4
-  const passportData = {
-    receiptNumber: receiptNumber,
-    materialCategory: 'Plastic (Grade A PET)',
-    weightKg: 15.0,
-    payoutAmount: 375.0,
-    sha256Hash: '9e7b28fc083a3d5b0018a1a310bb2447d25e0a9437d8fca02d13bb22283a0058',
-    generatedAt: '2026-10-14T10:45:00Z',
-    status: 'BALED_AND_PELLETED',
-    carbonSavedKg: 12.5,
-    treesEquivalent: 3.0,
-    waterSavedLiters: 95,
+  const [copied, setCopied] = useState(false);
+  const [isDetailView, setIsDetailView] = useState(true);
+
+  // Live Passport State
+  const [passport, setPassport] = useState<any>({
+    lotNumber: receiptNumber,
+    qrCodeData: `/passport/${receiptNumber}`,
+    status: 'RECEIVED', // Default to RECEIVED with discrepancy or PROCESSING_CONFIRMED
+    category: {
+      name: 'Plastic (Grade A PET)',
+      hindiName: 'प्लास्टिक की बोतलें',
+      icon: '🥤',
+    },
+    grade: 'Optical Clean PET Flakes (Food Contact Grade)',
+    declaredWeightKg: 60.0,
+    collectedWeightKg: 60.0,
+    receivedWeightKg: 56.5,
+    weightDiscrepancyKg: -3.5,
+    discrepancyPercentage: -5.8,
+    hasDiscrepancy: true,
+    isDisputed: true,
+    disputeReason: 'Moisture loss & dust deduction verified at recycler digital weighbridge',
+    agreedRatePerKg: 34.0,
+    estimatedGrossValue: 2040.0,
+    estimatedTransportCost: 170.0,
+    estimatedNetProceeds: 1870.0,
+    processingMethod: 'SHREDDED_AND_PELLETIZED',
+    processingBatchNumber: 'LOT-2026-OCT-001',
+    cpcbComplianceRef: 'CPCB/PWM/BLR-2024/092',
+    currentHashSha256: '9e7b28fc083a3d5b0018a1a310bb2447d25e0a9437d8fca02d13bb22283a0058',
+    generatedAt: '2026-10-14T09:30:00Z',
     generator: {
-      type: 'HOUSEHOLD',
       name: 'Priya Sharma',
-      location: '12th Main, Indiranagar, Bangalore - 560038',
+      originLocation: '12th Main Road, Indiranagar, Bangalore - 560038',
     },
     collector: {
       name: 'Ramesh Kumar (Kavach Certified #DL1ER4921)',
-      scaleModel: 'TrustWeigh BT-Scale v2.1 (Calibrated)',
-      scaleTolerance: '± 0.02 kg',
+      vehicleType: 'E-Rickshaw Loader',
+      phone: '+91 98765 43210',
     },
-    recycler: {
+    buyer: {
       name: 'EcoTransform Recycling Facility #BLR-04',
-      cpcbLicense: 'CPCB/PWM/BLR-2024/092',
-      facilityLocation: 'Peenya Industrial Area, Bangalore',
-      outputGrade: 'Grade A rPET Flakes (Food Contact Grade)',
-      batchLotNumber: 'LOT-2026-OCT-001',
+      address: 'Plot 42, Peenya Industrial Area Phase 2, Bangalore',
+      phone: '+91 98450 11223',
     },
-  };
+  });
+
+  // Action states for Recycler actions
+  const [isConfirmingIntake, setIsConfirmingIntake] = useState(false);
+  const [isConfirmingProcessing, setIsConfirmingProcessing] = useState(false);
+
+  // Fetch actual lot if available from API
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const res = await apiClient.passport.get(receiptNumber);
+        if (res.success && res.passport) {
+          setPassport(res.passport);
+        }
+      } catch (err) {
+        console.warn('Loaded simulated tamper-evident passport');
+      }
+    }
+    loadData();
+  }, [receiptNumber]);
+
+  // 8-stage lifecycle sequence
+  const stages = [
+    { key: 'GENERATED', label: '1. Generated', desc: 'Identified at Source' },
+    { key: 'BOOKED', label: '2. Booked', desc: 'Doorstep Pickup Slot' },
+    { key: 'COLLECTED', label: '3. Collected', desc: 'Loaded on Vehicle' },
+    { key: 'WEIGHED', label: '4. Weighed', desc: 'TrustWeigh Certified' },
+    { key: 'BUYER_SELECTED', label: '5. Buyer Matched', desc: 'Best Net Return' },
+    { key: 'HANDED_OVER', label: '6. Handed Over', desc: 'In Transit to Mill' },
+    { key: 'RECEIVED', label: '7. Received', desc: 'Weighbridge Intake' },
+    { key: 'PROCESSING_CONFIRMED', label: '8. Processed', desc: 'Pelletized & Recycled' },
+  ];
+
+  const currentStageIndex = stages.findIndex((s) => s.key === passport.status);
+  const activeIndex = currentStageIndex >= 0 ? currentStageIndex : 6; // default received
 
   const handleShare = () => {
     if (navigator.clipboard) {
@@ -77,253 +133,312 @@ export default function WastePassportDetailPage() {
     window.print();
   };
 
+  const handleConfirmIntake = () => {
+    setPassport((prev: any) => ({
+      ...prev,
+      status: 'RECEIVED',
+      hasDiscrepancy: false,
+      receivedWeightKg: 60.0,
+      weightDiscrepancyKg: 0,
+      discrepancyPercentage: 0,
+    }));
+    setIsConfirmingIntake(false);
+    alert('Weighbridge intake confirmed. Weight verified at 60.0 kg.');
+  };
+
+  const handleConfirmProcessing = () => {
+    setPassport((prev: any) => ({
+      ...prev,
+      status: 'PROCESSING_CONFIRMED',
+      processingConfirmedAt: new Date().toISOString(),
+      processingMethod: 'SHREDDED_AND_PELLETIZED',
+      processingBatchNumber: 'BATCH-2026-BLR-881',
+      cpcbComplianceRef: 'CPCB/PWM/BLR-2024/092',
+    }));
+    setIsConfirmingProcessing(false);
+    alert('Circular processing confirmed. CPCB EPR Certificate generated.');
+  };
+
   return (
-    <div className="min-h-screen bg-stone-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Navigation Breadcrumb */}
-        <div className="flex items-center justify-between">
+    <div className="min-h-screen bg-[#f8f9fa] py-8 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto space-y-6">
+        {/* Navigation Breadcrumb & View Toggle */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <Link
             href="/"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-stone-600 hover:text-emerald-800 transition-colors"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-zinc-600 hover:text-forest-900 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
-            Back to Platform Home
+            <span>Back to ScrapSetu Platform</span>
           </Link>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handleShare} className="text-xs">
+
+          <div className="flex items-center gap-2.5">
+            {/* Public vs Detail View Toggle */}
+            <button
+              onClick={() => setIsDetailView(!isDetailView)}
+              className="px-3 py-1.5 rounded-xl border border-zinc-300 bg-white hover:bg-zinc-50 text-xs font-bold text-zinc-800 flex items-center gap-1.5 shadow-2xs"
+            >
+              {isDetailView ? <EyeOff className="w-3.5 h-3.5 text-forest-900" /> : <Eye className="w-3.5 h-3.5" />}
+              <span>{isDetailView ? 'Mask Personal PII (Public View)' : 'Show Full Audit View'}</span>
+            </button>
+
+            <Button variant="outline" size="sm" onClick={handleShare} className="text-xs font-bold">
               <Share2 className="w-3.5 h-3.5 mr-1.5" />
-              {copied ? 'Link Copied!' : 'Share Passport'}
+              <span>{copied ? 'Copied!' : 'Share'}</span>
             </Button>
-            <Button variant="outline" size="sm" onClick={handlePrint} className="text-xs">
+
+            <Button variant="outline" size="sm" onClick={handlePrint} className="text-xs font-bold">
               <Printer className="w-3.5 h-3.5 mr-1.5" />
-              Print / Save PDF
+              <span>Print Manifest</span>
             </Button>
           </div>
         </div>
 
         {/* Certificate Header Banner */}
-        <div className="bg-gradient-to-r from-emerald-950 via-forest-900 to-emerald-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+        <div className="bg-gradient-to-r from-forest-950 via-forest-900 to-emerald-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
           <div className="absolute right-0 top-0 bottom-0 w-1/3 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-emerald-500/20 to-transparent pointer-events-none" />
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 relative z-10">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold mb-3 border border-emerald-500/30">
+            <div className="space-y-2">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-500/30">
                 <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span>Ministry of Environment & CPCB Traceable</span>
+                <span>CPCB &amp; MoEFCC Digital Waste Passport</span>
               </div>
               <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-                Digital Waste Passport
+                Scrap Passport™ Traceability Certificate
               </h1>
-              <p className="text-xs sm:text-sm text-emerald-200 mt-1 max-w-xl">
+              <p className="text-xs sm:text-sm text-emerald-200 max-w-xl">
                 Cryptographically sealed cradle-to-gate circular chain of custody verification.
               </p>
 
-              <div className="flex flex-wrap items-center gap-3 mt-4 text-xs">
-                <div className="flex items-center gap-1.5 bg-black/30 px-3 py-1.5 rounded-xl font-mono text-emerald-300 border border-emerald-500/30">
-                  <span className="text-stone-400">PASSPORT ID:</span>
-                  <span className="font-black">{passportData.receiptNumber}</span>
+              <div className="flex flex-wrap items-center gap-3 pt-2 text-xs">
+                <div className="flex items-center gap-1.5 bg-black/40 px-3 py-1.5 rounded-xl font-mono text-emerald-300 border border-emerald-500/30 font-bold">
+                  <span>LOT ID:</span>
+                  <span>{passport.lotNumber}</span>
                 </div>
-                <div className="flex items-center gap-1.5 bg-black/30 px-3 py-1.5 rounded-xl text-stone-200">
-                  <Calendar className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>{formatDate(passportData.generatedAt)}</span>
+                <div className="flex items-center gap-1.5 bg-black/40 px-3 py-1.5 rounded-xl font-mono text-zinc-300 border border-white/10">
+                  <span className="text-zinc-400">SHA-256:</span>
+                  <span>{truncateHash(passport.currentHashSha256)}</span>
                 </div>
               </div>
             </div>
 
-            {/* QR Code Seal */}
-            <div className="bg-white p-3.5 rounded-2xl shadow-lg border border-emerald-800 text-center shrink-0 w-36 sm:w-40">
-              <div className="w-28 h-28 mx-auto bg-stone-100 rounded-xl flex items-center justify-center p-1.5 border border-stone-200 relative">
-                <QrCode className="w-24 h-24 text-stone-900" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-6 h-6 rounded-md bg-emerald-700 text-white flex items-center justify-center shadow-xs">
+            {/* High-Contrast Scannable QR Code */}
+            <div className="bg-white p-3.5 rounded-2xl shadow-2xl border-2 border-emerald-500 text-center shrink-0 w-36 sm:w-40">
+              <div className="w-28 h-28 mx-auto bg-zinc-100 rounded-xl flex items-center justify-center p-1.5 border border-zinc-200 relative">
+                <QrCode className="w-24 h-24 text-zinc-950" />
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="w-6 h-6 rounded-md bg-forest-900 text-emerald-400 flex items-center justify-center shadow-xs">
                     <Recycle className="w-4 h-4" />
                   </div>
                 </div>
               </div>
-              <div className="text-[10px] font-black text-stone-900 mt-1.5">
+              <div className="text-[10px] font-black text-zinc-950 mt-1.5">
                 SCAN TO VERIFY
               </div>
-              <div className="text-[9px] text-stone-500 font-mono">
+              <div className="text-[9px] text-zinc-500 font-mono">
                 CPCB Batch QR
               </div>
             </div>
           </div>
         </div>
 
-        {/* Impact Highlights Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <Card className="border-emerald-200 bg-emerald-50/60 p-4">
-            <div className="text-[11px] font-bold text-emerald-800">Net Weight Diverted</div>
-            <div className="text-xl font-black text-emerald-950 mt-1">
-              {formatKg(passportData.weightKg)}
+        {/* Full 8-Stage Lifecycle Progress Bar */}
+        <div className="bg-white rounded-3xl p-6 shadow-xl border border-zinc-200 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-black text-zinc-950 tracking-tight">
+                8-Stage Circular Lifecycle Sequence
+              </h2>
+              <p className="text-xs text-zinc-500">
+                End-to-end chain of custody from household segregation to secondary raw material output.
+              </p>
             </div>
-            <div className="text-[10px] text-emerald-700 mt-0.5">{passportData.materialCategory}</div>
-          </Card>
+            <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-mono font-bold">
+              Current: {passport.status.replace(/_/g, ' ')}
+            </span>
+          </div>
 
-          <Card className="border-blue-200 bg-blue-50/60 p-4">
-            <div className="text-[11px] font-bold text-blue-800">CO₂ Avoided</div>
-            <div className="text-xl font-black text-blue-950 mt-1">
-              {passportData.carbonSavedKg} kg
-            </div>
-            <div className="text-[10px] text-blue-700 mt-0.5">Calculated vs Virgin Feedstock</div>
-          </Card>
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2">
+            {stages.map((st, idx) => {
+              const isPast = idx < activeIndex;
+              const isCurrent = idx === activeIndex;
 
-          <Card className="border-teal-200 bg-teal-50/60 p-4">
-            <div className="text-[11px] font-bold text-teal-800">Trees Protected</div>
-            <div className="text-xl font-black text-teal-950 mt-1">
-              {passportData.treesEquivalent} Trees
-            </div>
-            <div className="text-[10px] text-teal-700 mt-0.5">Forestry Offset Index</div>
-          </Card>
-
-          <Card className="border-amber-200 bg-amber-50/60 p-4">
-            <div className="text-[11px] font-bold text-amber-800">Generator Payout</div>
-            <div className="text-xl font-black text-amber-950 mt-1">
-              {formatINR(passportData.payoutAmount)}
-            </div>
-            <div className="text-[10px] text-amber-700 mt-0.5">Instant Direct UPI Settled</div>
-          </Card>
+              return (
+                <div
+                  key={st.key}
+                  className={`p-3 rounded-2xl border text-center transition-all ${
+                    isCurrent
+                      ? 'bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/20'
+                      : isPast
+                      ? 'bg-zinc-50 border-emerald-200'
+                      : 'bg-zinc-50/50 border-zinc-200 opacity-60'
+                  }`}
+                >
+                  <div className="flex items-center justify-center mb-1">
+                    {isPast || isCurrent ? (
+                      <CheckCircle2
+                        className={`w-4 h-4 ${isCurrent ? 'text-forest-900' : 'text-emerald-600'}`}
+                      />
+                    ) : (
+                      <span className="w-4 h-4 rounded-full border border-zinc-300 text-[10px] font-bold text-zinc-400 flex items-center justify-center">
+                        {idx + 1}
+                      </span>
+                    )}
+                  </div>
+                  <div
+                    className={`text-[11px] font-extrabold truncate ${
+                      isCurrent ? 'text-forest-900 font-black' : 'text-zinc-800'
+                    }`}
+                  >
+                    {st.label}
+                  </div>
+                  <div className="text-[9px] text-zinc-400 mt-0.5 truncate">{st.desc}</div>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
-        {/* 4-Stage Cradle-to-Gate Circular Chain of Custody */}
-        <Card className="border-stone-200 shadow-sm">
-          <CardHeader className="pb-3 border-b border-stone-100">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base font-bold text-stone-900 flex items-center gap-2">
-                  <Recycle className="w-5 h-5 text-emerald-700" />
-                  Cradle-to-Gate Traceability Journey
-                </CardTitle>
-                <CardDescription className="text-xs">
-                  Full physical journey of collected material from citizen doorstep to recycled granulate
-                </CardDescription>
-              </div>
-              <Badge variant="emerald" className="text-xs">
-                Verified Circular
-              </Badge>
+        {/* Discrepancy Warning Alert Banner (if origin vs receiving differs) */}
+        {passport.hasDiscrepancy && (
+          <div className="bg-amber-50 border-2 border-amber-300 rounded-3xl p-5 shadow-sm space-y-2">
+            <div className="flex items-center gap-2.5">
+              <AlertTriangle className="w-5 h-5 text-amber-700 shrink-0" />
+              <h3 className="font-black text-amber-950 text-sm">
+                Weighbridge Weight Discrepancy Detected (-3.5 kg / -5.8%)
+              </h3>
             </div>
-          </CardHeader>
+            <p className="text-xs text-amber-900 leading-relaxed pl-7">
+              Collector dispatched <b>{passport.collectedWeightKg} kg</b> at Indiranagar. Receiving weighbridge recorded{' '}
+              <b>{passport.receivedWeightKg} kg</b> at EcoTransform Mill #04. Discrepancy logged as:{' '}
+              <i>&quot;{passport.disputeReason}&quot;</i>. Settlement automatically adjusted to net weight.
+            </p>
+          </div>
+        )}
 
-          <CardContent className="pt-6">
-            <div className="relative pl-6 space-y-8 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-emerald-300">
-              {/* Stage 1: Origin */}
-              <div className="relative">
-                <div className="absolute -left-6 top-0 w-4 h-4 rounded-full bg-emerald-600 ring-4 ring-emerald-100" />
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black uppercase text-emerald-800 tracking-wider">
-                      Stage 1: Origin & Segregation (Citizen Doorstep)
-                    </span>
-                    <span className="text-[11px] text-stone-500">Oct 12, 2026 • 11:30 AM</span>
-                  </div>
-                  <div className="text-sm font-bold text-stone-900 mt-0.5">
-                    {passportData.generator.name} ({passportData.generator.type})
-                  </div>
-                  <p className="text-xs text-stone-600 flex items-center gap-1.5 mt-0.5">
-                    <MapPin className="w-3.5 h-3.5 text-stone-400" />
-                    {passportData.generator.location}
-                  </p>
-                  <div className="mt-2 text-xs bg-stone-50 p-2.5 rounded-xl border border-stone-200 inline-block">
-                    <span className="font-bold text-stone-700">ScrapVision AI Scan: </span>
-                    <span className="text-emerald-700 font-semibold">96.4% confidence (PET bottles & HDPE jars)</span>
-                  </div>
+        {/* Central Manifest Cards Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Card 1: Material & Settlement Ledger */}
+          <div className="bg-white rounded-3xl p-6 shadow-xl border border-zinc-200 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
+              <h3 className="text-sm font-black text-zinc-950 uppercase tracking-wider flex items-center gap-2">
+                <Scale className="w-4 h-4 text-forest-900" />
+                <span>Material &amp; Weighment Ledger</span>
+              </h3>
+              <span className="text-xs font-bold text-emerald-700">Verified Scale</span>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div className="flex justify-between py-1 border-b border-zinc-100">
+                <span className="text-zinc-500">Material Category:</span>
+                <span className="font-extrabold text-zinc-900">{passport.category.name}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-zinc-100">
+                <span className="text-zinc-500">Commercial Grade:</span>
+                <span className="font-bold text-zinc-800">{passport.grade}</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-zinc-100">
+                <span className="text-zinc-500">Collector Dispatch Weight:</span>
+                <span className="font-mono font-bold text-zinc-900">{passport.collectedWeightKg} kg</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-zinc-100">
+                <span className="text-zinc-500">Mill Intake Net Weight:</span>
+                <span className="font-mono font-black text-emerald-800">{passport.receivedWeightKg} kg</span>
+              </div>
+              <div className="flex justify-between py-1 border-b border-zinc-100">
+                <span className="text-zinc-500">Agreed Buying Rate:</span>
+                <span className="font-mono font-bold text-zinc-900">₹{passport.agreedRatePerKg}/kg</span>
+              </div>
+              <div className="flex justify-between py-1">
+                <span className="text-zinc-500 font-bold">Net Payout to Collector:</span>
+                <span className="font-mono font-black text-forest-900 text-sm">
+                  {formatINR((passport.receivedWeightKg || 60) * (passport.agreedRatePerKg || 34))}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Card 2: Chain of Custody Actors */}
+          <div className="bg-white rounded-3xl p-6 shadow-xl border border-zinc-200 space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
+              <h3 className="text-sm font-black text-zinc-950 uppercase tracking-wider flex items-center gap-2">
+                <Truck className="w-4 h-4 text-forest-900" />
+                <span>Chain of Custody Provenance</span>
+              </h3>
+              <span className="text-xs font-mono text-zinc-400">CPCB Audit Trail</span>
+            </div>
+
+            <div className="space-y-3.5 text-xs">
+              <div className="p-3 rounded-2xl bg-zinc-50 border border-zinc-200/80">
+                <div className="text-[10px] uppercase font-bold text-zinc-400">Origin Generator (Household)</div>
+                <div className="font-extrabold text-zinc-900 mt-0.5">
+                  {isDetailView ? passport.generator.name : 'Priya S*** (Verified Citizen)'}
+                </div>
+                <div className="text-[11px] text-zinc-500">
+                  {isDetailView ? passport.generator.originLocation : 'Indiranagar, Bangalore (Address Masked for Privacy)'}
                 </div>
               </div>
 
-              {/* Stage 2: Collector Pickup */}
-              <div className="relative">
-                <div className="absolute -left-6 top-0 w-4 h-4 rounded-full bg-emerald-600 ring-4 ring-emerald-100" />
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black uppercase text-emerald-800 tracking-wider">
-                      Stage 2: TrustWeigh Calibrated Intake
-                    </span>
-                    <span className="text-[11px] text-stone-500">Oct 12, 2026 • 12:15 PM</span>
-                  </div>
-                  <div className="text-sm font-bold text-stone-900 mt-0.5">
-                    {passportData.collector.name}
-                  </div>
-                  <p className="text-xs text-stone-600 flex items-center gap-1.5 mt-0.5">
-                    <Scale className="w-3.5 h-3.5 text-stone-400" />
-                    Hardware: {passportData.collector.scaleModel} ({passportData.collector.scaleTolerance})
-                  </p>
-                  <div className="mt-2 text-xs bg-emerald-50 p-2.5 rounded-xl border border-emerald-200 text-emerald-900">
-                    Gross Weight: <span className="font-bold">25.0 kg</span> • Tare Weight:{' '}
-                    <span className="font-bold">0.2 kg</span> • Verified Net Weight:{' '}
-                    <span className="font-black text-emerald-950">24.8 kg</span>
-                  </div>
+              <div className="p-3 rounded-2xl bg-zinc-50 border border-zinc-200/80">
+                <div className="text-[10px] uppercase font-bold text-zinc-400">Assigned Collector</div>
+                <div className="font-extrabold text-zinc-900 mt-0.5">
+                  {passport.collector.name}
+                </div>
+                <div className="text-[11px] text-zinc-500">
+                  Vehicle: {passport.collector.vehicleType} • Phone:{' '}
+                  {isDetailView ? passport.collector.phone : 'Masked in Public View'}
                 </div>
               </div>
 
-              {/* Stage 3: Aggregation & Hub Dispatch */}
-              <div className="relative">
-                <div className="absolute -left-6 top-0 w-4 h-4 rounded-full bg-emerald-600 ring-4 ring-emerald-100" />
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black uppercase text-emerald-800 tracking-wider">
-                      Stage 3: Aggregation Hub Gate Pass & Compacting
-                    </span>
-                    <span className="text-[11px] text-stone-500">Oct 13, 2026 • 09:20 AM</span>
-                  </div>
-                  <div className="text-sm font-bold text-stone-900 mt-0.5">
-                    Central Delhi Circular Resource Recovery Facility (MRF #4)
-                  </div>
-                  <p className="text-xs text-stone-600 mt-0.5">
-                    Baled & QR Tagged • Batch Container #{passportData.recycler.batchLotNumber}
-                  </p>
+              <div className="p-3 rounded-2xl bg-emerald-50/70 border border-emerald-200">
+                <div className="text-[10px] uppercase font-bold text-emerald-800">Receiving Processor</div>
+                <div className="font-extrabold text-forest-950 mt-0.5">
+                  {passport.buyer.name}
                 </div>
-              </div>
-
-              {/* Stage 4: Recycler Processing */}
-              <div className="relative">
-                <div className="absolute -left-6 top-0 w-4 h-4 rounded-full bg-emerald-600 ring-4 ring-emerald-100" />
-                <div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-black uppercase text-emerald-800 tracking-wider">
-                      Stage 4: Authorized CPCB Recycling & Pelleting
-                    </span>
-                    <span className="text-[11px] text-stone-500">Oct 13, 2026 • 03:45 PM</span>
-                  </div>
-                  <div className="text-sm font-bold text-stone-900 mt-0.5">
-                    {passportData.recycler.name}
-                  </div>
-                  <p className="text-xs text-stone-600 flex items-center gap-1.5 mt-0.5">
-                    <Factory className="w-3.5 h-3.5 text-stone-400" />
-                    License: {passportData.recycler.cpcbLicense} ({passportData.recycler.facilityLocation})
-                  </p>
-                  <div className="mt-2 text-xs bg-purple-50 p-2.5 rounded-xl border border-purple-200 text-purple-900 font-semibold">
-                    Final Output Material: <span className="font-black">{passportData.recycler.outputGrade}</span>
-                  </div>
+                <div className="text-[11px] text-emerald-900">
+                  {passport.buyer.address} • CPCB Reg: {passport.cpcbComplianceRef}
                 </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        {/* Cryptographic SHA-256 Proof */}
-        <Card className="border-stone-200 bg-stone-900 text-white">
-          <CardContent className="p-5">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <div className="flex items-center gap-2 text-xs font-bold text-emerald-400">
-                  <Lock className="w-4 h-4" />
-                  <span>SHA-256 Cryptographic Audit Seal</span>
-                </div>
-                <div className="font-mono text-xs text-stone-300 mt-1 break-all bg-black/40 p-2 rounded-lg border border-stone-800">
-                  {passportData.sha256Hash}
-                </div>
-                <p className="text-[10px] text-stone-400 mt-1">
-                  Merkle Tree Block #184920 • Timestamped with Digital India Public Key Infrastructure
-                </p>
-              </div>
-              <div className="shrink-0 flex items-center gap-2">
-                <Badge variant="emerald" className="font-mono text-xs py-1 px-3">
-                  SEAL VALID
-                </Badge>
-              </div>
+        {/* Recycler Facility Action Controls (Intake Confirmation & Processing Confirmation) */}
+        <div className="bg-white rounded-3xl p-6 shadow-xl border border-zinc-200 space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-black text-zinc-950 uppercase tracking-wider flex items-center gap-2">
+                <Factory className="w-4 h-4 text-forest-900" />
+                <span>Authorized Recycler Facility Actions</span>
+              </h3>
+              <p className="text-xs text-zinc-500">
+                Update verifiable custody milestones as material arrives and gets remanufactured.
+              </p>
             </div>
-          </CardContent>
-        </Card>
+            <span className="px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-900 text-[10px] font-bold">
+              Facility Auth Level 3
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+            <Button
+              onClick={handleConfirmIntake}
+              className="bg-forest-900 hover:bg-forest-950 text-white font-bold text-xs h-12 rounded-xl flex items-center justify-center gap-2"
+            >
+              <Scale className="w-4 h-4 text-emerald-400" />
+              <span>Confirm Weighbridge Intake (Clear Discrepancy)</span>
+            </Button>
+
+            <Button
+              onClick={handleConfirmProcessing}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-12 rounded-xl flex items-center justify-center gap-2"
+            >
+              <Sparkles className="w-4 h-4 text-emerald-200" />
+              <span>Confirm Circular Processing (Issue EPR Seal)</span>
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
   );

@@ -8,6 +8,12 @@ async function main() {
   console.log('🌱 Starting ScrapSetu comprehensive database seed...');
 
   // 1. Clean existing records in sequence
+  await prisma.voiceCommandLog.deleteMany({});
+  await prisma.poolActivityLog.deleteMany({});
+  await prisma.poolPledge.deleteMany({});
+  await prisma.scrapPool.deleteMany({});
+  await prisma.scrapLotEvent.deleteMany({});
+  await prisma.scrapLot.deleteMany({});
   await prisma.auditLog.deleteMany({});
   await prisma.complaintDispute.deleteMany({});
   await prisma.notification.deleteMany({});
@@ -447,22 +453,83 @@ async function main() {
     include: { addresses: true },
   });
 
-  console.log('✅ Seeded demo accounts across all 5 platform roles.');
-
-  // 5. Recycler Buying Offers
-  const recyclerOffersData = [
-    {
-      recyclerId: recycler1.id,
-      categoryId: categories['paper-cardboard'].id,
-      facilityName: 'Aravalli Paper Pulp Plant 1',
-      facilityAddress: 'Plot E-42, RIICO Industrial Area, Mansarovar',
-      lat: 26.8450,
-      lng: 75.7600,
-      buyingPricePerKg: 11.0,
-      minQuantityKg: 50.0,
-      gradeAccepted: 'Baled corrugated & unsoiled paper scrap',
-      notes: 'Direct weighbridge unload. Instant bank transfer.',
+  const recycler2 = await prisma.user.create({
+    data: {
+      name: 'Jaipur GreenTech Recyclers Pvt Ltd',
+      email: 'greentech@scrapsetu.in',
+      passwordHash: demoPasswordHash,
+      phone: '+91 98290 77007',
+      role: 'RECYCLER',
+      languagePref: 'en',
+      isVerified: true,
+      addresses: {
+        create: {
+          label: 'Sitapura Processing Center',
+          streetAddress: 'Plot G-12, Sitapura Industrial Area Phase 2',
+          city: 'Jaipur',
+          state: 'Rajasthan',
+          pincode: '302022',
+          lat: 26.7820,
+          lng: 75.8280,
+          isDefault: true,
+        },
+      },
+      profile: {
+        create: {
+          businessName: 'Jaipur GreenTech Recyclers Pvt Ltd',
+          businessType: 'MANUFACTURING',
+          gstNumber: '08BBDPA5544B1Z9',
+          dailyCapacityKg: 8000.0,
+          operatingHours: '09:00 AM - 07:00 PM',
+          reliabilityRating: 4.88,
+          totalPickupsCompleted: 215,
+        },
+      },
     },
+    include: { addresses: true },
+  });
+
+  const recycler3 = await prisma.user.create({
+    data: {
+      name: 'Rajputana Smelters & Aggregators',
+      email: 'rajputana.smelters@scrapsetu.in',
+      passwordHash: demoPasswordHash,
+      phone: '+91 98290 88008',
+      role: 'RECYCLER',
+      languagePref: 'hi',
+      isVerified: true,
+      addresses: {
+        create: {
+          label: 'VKIA Bulk Smelting Hub',
+          streetAddress: 'Road No. 14, Vishwakarma Industrial Area (VKIA)',
+          city: 'Jaipur',
+          state: 'Rajasthan',
+          pincode: '302013',
+          lat: 26.9850,
+          lng: 75.7680,
+          isDefault: true,
+        },
+      },
+      profile: {
+        create: {
+          businessName: 'Rajputana Smelters & Bulk Aggregators',
+          businessType: 'MANUFACTURING',
+          gstNumber: '08CCEPS1122C1Z1',
+          dailyCapacityKg: 25000.0,
+          operatingHours: '07:00 AM - 09:00 PM',
+          reliabilityRating: 4.92,
+          totalPickupsCompleted: 580,
+        },
+      },
+    },
+    include: { addresses: true },
+  });
+
+  console.log('✅ Seeded demo accounts across all 5 platform roles including 3 distinct recyclers.');
+
+  // 5. Recycler Buying Offers (with diverse thresholds, distances, and capacities)
+  const recyclerOffersData = [
+    // Recycler 1 (Mansarovar - 4.2 km from collector hub)
     {
       recyclerId: recycler1.id,
       categoryId: categories['rigid-plastics'].id,
@@ -471,9 +538,29 @@ async function main() {
       lat: 26.8452,
       lng: 75.7610,
       buyingPricePerKg: 20.5,
-      minQuantityKg: 30.0,
-      gradeAccepted: 'Washed bottles & caps sorted',
-      notes: 'Free unloading for verified platform collectors.',
+      minQuantityKg: 25.0,
+      maxCapacityKg: 5000.0,
+      currentIntakeKg: 1200.0,
+      handlingFeePerKg: 0.0,
+      paymentTerms: 'INSTANT_UPI_OR_NEFT',
+      gradeAccepted: 'Washed bottles & caps sorted (Grade A PET)',
+      notes: 'Direct weighbridge unload. Low transit loss for Mansarovar / Sanganer collectors.',
+    },
+    {
+      recyclerId: recycler1.id,
+      categoryId: categories['paper-cardboard'].id,
+      facilityName: 'Aravalli Paper Pulp Plant 1',
+      facilityAddress: 'Plot E-42, RIICO Industrial Area, Mansarovar',
+      lat: 26.8450,
+      lng: 75.7600,
+      buyingPricePerKg: 11.0,
+      minQuantityKg: 40.0,
+      maxCapacityKg: 8000.0,
+      currentIntakeKg: 3400.0,
+      handlingFeePerKg: 0.0,
+      paymentTerms: 'INSTANT_BANK_TRANSFER',
+      gradeAccepted: 'Baled corrugated & unsoiled paper scrap',
+      notes: 'Direct weighbridge unload. Free digital moisture calibration certificate.',
     },
     {
       recyclerId: recycler1.id,
@@ -483,16 +570,88 @@ async function main() {
       lat: 26.8460,
       lng: 75.7625,
       buyingPricePerKg: 30.0,
-      minQuantityKg: 100.0,
+      minQuantityKg: 80.0,
+      maxCapacityKg: 15000.0,
+      currentIntakeKg: 6500.0,
+      handlingFeePerKg: 0.0,
+      paymentTerms: 'INSTANT_BANK_TRANSFER',
       gradeAccepted: 'Heavy structural and cast scrap',
       notes: 'Calibrated digital weighbridge certified by Weights & Measures dept.',
     },
+    // Recycler 2 (Sitapura - 13.8 km away - higher gross price, but higher transport cost!)
+    {
+      recyclerId: recycler2.id,
+      categoryId: categories['rigid-plastics'].id,
+      facilityName: 'Jaipur GreenTech Polymer Center',
+      facilityAddress: 'Plot G-12, Sitapura Industrial Area Phase 2',
+      lat: 26.7820,
+      lng: 75.8280,
+      buyingPricePerKg: 22.0, // Higher advertised gross rate!
+      minQuantityKg: 40.0,
+      maxCapacityKg: 4000.0,
+      currentIntakeKg: 950.0,
+      handlingFeePerKg: 0.25,
+      paymentTerms: 'SAME_DAY_NEFT',
+      gradeAccepted: 'High-density bottles, drums, and sorted flakes',
+      notes: 'Higher gross price; best suited for consolidated lots > 150 kg to absorb transit cost.',
+    },
+    {
+      recyclerId: recycler2.id,
+      categoryId: categories['non-ferrous-metals'].id,
+      facilityName: 'GreenTech Copper & Brass Refinery',
+      facilityAddress: 'Plot G-14, Sitapura Industrial Area',
+      lat: 26.7825,
+      lng: 75.8290,
+      buyingPricePerKg: 125.0,
+      minQuantityKg: 15.0,
+      maxCapacityKg: 2000.0,
+      currentIntakeKg: 420.0,
+      handlingFeePerKg: 0.0,
+      paymentTerms: 'INSTANT_BANK_TRANSFER',
+      gradeAccepted: 'Stripped copper wire & cast brass fittings',
+      notes: 'Optical spectrometer metal purity testing onsite.',
+    },
+    // Recycler 3 (VKIA - 19.5 km away - Bulk Industrial Buyer with high min requirement!)
+    {
+      recyclerId: recycler3.id,
+      categoryId: categories['rigid-plastics'].id,
+      facilityName: 'Rajputana Mega Pelletizing Plant',
+      facilityAddress: 'Road No. 14, Vishwakarma Industrial Area (VKIA)',
+      lat: 26.9850,
+      lng: 75.7680,
+      buyingPricePerKg: 25.0, // High bulk premium rate!
+      minQuantityKg: 250.0, // Requires 250 kg minimum!
+      maxCapacityKg: 20000.0,
+      currentIntakeKg: 7800.0,
+      handlingFeePerKg: 0.0,
+      paymentTerms: 'DIRECT_RTGS_ON_GATEPASS',
+      gradeAccepted: 'Commercial baled PET & HDPE lots',
+      notes: 'Bulk aggregation buyer. Ideal for Collaborative Scrap Pools reaching >250 kg.',
+    },
+    {
+      recyclerId: recycler3.id,
+      categoryId: categories['ferrous-metals'].id,
+      facilityName: 'Rajputana Electric Arc Furnace',
+      facilityAddress: 'Road No. 14, VKIA Industrial Estate',
+      lat: 26.9855,
+      lng: 75.7690,
+      buyingPricePerKg: 34.0, // Bulk steel price
+      minQuantityKg: 500.0, // Requires 500 kg minimum!
+      maxCapacityKg: 40000.0,
+      currentIntakeKg: 16200.0,
+      handlingFeePerKg: 0.0,
+      paymentTerms: 'DIRECT_RTGS_ON_GATEPASS',
+      gradeAccepted: 'Industrial turning scrap, iron rods, machinery bodies',
+      notes: 'Highest industrial bulk rate in Rajasthan for pooled 500kg+ loads.',
+    },
   ];
 
+  const offers: Record<string, any> = {};
   for (const offer of recyclerOffersData) {
-    await prisma.recyclerOffer.create({ data: offer });
+    const created = await prisma.recyclerOffer.create({ data: offer });
+    offers[`${offer.facilityName}_${offer.categoryId}`] = created;
   }
-  console.log(`✅ Seeded ${recyclerOffersData.length} recycler buying offers.`);
+  console.log(`✅ Seeded ${recyclerOffersData.length} diverse recycler buying offers.`);
 
   // 6. Sample Pickup Requests Across Various State Machine States
   // A. OPEN Request (Household)
@@ -811,26 +970,349 @@ async function main() {
     ],
   });
 
-  // 8. Notifications
-  await prisma.notification.createMany({
+  // 9. Scrap Lots & Scrap Passports
+  const lot1Hash = crypto.createHash('sha256').update('LOT-2026-X8K9M2-INIT').digest('hex');
+  const lot1 = await prisma.scrapLot.create({
+    data: {
+      lotNumber: 'LOT-2026-X8K9M2',
+      qrCodeData: '/passport/LOT-2026-X8K9M2',
+      pickupRequestId: reqAccepted.id,
+      collectorId: collector1.id,
+      buyerId: recycler1.id,
+      selectedOfferId: offers[`Aravalli Polymer Flaking Division_${categories['rigid-plastics'].id}`]?.id,
+      categoryId: categories['rigid-plastics'].id,
+      grade: 'Sorted Clean PET Bottles',
+      declaredWeightKg: 45.0,
+      collectedWeightKg: 45.0,
+      status: 'BUYER_SELECTED',
+      agreedRatePerKg: 20.5,
+      estimatedGrossValue: 922.5,
+      estimatedTransportCost: 100.0,
+      estimatedNetProceeds: 822.5,
+      originCity: 'Jaipur',
+      originState: 'Rajasthan',
+      originPincode: '302017',
+      currentHashSha256: lot1Hash,
+      events: {
+        create: [
+          {
+            stage: 'GENERATED',
+            actorRole: 'CITIZEN',
+            actorName: 'Pooja Verma',
+            evidenceType: 'SELF_REPORTED',
+            location: 'Malviya Nagar, Jaipur',
+            details: JSON.stringify({ message: 'Household segregation verified via ScrapVision AI.' }),
+            eventHash: lot1Hash,
+          },
+          {
+            stage: 'WEIGHED',
+            actorRole: 'COLLECTOR',
+            actorName: 'Ramkishan Sahu',
+            evidenceType: 'INDEPENDENTLY_VERIFIED',
+            location: 'Doorstep Collection, Sector 3 Malviya Nagar',
+            details: JSON.stringify({ collectedWeightKg: 45.0, scaleTolerance: '±0.02 kg', scaleModel: 'TrustWeigh BT Scale' }),
+            eventHash: crypto.createHash('sha256').update(lot1Hash + 'WEIGHED').digest('hex'),
+          },
+          {
+            stage: 'BUYER_SELECTED',
+            actorRole: 'COLLECTOR',
+            actorName: 'Ramkishan Sahu',
+            evidenceType: 'SYSTEM_RECORDED',
+            location: 'Jaipur Smart Buyer Engine',
+            details: JSON.stringify({
+              facilityName: 'Aravalli Polymer Flaking Division',
+              netProceeds: 822.5,
+              distanceKm: 4.2,
+              reason: 'Rank #1 highest net earnings after transit deduction',
+            }),
+            eventHash: crypto.createHash('sha256').update(lot1Hash + 'BUYER_SELECTED').digest('hex'),
+          },
+        ],
+      },
+    },
+  });
+
+  // Lot 2: Full Journey Complete with CPCB processing confirmation
+  const lot2Hash = crypto.createHash('sha256').update('LOT-2026-PET-9042-PROCESSED').digest('hex');
+  const lot2 = await prisma.scrapLot.create({
+    data: {
+      lotNumber: 'LOT-2026-PET-9042',
+      qrCodeData: '/passport/LOT-2026-PET-9042',
+      collectorId: collector2.id,
+      buyerId: recycler1.id,
+      selectedOfferId: offers[`Aravalli Polymer Flaking Division_${categories['rigid-plastics'].id}`]?.id,
+      categoryId: categories['rigid-plastics'].id,
+      grade: 'Grade A rPET Flakes Raw Input',
+      declaredWeightKg: 120.0,
+      collectedWeightKg: 120.0,
+      receivedWeightKg: 119.2,
+      weightDiscrepancyKg: -0.8,
+      discrepancyPercentage: -0.7,
+      hasDiscrepancy: false, // Within 1% normal moisture loss
+      status: 'PROCESSING_CONFIRMED',
+      agreedRatePerKg: 20.5,
+      estimatedGrossValue: 2460.0,
+      estimatedTransportCost: 180.0,
+      estimatedNetProceeds: 2280.0,
+      processingMethod: 'SHREDDED_HOT_WASHED_PELLETIZED',
+      processingBatchNumber: 'BATCH-2026-ARA-0941',
+      cpcbComplianceRef: 'CPCB/EPR/2026/RAJ/88219',
+      processingNotes: 'Transformed into food-contact safe rPET granules for bottle-to-bottle circular manufacturing.',
+      processingConfirmedAt: new Date(Date.now() - 3600000 * 4),
+      originCity: 'Jaipur',
+      originState: 'Rajasthan',
+      originPincode: '302003',
+      currentHashSha256: lot2Hash,
+      events: {
+        create: [
+          {
+            stage: 'GENERATED',
+            actorRole: 'SYSTEM',
+            actorName: 'ScrapSetu Digital Ledger',
+            evidenceType: 'SYSTEM_RECORDED',
+            location: 'Transport Nagar, Jaipur',
+            details: JSON.stringify({ message: 'Commercial scrap lot registered.' }),
+            eventHash: lot2Hash,
+          },
+          {
+            stage: 'WEIGHED',
+            actorRole: 'COLLECTOR',
+            actorName: 'Mohammad Farooq',
+            evidenceType: 'INDEPENDENTLY_VERIFIED',
+            location: 'Consolidation Center, Transport Nagar',
+            details: JSON.stringify({ collectedWeightKg: 120.0 }),
+            eventHash: crypto.createHash('sha256').update(lot2Hash + 'WEIGHED').digest('hex'),
+          },
+          {
+            stage: 'HANDED_OVER',
+            actorRole: 'COLLECTOR',
+            actorName: 'Mohammad Farooq',
+            evidenceType: 'INDEPENDENTLY_VERIFIED',
+            location: 'RIICO Mansarovar Industrial Area',
+            details: JSON.stringify({ message: 'Loaded onto mini-truck RJ 14 GA 1182 for plant intake.' }),
+            eventHash: crypto.createHash('sha256').update(lot2Hash + 'HANDED_OVER').digest('hex'),
+          },
+          {
+            stage: 'RECEIVED',
+            actorRole: 'RECYCLER',
+            actorName: 'Aravalli Polymer Flaking Division',
+            evidenceType: 'INDEPENDENTLY_VERIFIED',
+            location: 'Weighbridge Gate 2, Plot E-43',
+            details: JSON.stringify({
+              receivedWeightKg: 119.2,
+              slipNumber: 'WB-ARA-8812',
+              discrepancyKg: -0.8,
+              toleranceStatus: 'PASSED_CALIBRATION_TOLERANCE',
+            }),
+            eventHash: crypto.createHash('sha256').update(lot2Hash + 'RECEIVED').digest('hex'),
+          },
+          {
+            stage: 'PROCESSING_CONFIRMED',
+            actorRole: 'RECYCLER',
+            actorName: 'Aravalli Polymer Flaking Division',
+            evidenceType: 'INDEPENDENTLY_VERIFIED',
+            location: 'Extrusion Line 3',
+            details: JSON.stringify({
+              processingMethod: 'SHREDDED_HOT_WASHED_PELLETIZED',
+              processingBatchNumber: 'BATCH-2026-ARA-0941',
+              cpcbComplianceRef: 'CPCB/EPR/2026/RAJ/88219',
+              moistureDeduction: '0.67%',
+            }),
+            eventHash: crypto.createHash('sha256').update(lot2Hash + 'PROCESSING_CONFIRMED').digest('hex'),
+          },
+        ],
+      },
+    },
+  });
+
+  // Lot 3: Active lot for Collector 1 ready for Smart Buyer Matching
+  const lot3 = await prisma.scrapLot.create({
+    data: {
+      lotNumber: 'LOT-2026-ALUM-7721',
+      qrCodeData: '/passport/LOT-2026-ALUM-7721',
+      collectorId: collector1.id,
+      categoryId: categories['non-ferrous-metals'].id,
+      grade: 'Aluminium Utensils & Cast Cuttings',
+      declaredWeightKg: 35.0,
+      collectedWeightKg: 35.0,
+      status: 'WEIGHED',
+      originCity: 'Jaipur',
+      originState: 'Rajasthan',
+      originPincode: '302017',
+      currentHashSha256: crypto.createHash('sha256').update('LOT-2026-ALUM-7721-INIT').digest('hex'),
+      events: {
+        create: [
+          {
+            stage: 'GENERATED',
+            actorRole: 'SYSTEM',
+            actorName: 'ScrapSetu Digital Ledger',
+            evidenceType: 'SYSTEM_RECORDED',
+            location: 'Jaipur, Rajasthan',
+            details: JSON.stringify({ message: 'Non-ferrous lot created.' }),
+            eventHash: crypto.createHash('sha256').update('ALUM-GEN').digest('hex'),
+          },
+          {
+            stage: 'WEIGHED',
+            actorRole: 'COLLECTOR',
+            actorName: 'Ramkishan Sahu',
+            evidenceType: 'INDEPENDENTLY_VERIFIED',
+            location: 'Jaipur Collection Center',
+            details: JSON.stringify({ collectedWeightKg: 35.0 }),
+            eventHash: crypto.createHash('sha256').update('ALUM-WEIGH').digest('hex'),
+          },
+        ],
+      },
+    },
+  });
+
+  // 10. Collaborative Scrap Pools
+  const pool1 = await prisma.scrapPool.create({
+    data: {
+      poolCode: 'POOL-2026-PLAS-001',
+      title: 'Jaipur South PET & HDPE Bulk Aggregation Drive',
+      description: 'Combining clean rigid plastic lots from Mansarovar and Sanganer to satisfy 500 kg minimum bulk buyer threshold for +₹4.5/kg premium.',
+      creatorId: collector1.id,
+      categoryId: categories['rigid-plastics'].id,
+      targetWeightKg: 500.0,
+      currentPledgedKg: 380.0,
+      targetPricePerKg: 25.0, // Bulk premium
+      baselinePricePerKg: 20.5, // Standard single lot
+      collectionDeadline: new Date(Date.now() + 86400000 * 3), // 3 days remaining
+      status: 'OPEN',
+      hubLocationName: 'Mansarovar Circular Recovery Hub',
+      hubAddress: 'Sector 4, RIICO Industrial Area, Mansarovar, Jaipur',
+      hubLat: 26.8450,
+      hubLng: 75.7600,
+      matchedOfferId: offers[`Rajputana Mega Pelletizing Plant_${categories['rigid-plastics'].id}`]?.id,
+      matchedBuyerId: recycler3.id,
+      disbursementStatus: 'PENDING_SALE',
+      pledges: {
+        create: [
+          {
+            collectorId: collector1.id,
+            pledgedWeightKg: 180.0,
+            status: 'PLEDGED',
+            pledgedAt: new Date(Date.now() - 86400000),
+          },
+          {
+            collectorId: collector2.id,
+            pledgedWeightKg: 200.0,
+            status: 'PLEDGED',
+            pledgedAt: new Date(Date.now() - 3600000 * 12),
+          },
+        ],
+      },
+      activities: {
+        create: [
+          {
+            actorId: collector1.id,
+            actorName: 'Ramkishan Sahu',
+            action: 'CREATED',
+            details: JSON.stringify({ message: 'Pool launched targeting 500 kg PET for Rajputana Mega Plant.' }),
+          },
+          {
+            actorId: collector1.id,
+            actorName: 'Ramkishan Sahu',
+            action: 'PLEDGED',
+            details: JSON.stringify({ pledgedWeightKg: 180.0, poolTotal: 180.0 }),
+          },
+          {
+            actorId: collector2.id,
+            actorName: 'Mohammad Farooq',
+            action: 'PLEDGED',
+            details: JSON.stringify({ pledgedWeightKg: 200.0, poolTotal: 380.0 }),
+          },
+        ],
+      },
+    },
+  });
+
+  const pool2 = await prisma.scrapPool.create({
+    data: {
+      poolCode: 'POOL-2026-IRON-002',
+      title: 'RIICO Heavy Iron & Steel Melt Lot (Target Met)',
+      description: 'Consolidated commercial iron and steel turning scrap pooled for Rajputana Electric Arc Furnace.',
+      creatorId: collector2.id,
+      categoryId: categories['ferrous-metals'].id,
+      targetWeightKg: 1000.0,
+      currentPledgedKg: 1000.0,
+      targetPricePerKg: 34.0,
+      baselinePricePerKg: 30.0,
+      collectionDeadline: new Date(Date.now() + 86400000 * 5),
+      status: 'TARGET_REACHED',
+      hubLocationName: 'Transport Nagar Scrap Yard Hub',
+      hubAddress: 'Shop 12, Transport Nagar Market, Jaipur',
+      hubLat: 26.8985,
+      hubLng: 75.8450,
+      matchedOfferId: offers[`Rajputana Electric Arc Furnace_${categories['ferrous-metals'].id}`]?.id,
+      matchedBuyerId: recycler3.id,
+      bulkNegotiatedRate: 34.0,
+      totalPoolValue: 34000.0,
+      disbursementStatus: 'BUYER_CONFIRMED',
+      pledges: {
+        create: [
+          {
+            collectorId: collector2.id,
+            pledgedWeightKg: 650.0,
+            status: 'PLEDGED',
+          },
+          {
+            collectorId: collector1.id,
+            pledgedWeightKg: 350.0,
+            status: 'PLEDGED',
+          },
+        ],
+      },
+      activities: {
+        create: [
+          {
+            actorId: collector2.id,
+            actorName: 'Mohammad Farooq',
+            action: 'CREATED',
+            details: JSON.stringify({ targetWeightKg: 1000.0 }),
+          },
+          {
+            actorId: 'SYSTEM',
+            actorName: 'ScrapSetu Pooling Engine',
+            action: 'TARGET_MET',
+            details: JSON.stringify({ totalAchievedKg: 1000.0, message: '100% target reached. Matched to bulk buyer.' }),
+          },
+        ],
+      },
+    },
+  });
+
+  // 11. Voice Command Audit Logs
+  await prisma.voiceCommandLog.createMany({
     data: [
       {
-        userId: household1.id,
-        title: 'कबाड़ीवाला असाइन हो गया है (Collector Assigned)',
-        message: 'रामकिशन साहु ने आपका पिकअप स्वीकार कर लिया है। वे दोपहर तक पहुंचेंगे।',
-        type: 'PICKUP_UPDATE',
-        link: `/track/${reqAccepted.id}`,
+        userId: collector1.id,
+        transcript: 'आज के पिकअप दिखाओ',
+        language: 'hi',
+        recognizedAction: 'NAVIGATE_TODAY_PICKUPS',
+        actionPayload: JSON.stringify({ targetRoute: '/collector?tab=jobs' }),
+        status: 'EXECUTED',
       },
       {
-        userId: businessUser.id,
-        title: 'Digital Receipt Generated: REC-2026-JP-00192',
-        message: 'Your recycling receipt for 187.5 kg (₹3,442.50) is ready for download.',
-        type: 'PAYMENT',
-        link: `/receipts/${txn.id}`,
+        userId: collector1.id,
+        transcript: 'प्लास्टिक के बायर्स दिखाओ',
+        language: 'hi',
+        recognizedAction: 'OPEN_SMART_BUYER_MATCHING',
+        actionPayload: JSON.stringify({ categorySlug: 'rigid-plastics' }),
+        status: 'EXECUTED',
+      },
+      {
+        userId: collector2.id,
+        transcript: 'मेरी आज की कमाई कितनी है',
+        language: 'hi',
+        recognizedAction: 'VIEW_EARNINGS',
+        actionPayload: JSON.stringify({ targetRoute: '/collector?tab=earnings' }),
+        status: 'EXECUTED',
       },
     ],
   });
 
+  console.log('✅ Seeded Scrap Lots, Traceability Passports, Scrap Pooling Groups, and Voice Command Audit records.');
   console.log('✅ Seeded pickup lifecycle states, transaction, digital receipt, rating, audit logs, and notifications.');
   console.log('🎉 Seed complete! Ready for demonstration.');
 }

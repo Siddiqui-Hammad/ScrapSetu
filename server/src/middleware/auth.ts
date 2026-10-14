@@ -74,3 +74,44 @@ export function requireRole(allowedRoles: string[]) {
     next();
   };
 }
+
+export async function authenticateOptional(
+  req: AuthRequest,
+  _res: Response,
+  next: NextFunction
+): Promise<void> {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.startsWith('Bearer ') ? authHeader.split(' ')[1] : null;
+
+  if (!token) {
+    return next();
+  }
+
+  try {
+    const decoded = jwt.verify(token, ENV.JWT_SECRET) as { id: string; role: string; email: string };
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        languagePref: true,
+        isVerified: true,
+      },
+    });
+
+    if (user) {
+      req.user = user;
+    }
+  } catch {
+    // Ignore invalid token on optional routes
+  }
+
+  next();
+}
+
+export function authenticateRole(allowedRoles: string[]) {
+  return [authenticateToken, requireRole(allowedRoles)];
+}
+

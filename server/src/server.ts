@@ -14,6 +14,10 @@ import transactionRoutes from './routes/transactionRoutes.js';
 import impactRoutes from './routes/impactRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import buyerMatchingRoutes from './routes/buyerMatchingRoutes.js';
+import poolingRoutes from './routes/poolingRoutes.js';
+import passportRoutes from './routes/passportRoutes.js';
+import voiceRoutes from './routes/voiceRoutes.js';
 
 const app = express();
 
@@ -51,6 +55,10 @@ app.use('/api/transactions', transactionRoutes);
 app.use('/api/impact', impactRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/buyer-matching', buyerMatchingRoutes);
+app.use('/api/pools', poolingRoutes);
+app.use('/api/passport', passportRoutes);
+app.use('/api/voice', voiceRoutes);
 
 // Health check endpoint
 app.get('/api/health', (_req, res) => {

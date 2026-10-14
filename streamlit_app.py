@@ -828,10 +828,14 @@ elif current_role == "COLLECTOR":
     with kc4:
         st.markdown('<div class="kpi-card"><div class="kpi-val">38% Fuel Saved</div><div class="kpi-lbl">EcoRoute TSP Savings</div></div>', unsafe_allow_html=True)
 
-    col_tab1, col_tab2, col_tab3 = st.tabs([
-        "📍 नजदीकी ऑर्डर्स व डिजिटल तौल (Daily Jobs & Digital Scale)",
-        "🗺️ EcoRoute TSP रूट प्लानर (Route Optimization)",
-        "🪪 पार्टनर 3-Point KYC सत्यापन (Aadhaar + DL + Selfie)"
+    col_tab1, col_tab_match, col_tab_pool, col_tab_pass, col_tab_voice, col_tab2, col_tab3 = st.tabs([
+        "📍 नजदीकी ऑर्डर्स व तौल (Jobs & Scale)",
+        "🎯 स्मार्ट बायर मैचिंग (Smart Buyer Matching)",
+        "🤝 सहयोगात्मक स्क्रैप पूलिंग (Scrap Pooling)",
+        "📜 स्क्रैप पासपोर्ट व ट्रैसेबिलिटी (Scrap Passport)",
+        "🎤 बोलकर चलाएं (Voice Mode)",
+        "🗺️ EcoRoute TSP रूट प्लानर",
+        "🪪 3-Point KYC सत्यापन"
     ])
 
     with col_tab1:
@@ -889,6 +893,217 @@ elif current_role == "COLLECTOR":
                         st.rerun()
             else:
                 st.info("कोई चालू पिकअप नहीं है जिसे तौलना हो। कृपया बायीं ओर से नया पिकअप स्वीकार करें।")
+
+    # ---------------- 2. SMART BUYER MATCHING TAB ----------------
+    with col_tab_match:
+        st.markdown("#### 🎯 स्मार्ट बायर मैचिंग (Smart Buyer Matching)")
+        st.caption("कबाड़ीवाले के पास उपलब्ध वजन व वाहन के अनुसार सबसे ज्यादा **शुद्ध मुनाफा (Net Proceeds)** देने वाले रीसाइक्लर की सिफारिश:")
+
+        sm_c1, sm_c2 = st.columns([1, 2], gap="medium")
+        with sm_c1:
+            with st.container(border=True):
+                st.markdown("##### 📦 उपलब्ध स्क्रैप लॉट")
+                sm_mat = st.selectbox("सामग्री (Category):", ["Plastic (PET / HDPE)", "Paper & Cardboard", "Copper Wire", "Aluminium Section"])
+                sm_wt = st.number_input("उपलब्ध वजन (Weight in kg):", min_value=10, max_value=2000, value=180, step=10)
+                sm_veh = st.selectbox("परिवहन वाहन (Vehicle Tier):", ["THREE_WHEELER (E-Rickshaw: ₹50 + ₹12/km)", "MINI_TRUCK (Tata Ace: ₹90 + ₹18/km)", "HAND_CART (Manual: ₹20 + ₹8/km)"])
+                sm_dist_filter = st.slider("अधिकतम दूरी (Max Distance km):", 5, 50, 30)
+
+        with sm_c2:
+            # Calculate buyer comparisons
+            v_type = "THREE_WHEELER" if "THREE_WHEELER" in sm_veh else ("MINI_TRUCK" if "MINI_TRUCK" in sm_veh else "HAND_CART")
+            base_f = 50 if v_type == "THREE_WHEELER" else (90 if v_type == "MINI_TRUCK" else 20)
+            rate_k = 12 if v_type == "THREE_WHEELER" else (18 if v_type == "MINI_TRUCK" else 8)
+
+            buyers = [
+                {"name": "EcoTransform Recycling Facility #BLR-04", "dist": 3.8, "rate": 34.0, "min_kg": 50, "cap_kg": 2000, "cpcb": "CPCB/PWM/BLR/092", "loc": "Peenya Ind. Area"},
+                {"name": "Apex CleanPlast Reclaimers Pvt Ltd", "dist": 8.4, "rate": 35.5, "min_kg": 100, "cap_kg": 5000, "cpcb": "CPCB/PWM/DEL/044", "loc": "Okhla Phase 1"},
+                {"name": "National Bulk Recyclers Consortium", "dist": 22.0, "rate": 38.0, "min_kg": 500, "cap_kg": 10000, "cpcb": "CPCB/EPR/2026/012", "loc": "Greater Noida Industrial"},
+            ]
+
+            results = []
+            for b in buyers:
+                t_cost = base_f + (b["dist"] * rate_k)
+                gross = sm_wt * b["rate"]
+                net = gross - t_cost
+                meets_min = sm_wt >= b["min_kg"]
+                results.append({**b, "t_cost": t_cost, "gross": gross, "net": net, "meets_min": meets_min})
+
+            # Sort eligible buyers by net proceeds descending
+            eligible = sorted([r for r in results if r["meets_min"] and r["dist"] <= sm_dist_filter], key=lambda x: x["net"], reverse=True)
+            ineligible = [r for r in results if not r["meets_min"] or r["dist"] > sm_dist_filter]
+
+            if eligible:
+                top = eligible[0]
+                st.markdown(f"""
+                <div style="background:#052e16; border:2px solid #22c55e; border-radius:18px; padding:18px; color:white; margin-bottom:14px;">
+                    <span style="background:#22c55e; color:#052e16; font-size:10px; font-weight:900; padding:2px 8px; border-radius:999px; text-transform:uppercase;">
+                        🌟 TOP RECOMMENDATION (सर्वश्रेष्ठ शुद्ध मुनाफा)
+                    </span>
+                    <h3 style="color:#ffffff; margin:6px 0 2px 0;">{top['name']}</h3>
+                    <p style="color:#86efac; font-size:12px; margin-bottom:8px;">स्थान: {top['loc']} • दूरी: <b>{top['dist']} किमी</b> • CPCB मान्यता: {top['cpcb']}</p>
+                    <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; background:rgba(0,0,0,0.4); padding:10px; border-radius:12px;">
+                        <div><span style="font-size:11px; color:#9ca3af;">सकल मूल्य (Gross)</span><br><b style="font-size:16px; color:#ffffff;">₹{top['gross']:,.2f}</b><br><span style="font-size:10px; color:#a7f3d0;">@ ₹{top['rate']}/kg</span></div>
+                        <div><span style="font-size:11px; color:#9ca3af;">अनुमानित भाड़ा (Transport)</span><br><b style="font-size:16px; color:#f87171;">-₹{top['t_cost']:,.2f}</b><br><span style="font-size:10px; color:#fca5a5;">{top['dist']} km @ {v_type}</span></div>
+                        <div><span style="font-size:11px; color:#a7f3d0;">शुद्ध प्राप्ति (Net Proceeds)</span><br><b style="font-size:20px; color:#4ade80;">₹{top['net']:,.2f}</b><br><span style="font-size:10px; color:#86efac;">सर्वाधिक कमाई</span></div>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
+                st.markdown("##### 📋 अन्य उपलब्ध रीसाइक्लर विकल्प (Comparable Buyer Offers)")
+                for alt in eligible:
+                    with st.container(border=True):
+                        ac1, ac2, ac3 = st.columns([2, 1, 1])
+                        with ac1:
+                            st.markdown(f"**{alt['name']}**")
+                            st.caption(f"दूरी: {alt['dist']} km • न्यूनतम लॉट: {alt['min_kg']} kg")
+                        with ac2:
+                            st.markdown(f"दर: **₹{alt['rate']}/kg**")
+                            st.caption(f"भाड़ा: ₹{alt['t_cost']:,.0f}")
+                        with ac3:
+                            st.markdown(f"**शुद्ध: ₹{alt['net']:,.2f}**")
+                            if st.button("चुनें (Select)", key=f"sel_b_{alt['name'][:8]}", use_container_width=True):
+                                st.success(f"{alt['name']} चुना गया! लॉट #LOT-2026-PET-8821 बायर को असाइन हुआ।")
+
+            if ineligible:
+                st.markdown("##### ⚠️ अनुपयुक्त रीसाइक्लर (Incompatible Buyers)")
+                for inel in ineligible:
+                    with st.container(border=True):
+                        st.markdown(f"**{inel['name']}** (दूरी: {inel['dist']} km • दर: ₹{inel['rate']}/kg)")
+                        if not inel["meets_min"]:
+                            st.warning(f"❌ न्यूनतम लॉट आवश्यकता पूरी नहीं: आवश्यक {inel['min_kg']} kg, आपके पास केवल {sm_wt} kg है।")
+                        elif inel["dist"] > sm_dist_filter:
+                            st.warning(f"❌ अधिकतम सीमा ({sm_dist_filter} km) से अधिक दूरी: {inel['dist']} km।")
+
+    # ---------------- 3. COLLABORATIVE SCRAP POOLING TAB ----------------
+    with col_tab_pool:
+        st.markdown("#### 🤝 सहयोगात्मक स्क्रैप पूलिंग (Collaborative Scrap Pooling)")
+        st.caption("छोटे कबाड़ीवाले आपस में स्क्रैप मिलाकर बड़ी बल्क लॉट बनाते हैं और सीधा रीसाइक्लर से +15% से +25% तक प्रीमियम दर पाते हैं:")
+
+        pool_c1, pool_c2 = st.columns([1, 1], gap="large")
+        with pool_c1:
+            st.markdown("##### 📦 सक्रिय पूलिंग ग्रुप (Active Pooling Consignments)")
+            pools_data = [
+                {"id": "POOL-001", "name": "इंदिरानगर PET प्लास्टिक बल्क पूल", "cat": "Plastic (PET)", "target": 1000, "pledged": 640, "rate": 34.0, "solo": 28.0, "deadline": "कल शाम 5 बजे", "hub": "इंदिरानगर रिकवरी यार्ड"},
+                {"id": "POOL-002", "name": "कोरमंगला कार्डबोर्ड व गत्ता मेगा लॉट", "cat": "Cardboard", "target": 2000, "pledged": 1750, "rate": 18.5, "solo": 14.0, "deadline": "2 दिन में", "hub": "कोरमंगला 4th ब्लॉक यार्ड"},
+            ]
+
+            for p in pools_data:
+                pct = int((p["pledged"] / p["target"]) * 100)
+                rem = p["target"] - p["pledged"]
+                bonus = p["rate"] - p["solo"]
+                with st.container(border=True):
+                    st.markdown(f"**{p['name']}** (`{p['id']}`)")
+                    st.caption(f"सामग्री: **{p['cat']}** • हब: {p['hub']} • अंतिम समय: {p['deadline']}")
+                    st.progress(pct / 100)
+                    st.write(f"प्रगति: **{p['pledged']} / {p['target']} kg ({pct}%)** • शेष: **{rem} kg**")
+                    st.markdown(f"बल्क दर: **₹{p['rate']}/kg** *(अकेले बेचने पर केवल ₹{p['solo']}/kg, पूलिंग बोनस: +₹{bonus}/kg)*")
+
+        with pool_c2:
+            st.markdown("##### ✍️ अपने स्क्रैप का योगदान दें (Pledge Scrap to Pool)")
+            with st.form("pledge_form"):
+                p_choice = st.selectbox("चुनें पूलिंग ग्रुप:", [f"{p['id']} — {p['name']}" for p in pools_data])
+                pl_kg = st.number_input("योगदान हेतु वजन (Pledged Weight in kg):", min_value=10, max_value=500, value=50, step=5)
+                
+                est_p = pl_kg * 34.0
+                est_b = pl_kg * 6.0
+                st.info(f"💡 **अनुमानित भुगतान:** ₹{est_p:,.2f} | **पूलिंग अतिरिक्त बोनस:** +₹{est_b:,.2f}")
+                st.caption("🔒 निष्पक्षता नियम: आपका योगदान सुरक्षित रहेगा। 100% पूरा होने से पहले आप कभी भी वापस ले सकते हैं।")
+                
+                if st.form_submit_button("🤝 पूल में स्क्रैप लॉक करें (Lock Pledge)", type="primary", use_container_width=True):
+                    st.success(f"सफलतापूर्वक {pl_kg} kg स्क्रैप पूल में जोड़ा गया! आपकी हिस्सेदारी 14.2% आरक्षित हुई।")
+
+    # ---------------- 4. SCRAP PASSPORT TAB ----------------
+    with col_tab_pass:
+        st.markdown("#### 📜 डिजिटल स्क्रैप पासपोर्ट व ट्रैसेबिलिटी (Scrap Passport)")
+        st.caption("कचरा संग्रहण से लेकर रीसाइक्लिंग प्लांट तक 8-चरणीय ब्लॉकचेन-सीलबंद जीवनचक्र:")
+
+        st.markdown("""
+        <div style="background:#ffffff; border:1px solid #cbd5e1; border-radius:16px; padding:16px; margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <div>
+                    <span style="font-size:11px; background:#dcfce7; color:#15803d; font-weight:bold; padding:2px 8px; border-radius:999px;">CPCB AUDIT TRAIL</span>
+                    <h3 style="color:#0f172a; margin:4px 0 0 0;">पासपोर्ट आईडी: WP-2024-00124 (LOT-2026-PET-8821)</h3>
+                    <p style="color:#64748b; font-size:12px;">सामग्री: <b>Plastic (Grade A PET Flakes)</b> • स्रोत: इंदिरानगर, बैंगलोर</p>
+                </div>
+                <div style="text-align:right;">
+                    <span style="font-size:24px;">🏁</span><br>
+                    <b style="color:#15803d; font-size:13px;">स्थिति: RECEIVED & VERIFIED ✓</b>
+                </div>
+            </div>
+            <hr style="border-top:1px solid #f1f5f9; margin:10px 0;">
+            <div style="display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; font-size:12px;">
+                <div>संग्रहण वजन: <b>60.0 kg</b></div>
+                <div>वेजब्रिज वजन: <b style="color:#b45309;">56.5 kg</b></div>
+                <div>वजन विसंगति: <b style="color:#dc2626;">-3.5 kg (-5.8%)</b></div>
+                <div>निपटान राशि: <b style="color:#15803d;">₹1,921.00</b></div>
+            </div>
+            <div style="background:#fef3c7; border:1px solid #fde047; border-radius:8px; padding:8px; font-size:11px; color:#854d0e; margin-top:8px;">
+                ⚠️ <b>वेजब्रिज विसंगति सूचना:</b> धूल व नमी कटौती (-3.5 kg) रीसाइक्लर वेजब्रिज पर सत्यापित हुई। डिजिटल रसीद शुद्ध वजन पर लॉक हुई।
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown("##### 📍 8-चरणीय ट्रैसेबिलिटी यात्रा (Full Traceability Timeline)")
+        t_steps = [
+            ("1. Generated", "प्रिया शर्मा द्वारा इंदिरानगर घर पर प्लास्टिक पृथक्करण", "Today 09:30 AM", "✅"),
+            ("2. Booked", "ScrapSetu ऐप द्वारा पिकअप स्लॉट शेड्यूलिंग", "Today 09:45 AM", "✅"),
+            ("3. Collected", "रमेश कुमार द्वारा ई-रिक्शा पर लोडिंग", "Today 10:45 AM", "✅"),
+            ("4. Weighed", "TrustWeigh डिजिटल स्केल द्वारा 60.0 kg का सत्यापन", "Today 11:00 AM", "✅"),
+            ("5. Buyer Matched", "स्मार्ट मैचिंग द्वारा EcoTransform प्लांट #04 का चयन (₹34/kg)", "Today 11:30 AM", "✅"),
+            ("6. Handed Over", "पिकअप हब से रीसाइक्लर प्लांट को डिस्पैच", "Today 01:15 PM", "✅"),
+            ("7. Received", "50T वेजब्रिज पर 56.5 kg शुद्ध वजन की पुष्टि (#WB-9921)", "Today 02:45 PM", "✅"),
+            ("8. Processed", "rPET फूड-ग्रेड पेलेट्स में परिवर्तन व CPCB EPR प्रमाणन", "Today 04:00 PM", "🔄"),
+        ]
+
+        for s, d, tm, icon in t_steps:
+            st.markdown(f"- {icon} **{s}**: {d} *({tm})*")
+
+    # ---------------- 5. VOICE-FIRST MODE TAB ----------------
+    with col_tab_voice:
+        st.markdown("#### 🎤 बोलकर चलाएं (Voice-First Kabadiwala Mode)")
+        st.caption("अशिक्षित व अनौपचारिक कबाड़ीवालों के लिए सुलभ वॉयस कमांड इंजन:")
+
+        v_c1, v_c2 = st.columns([1, 1], gap="large")
+        with v_c1:
+            st.markdown("##### 🎙️ वॉयस कमांड का परीक्षण करें (Voice Command Simulator)")
+            voice_choice = st.selectbox(
+                "चुने या बोलें (Select Hindi Voice Phrase):",
+                [
+                    "आज के पिकअप दिखाओ",
+                    "पास के स्क्रैप जॉब्स दिखाओ",
+                    "मेरी आज की कमाई दिखाओ",
+                    "प्लास्टिक के बायर्स दिखाओ",
+                    "स्क्रैप पूल दिखाओ",
+                    "पिकअप कम्प्लीट करना है"
+                ]
+            )
+
+            if st.button("🗣️ कमांड प्रोसेस करें (Execute Voice Command)", type="primary", use_container_width=True):
+                st.session_state.last_voice_cmd = voice_choice
+                st.session_state.audit_logs.append({
+                    "action": "VOICE_COMMAND_EXECUTED",
+                    "user": st.session_state.user_name,
+                    "details": f"Processed voice command '{voice_choice}'",
+                    "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+                })
+                st.rerun()
+
+        with v_c2:
+            st.markdown("##### 📋 सिस्टम प्रतिक्रिया व पुष्टि (Action Feedback)")
+            curr_cmd = st.session_state.get("last_voice_cmd", "आज के पिकअप दिखाओ")
+            st.success(f"**पहचाना गया आदेश:** \"{curr_cmd}\"")
+
+            if curr_cmd == "आज के पिकअप दिखाओ" or curr_cmd == "पास के स्क्रैप जॉब्स दिखाओ":
+                st.info("✅ **कार्रवाई:** कबाड़ीवाला टर्मिनल के नजदीकी 3 खुले ऑर्डर्स लोड किए गए।")
+            elif curr_cmd == "मेरी आज की कमाई दिखाओ":
+                st.info("✅ **कार्रवाई:** आज की कुल कमाई ₹1,250.00 (4 पिकअप पूरे) स्क्रीन पर प्रदर्शित है।")
+            elif curr_cmd == "प्लास्टिक के बायर्स दिखाओ":
+                st.info("✅ **कार्रवाई:** स्मार्ट बायर मैचिंग में प्लास्टिक रीसाइक्लर्स की सूची सक्रिय की गई।")
+            elif curr_cmd == "स्क्रैप पूल दिखाओ":
+                st.info("✅ **कार्रवाई:** सहयोगात्मक पूलिंग ग्रुप लोड किए गए।")
+            elif curr_cmd == "पिकअप कम्प्लीट करना है":
+                st.warning("⚠️ **पुष्टि आवश्यक:** क्या आप ग्राहक प्रिया शर्मा (15 kg प्लास्टिक) का डिजिटल वजन व भुगतान पूरा करना चाहते हैं?")
+                st.button("हाँ, भुगतान पूरा करें (Confirm)", type="primary")
 
     with col_tab2:
         st.markdown("#### 🗺️ EcoRoute TSP Smart Route Navigation")

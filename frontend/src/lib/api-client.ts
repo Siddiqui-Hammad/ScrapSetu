@@ -7,6 +7,11 @@ import {
   OptimizedRouteResult,
   ScrapVisionPrediction,
   GreenLedgerMetrics,
+  SmartBuyerMatchResponse,
+  ScrapPoolItem,
+  PoolDetailResponse,
+  ScrapPassportData,
+  VoiceCommandResponse,
 } from '../types';
 
 const API_BASE = typeof window !== 'undefined' ? '/api' : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000') + '/api';
@@ -199,5 +204,148 @@ export const apiClient = {
       { method: 'POST', body: JSON.stringify({ resolution }) }
     ),
     getAuditLogs: () => request<{ success: boolean; count: number; auditLogs: any[] }>('/admin/audit-logs'),
+  },
+
+  // 1. Smart Buyer Matching
+  buyerMatching: {
+    getOffers: (params: {
+      categoryId: string;
+      weightKg: number;
+      grade?: string;
+      lat?: number;
+      lng?: number;
+      vehicleType?: string;
+      lotId?: string;
+    }) => {
+      const q = new URLSearchParams({
+        categoryId: params.categoryId,
+        weightKg: params.weightKg.toString(),
+        ...(params.grade ? { grade: params.grade } : {}),
+        ...(params.lat ? { lat: params.lat.toString() } : {}),
+        ...(params.lng ? { lng: params.lng.toString() } : {}),
+        ...(params.vehicleType ? { vehicleType: params.vehicleType } : {}),
+        ...(params.lotId ? { lotId: params.lotId } : {}),
+      }).toString();
+      return request<{ success: boolean } & SmartBuyerMatchResponse>(`/buyer-matching/offers?${q}`);
+    },
+    selectBuyer: (lotId: string, offerId: string) =>
+      request<{ success: boolean; message: string; lot: any }>('/buyer-matching/select', {
+        method: 'POST',
+        body: JSON.stringify({ lotId, offerId }),
+      }),
+    getLots: () => request<{ success: boolean; count: number; lots: any[] }>('/buyer-matching/lots'),
+    createLot: (data: { categoryId: string; declaredWeightKg: number; grade?: string; pickupRequestId?: string }) =>
+      request<{ success: boolean; message: string; lot: any }>('/buyer-matching/lots', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+  },
+
+  // 2. Collaborative Scrap Pooling
+  pooling: {
+    list: (params?: { categoryId?: string; status?: string; search?: string; lat?: number; lng?: number }) => {
+      const q = new URLSearchParams({
+        ...(params?.categoryId ? { categoryId: params.categoryId } : {}),
+        ...(params?.status ? { status: params.status } : {}),
+        ...(params?.search ? { search: params.search } : {}),
+        ...(params?.lat ? { lat: params.lat.toString() } : {}),
+        ...(params?.lng ? { lng: params.lng.toString() } : {}),
+      }).toString();
+      return request<{ success: boolean; count: number; pools: ScrapPoolItem[] }>(`/pools${q ? `?${q}` : ''}`);
+    },
+    getById: (id: string) => request<{ success: boolean } & PoolDetailResponse>(`/pools/${id}`),
+    create: (data: any) =>
+      request<{ success: boolean; message: string; pool: ScrapPoolItem }>('/pools', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    pledge: (poolId: string, data: { pledgedWeightKg: number; scrapLotId?: string }) =>
+      request<{ success: boolean; message: string; pledge: any; pool: ScrapPoolItem }>(`/pools/${poolId}/pledge`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    withdraw: (pledgeId: string) =>
+      request<{ success: boolean; message: string }>(`/pools/pledges/${pledgeId}/withdraw`, {
+        method: 'POST',
+      }),
+    matchBuyer: (poolId: string, offerId: string) =>
+      request<{ success: boolean; message: string; pool: ScrapPoolItem }>(`/pools/${poolId}/match-buyer`, {
+        method: 'POST',
+        body: JSON.stringify({ offerId }),
+      }),
+    settle: (
+      poolId: string,
+      data: {
+        verifiedPledges: { pledgeId: string; verifiedWeightKg: number }[];
+        paymentReference?: string;
+        settlementNotes?: string;
+      }
+    ) =>
+      request<{ success: boolean; message: string; pool: ScrapPoolItem }>(`/pools/${poolId}/settle`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+  },
+
+  // 3. Scrap Passport & Traceability
+  passport: {
+    get: (identifier: string) =>
+      request<{ success: boolean; passport: ScrapPassportData }>(`/passport/${identifier}`),
+    create: (data: any) =>
+      request<{ success: boolean; message: string; lot: any }>('/passport', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    handover: (lotId: string, notes?: string) =>
+      request<{ success: boolean; message: string; lot: any }>(`/passport/${lotId}/handover`, {
+        method: 'POST',
+        body: JSON.stringify({ notes }),
+      }),
+    receive: (
+      lotId: string,
+      data: {
+        receivedWeightKg: number;
+        weighbridgeSlipNumber?: string;
+        notes?: string;
+      }
+    ) =>
+      request<{ success: boolean; message: string; lot: any }>(`/passport/${lotId}/receive`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    confirmProcessing: (
+      lotId: string,
+      data: {
+        processingMethod: string;
+        processingBatchNumber: string;
+        cpcbComplianceRef?: string;
+        processingNotes?: string;
+      }
+    ) =>
+      request<{ success: boolean; message: string; lot: any }>(`/passport/${lotId}/confirm-processing`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+    dispute: (lotId: string, disputeReason: string) =>
+      request<{ success: boolean; message: string; lot: any }>(`/passport/${lotId}/dispute`, {
+        method: 'POST',
+        body: JSON.stringify({ disputeReason }),
+      }),
+  },
+
+  // 4. Voice-First Kabadiwala Mode
+  voice: {
+    processCommand: (transcript: string, language: 'hi' | 'en' = 'hi', networkOnline: boolean = true) =>
+      request<VoiceCommandResponse>('/voice/process-command', {
+        method: 'POST',
+        body: JSON.stringify({ transcript, language, networkOnline }),
+      }),
+    confirmAction: (logId?: string, confirmed: boolean = true) =>
+      request<{ success: boolean; message: string }>('/voice/confirm-action', {
+        method: 'POST',
+        body: JSON.stringify({ logId, confirmed }),
+      }),
+    getRecentLogs: () =>
+      request<{ success: boolean; count: number; logs: any[] }>('/voice/recent'),
   },
 };

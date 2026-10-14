@@ -34,6 +34,12 @@ model User {
   notifications   Notification[]
   complaintsFiled ComplaintDispute[]     @relation("Complainant")
   auditLogs       AuditLog[]
+  collectorLots   ScrapLot[]             @relation("CollectorLots")
+  buyerLots       ScrapLot[]             @relation("BuyerLots")
+  createdPools    ScrapPool[]            @relation("CreatedPools")
+  buyerPools      ScrapPool[]            @relation("BuyerPools")
+  collectorPledges PoolPledge[]          @relation("CollectorPledges")
+  voiceLogs       VoiceCommandLog[]
 
   @@index([role])
   @@index([email])
@@ -115,6 +121,8 @@ model MaterialCategory {
   pickupItems       PickupItem[]
   recyclerOffers    RecyclerOffer[]
   actualCollected   ActualCollectedItem[]
+  scrapLots         ScrapLot[]
+  scrapPools        ScrapPool[]
 }
 
 model MaterialPrice {
@@ -148,6 +156,10 @@ model RecyclerOffer {
   lng               Float            @default(75.7873)
   buyingPricePerKg  Float
   minQuantityKg     Float            @default(25.0)
+  maxCapacityKg     Float            @default(5000.0)
+  currentIntakeKg   Float            @default(0.0)
+  handlingFeePerKg  Float            @default(0.0)
+  paymentTerms      String           @default("INSTANT_BANK_TRANSFER")
   gradeAccepted     String           @default("Any clean grade")
   notes             String?
   isActive          Boolean          @default(true)
@@ -155,6 +167,8 @@ model RecyclerOffer {
   updatedAt         DateTime         @updatedAt
 
   recyclerIntakes   RecyclerIntake[]
+  scrapLots         ScrapLot[]
+  scrapPools        ScrapPool[]
 
   @@index([recyclerId])
   @@index([categoryId])
@@ -187,6 +201,7 @@ model PickupRequest {
   transaction            Transaction?
   ratings                RatingFeedback[]
   complaints             ComplaintDispute[]
+  scrapLots              ScrapLot[]
 
   @@index([requesterId])
   @@index([status])
@@ -369,3 +384,166 @@ model AuditLog {
   @@index([action])
   @@index([createdAt])
 }
+
+model ScrapLot {
+  id                     String           @id @default(uuid())
+  lotNumber              String           @unique // e.g. LOT-2026-X8K9M2
+  qrCodeData             String           // Traceability URL / identifier
+  pickupRequestId        String?
+  pickupRequest          PickupRequest?   @relation(fields: [pickupRequestId], references: [id], onDelete: SetNull)
+  collectorId            String
+  collector              User             @relation("CollectorLots", fields: [collectorId], references: [id], onDelete: Cascade)
+  buyerId                String?
+  buyer                  User?            @relation("BuyerLots", fields: [buyerId], references: [id], onDelete: SetNull)
+  selectedOfferId        String?
+  selectedOffer          RecyclerOffer?   @relation(fields: [selectedOfferId], references: [id], onDelete: SetNull)
+  categoryId             String
+  category               MaterialCategory @relation(fields: [categoryId], references: [id])
+  grade                  String           @default("Standard")
+  declaredWeightKg       Float
+  collectedWeightKg      Float?
+  receivedWeightKg       Float?
+  weightDiscrepancyKg    Float?           // receivedWeightKg - collectedWeightKg
+  discrepancyPercentage  Float?
+  hasDiscrepancy         Boolean          @default(false)
+  isDisputed             Boolean          @default(false)
+  disputeReason          String?
+  status                 String           @default("GENERATED")
+  // Stages: GENERATED, BOOKED, COLLECTED, WEIGHED, BUYER_SELECTED, HANDED_OVER, RECEIVED, PROCESSING_CONFIRMED
+  agreedRatePerKg        Float?
+  estimatedGrossValue    Float?
+  estimatedTransportCost Float?
+  estimatedNetProceeds   Float?
+  processingMethod       String?          // SHREDDED_WASHED, INDUCTION_MELTED, RPET_PELLETIZED, PULPED
+  processingBatchNumber  String?
+  processingEvidenceUrl  String?
+  processingNotes        String?
+  processingConfirmedAt  DateTime?
+  cpcbComplianceRef      String?
+  originCity             String           @default("Jaipur")
+  originState            String           @default("Rajasthan")
+  originPincode          String?
+  currentHashSha256      String           // Cryptographic seal
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
+
+  events                 ScrapLotEvent[]
+  poolPledges            PoolPledge[]
+
+  @@index([lotNumber])
+  @@index([collectorId])
+  @@index([buyerId])
+  @@index([status])
+}
+
+model ScrapLotEvent {
+  id           String   @id @default(uuid())
+  scrapLotId   String
+  scrapLot     ScrapLot @relation(fields: [scrapLotId], references: [id], onDelete: Cascade)
+  stage        String   // GENERATED, BOOKED, COLLECTED, WEIGHED, BUYER_SELECTED, HANDED_OVER, RECEIVED, PROCESSING_CONFIRMED
+  actorRole    String   // CITIZEN, COLLECTOR, RECYCLER, SYSTEM, ADMIN
+  actorName    String
+  actorId      String?
+  location     String?
+  evidenceType String   @default("SYSTEM_RECORDED") // SELF_REPORTED, SYSTEM_RECORDED, INDEPENDENTLY_VERIFIED
+  details      String?  // JSON description or summary
+  eventHash    String   // SHA-256 seal
+  timestamp    DateTime @default(now())
+
+  @@index([scrapLotId])
+  @@index([stage])
+}
+
+model ScrapPool {
+  id                 String           @id @default(uuid())
+  poolCode           String           @unique // e.g. POOL-2026-PLAS-001
+  title              String
+  description        String?
+  creatorId          String
+  creator            User             @relation("CreatedPools", fields: [creatorId], references: [id], onDelete: Cascade)
+  categoryId         String
+  category           MaterialCategory @relation(fields: [categoryId], references: [id])
+  targetWeightKg     Float
+  currentPledgedKg   Float            @default(0.0)
+  targetPricePerKg   Float            // Bulk negotiated price
+  baselinePricePerKg Float            // Single-lot baseline price
+  collectionDeadline DateTime
+  status             String           @default("OPEN") // OPEN, TARGET_REACHED, MATCHED, DISPATCHED, SETTLED, CANCELLED
+  hubLocationName    String           @default("Mansarovar Circular Recovery Hub")
+  hubAddress         String           @default("Sector 4, RIICO Industrial Area, Mansarovar, Jaipur")
+  hubLat             Float            @default(26.8450)
+  hubLng             Float            @default(75.7600)
+  matchedBuyerId     String?
+  matchedBuyer       User?            @relation("BuyerPools", fields: [matchedBuyerId], references: [id], onDelete: SetNull)
+  matchedOfferId     String?
+  matchedOffer       RecyclerOffer?   @relation(fields: [matchedOfferId], references: [id], onDelete: SetNull)
+  bulkNegotiatedRate Float?
+  totalPoolValue     Float?
+  disbursementStatus String           @default("PENDING_SALE") // PENDING_SALE, BUYER_CONFIRMED, AWAITING_PAYMENT_PROOF, SETTLED, DISPUTED
+  paymentReference   String?
+  settlementNotes    String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+
+  pledges            PoolPledge[]
+  activities         PoolActivityLog[]
+
+  @@index([poolCode])
+  @@index([creatorId])
+  @@index([categoryId])
+  @@index([status])
+}
+
+model PoolPledge {
+  id               String    @id @default(uuid())
+  poolId           String
+  pool             ScrapPool @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  collectorId      String
+  collector        User      @relation("CollectorPledges", fields: [collectorId], references: [id], onDelete: Cascade)
+  scrapLotId       String?
+  scrapLot         ScrapLot? @relation(fields: [scrapLotId], references: [id], onDelete: SetNull)
+  pledgedWeightKg  Float
+  verifiedWeightKg Float?
+  allocatedPayout  Float?
+  status           String    @default("PLEDGED") // PLEDGED, VERIFIED, WITHDRAWN, SETTLED, REJECTED
+  disputeNotes     String?
+  pledgedAt        DateTime  @default(now())
+  verifiedAt       DateTime?
+  settledAt        DateTime?
+
+  @@index([poolId])
+  @@index([collectorId])
+  @@index([scrapLotId])
+  @@index([status])
+}
+
+model PoolActivityLog {
+  id        String    @id @default(uuid())
+  poolId    String
+  pool      ScrapPool @relation(fields: [poolId], references: [id], onDelete: Cascade)
+  actorId   String?
+  actorName String
+  action    String    // CREATED, PLEDGED, WITHDRAWN, TARGET_MET, BUYER_MATCHED, VERIFIED, DISPATCHED, SETTLED, DISPUTED
+  details   String?
+  timestamp DateTime  @default(now())
+
+  @@index([poolId])
+}
+
+model VoiceCommandLog {
+  id               String   @id @default(uuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transcript       String
+  language         String   @default("hi") // hi, en
+  recognizedAction String   // NAVIGATE_JOBS, NAVIGATE_EARNINGS, NAVIGATE_BUYERS, COMPLETE_PICKUP, NAVIGATE_POOLING, SHOW_RATES, UNKNOWN
+  actionPayload    String?
+  status           String   @default("RECOGNIZED") // RECOGNIZED, CONFIRMED, EXECUTED, CANCELLED, FAILED
+  networkOnline    Boolean  @default(true)
+  timestamp        DateTime @default(now())
+
+  @@index([userId])
+  @@index([recognizedAction])
+  @@index([timestamp])
+}
+
