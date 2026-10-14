@@ -42,13 +42,52 @@ st.markdown("""
         color: #F4FDF8 !important;
     }
 
+    /* Streamlit Top Header Bar - Fix white bar into dark obsidian */
+    header[data-testid="stHeader"], [data-testid="stHeader"] {
+        background-color: #070D0A !important;
+        border-bottom: 1px solid rgba(16, 185, 129, 0.25) !important;
+        color: #F4FDF8 !important;
+    }
+    header[data-testid="stHeader"] * {
+        color: #A7F3D0 !important;
+    }
+    header[data-testid="stHeader"] svg {
+        fill: #A7F3D0 !important;
+    }
+    [data-testid="stToolbar"] {
+        color: #A7F3D0 !important;
+    }
+    [data-testid="stToolbar"] * {
+        color: #A7F3D0 !important;
+    }
+
+    /* Sidebar Styling */
     [data-testid="stSidebar"] {
         background-color: #050A07 !important;
         border-right: 1px solid rgba(16, 185, 129, 0.2) !important;
     }
-
     [data-testid="stSidebar"] * {
         color: #E2E8F0 !important;
+    }
+    [data-testid="stSidebar"] p, [data-testid="stSidebar"] span, [data-testid="stSidebar"] label {
+        color: #CBD5E1 !important;
+    }
+
+    /* Text & Label Contrast Rules */
+    p, span, div {
+        color: #E2E8F0 !important;
+    }
+    .stMarkdown h1, .stMarkdown h2, .stMarkdown h3, .stMarkdown h4, .stMarkdown h5, .stMarkdown h6 {
+        color: #F4FDF8 !important;
+    }
+    label, .stTextInput label, .stSelectbox label, .stNumberInput label, .stRadio label {
+        color: #E2E8F0 !important;
+        font-weight: 700 !important;
+        font-size: 0.9rem !important;
+    }
+    .stCaption, [data-testid="stCaptionContainer"] p {
+        color: #8B9E94 !important;
+        font-size: 0.82rem !important;
     }
 
     /* Top User Navigation Bar */
@@ -138,7 +177,7 @@ st.markdown("""
     .kpi-val {
         font-size: 2rem;
         font-weight: 800;
-        color: #10B981;
+        color: #10B981 !important;
         line-height: 1.1;
         font-family: monospace;
         text-shadow: 0 0 15px rgba(16, 185, 129, 0.25);
@@ -148,8 +187,50 @@ st.markdown("""
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.08em;
-        color: #A1B2A9;
+        color: #A1B2A9 !important;
         margin-top: 0.4rem;
+    }
+
+    /* Streamlit Native Metric Override */
+    div[data-testid="stMetric"] {
+        background: linear-gradient(145deg, #0B1510 0%, #0E1D16 100%) !important;
+        border: 1px solid rgba(16, 185, 129, 0.25) !important;
+        border-radius: 1.25rem !important;
+        padding: 1.2rem !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(16, 185, 129, 0.15) !important;
+        transition: all 0.25s ease !important;
+    }
+    div[data-testid="stMetric"]:hover {
+        border-color: rgba(16, 185, 129, 0.6) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 15px 30px -5px rgba(16, 185, 129, 0.2) !important;
+    }
+    [data-testid="stMetricValue"] {
+        color: #10B981 !important;
+        font-size: 2rem !important;
+        font-weight: 800 !important;
+        font-family: monospace !important;
+        text-shadow: 0 0 15px rgba(16, 185, 129, 0.3) !important;
+    }
+    [data-testid="stMetricValue"] * {
+        color: #10B981 !important;
+    }
+    [data-testid="stMetricLabel"] {
+        color: #A1B2A9 !important;
+        font-size: 0.75rem !important;
+        font-weight: 700 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.08em !important;
+    }
+    [data-testid="stMetricLabel"] * {
+        color: #A1B2A9 !important;
+    }
+    [data-testid="stMetricDelta"] {
+        color: #34D399 !important;
+        font-weight: 700 !important;
+    }
+    [data-testid="stMetricDelta"] * {
+        color: #34D399 !important;
     }
 
     /* Digital Receipt Box */
@@ -174,7 +255,7 @@ st.markdown("""
         justify-content: space-between;
         margin-bottom: 0.4rem;
         font-size: 0.88rem;
-        color: #CBD5E1;
+        color: #CBD5E1 !important;
     }
     .receipt-total {
         border-top: 2px dashed rgba(16, 185, 129, 0.4);
@@ -184,44 +265,110 @@ st.markdown("""
         justify-content: space-between;
         font-weight: 800;
         font-size: 1.15rem;
-        color: #34D399;
+        color: #34D399 !important;
+    }
+
+    /* Tabs Styling (Clean Pill Tabs with High Contrast) */
+    .stTabs [data-baseweb="tab-list"] {
+        background-color: #0B1510 !important;
+        border-radius: 0.85rem !important;
+        padding: 0.4rem !important;
+        border: 1px solid rgba(16, 185, 129, 0.25) !important;
+        gap: 0.5rem !important;
+    }
+    .stTabs [data-baseweb="tab"] {
+        color: #CBD5E1 !important;
+        background: transparent !important;
+        border-radius: 0.6rem !important;
+        font-weight: 700 !important;
+        padding: 0.6rem 1.3rem !important;
+        border: 1px solid transparent !important;
+        transition: all 0.2s ease !important;
+    }
+    .stTabs [data-baseweb="tab"] * {
+        color: #CBD5E1 !important;
+    }
+    .stTabs [data-baseweb="tab"]:hover {
+        color: #F4FDF8 !important;
+        background: rgba(16, 185, 129, 0.15) !important;
+        border-color: rgba(16, 185, 129, 0.35) !important;
+    }
+    .stTabs [data-baseweb="tab"]:hover * {
+        color: #F4FDF8 !important;
+    }
+    .stTabs [aria-selected="true"] {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+        border: 1px solid #10B981 !important;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35) !important;
+    }
+    .stTabs [aria-selected="true"] * {
+        color: #03170E !important;
+        font-weight: 800 !important;
     }
 
     /* Dark Streamlit Form Elements */
+    div[data-baseweb="select"] {
+        background-color: #0E1D16 !important;
+        border-radius: 0.65rem !important;
+    }
     div[data-baseweb="select"] > div {
         background-color: #0E1D16 !important;
-        border-color: rgba(16, 185, 129, 0.3) !important;
+        border: 1px solid rgba(16, 185, 129, 0.35) !important;
+        border-radius: 0.65rem !important;
+    }
+    div[data-baseweb="select"] * {
         color: #F4FDF8 !important;
+        background-color: transparent !important;
+    }
+    div[data-baseweb="popover"] ul {
+        background-color: #0B1510 !important;
+        border: 1px solid rgba(16, 185, 129, 0.35) !important;
+    }
+    div[data-baseweb="popover"] li {
+        background-color: #0B1510 !important;
+        color: #F4FDF8 !important;
+    }
+    div[data-baseweb="popover"] li:hover {
+        background-color: #10B981 !important;
+        color: #03170E !important;
+    }
+    div[data-baseweb="input"] {
+        background-color: #0E1D16 !important;
+        border-radius: 0.65rem !important;
     }
     div[data-baseweb="input"] > div {
         background-color: #0E1D16 !important;
-        border-color: rgba(16, 185, 129, 0.3) !important;
+        border: 1px solid rgba(16, 185, 129, 0.35) !important;
+        border-radius: 0.65rem !important;
+    }
+    div[data-baseweb="input"] input {
         color: #F4FDF8 !important;
+        background-color: transparent !important;
     }
     input, textarea {
         color: #F4FDF8 !important;
         background-color: #0E1D16 !important;
     }
-    .stTabs [data-baseweb="tab-list"] {
-        background-color: #08110C !important;
-        border-radius: 0.75rem !important;
-        padding: 0.35rem !important;
-        border: 1px solid rgba(16, 185, 129, 0.2) !important;
-    }
-    .stTabs [data-baseweb="tab"] {
-        color: #A1B2A9 !important;
-        border-radius: 0.5rem !important;
-        font-weight: 600 !important;
-    }
-    .stTabs [aria-selected="true"] {
-        background-color: #10B981 !important;
-        color: #052317 !important;
-        font-weight: 800 !important;
-    }
+
+    /* Expanders */
     div[data-testid="stExpander"] {
         background-color: #0B1510 !important;
         border: 1px solid rgba(16, 185, 129, 0.25) !important;
+        border-radius: 0.85rem !important;
+    }
+    div[data-testid="stExpander"] summary {
+        color: #F4FDF8 !important;
+        font-weight: 700 !important;
+    }
+    div[data-testid="stExpander"] summary * {
+        color: #F4FDF8 !important;
+    }
+
+    /* Buttons */
+    .stButton>button {
         border-radius: 0.75rem !important;
+        font-weight: 700 !important;
+        transition: all 0.2s ease !important;
     }
     .stButton>button[kind="primary"] {
         background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
@@ -229,22 +376,55 @@ st.markdown("""
         font-weight: 800 !important;
         border: none !important;
         box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35) !important;
-        border-radius: 0.75rem !important;
     }
     .stButton>button[kind="primary"]:hover {
         box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6) !important;
         transform: translateY(-1px) !important;
     }
+    .stButton>button[kind="primary"] * {
+        color: #03170E !important;
+    }
     .stButton>button[kind="secondary"] {
         background-color: #0E1D16 !important;
         color: #E2E8F0 !important;
         border: 1px solid rgba(16, 185, 129, 0.3) !important;
-        border-radius: 0.75rem !important;
     }
     .stButton>button[kind="secondary"]:hover {
         border-color: #10B981 !important;
         background-color: #13271E !important;
+        color: #34D399 !important;
     }
+
+    /* Sidebar Fast-Track Buttons */
+    [data-testid="stSidebar"] .stButton>button {
+        background: #0B1510 !important;
+        border: 1px solid rgba(16, 185, 129, 0.3) !important;
+        color: #F4FDF8 !important;
+        border-radius: 0.75rem !important;
+        padding: 0.65rem 1rem !important;
+        font-weight: 600 !important;
+        font-size: 0.85rem !important;
+        transition: all 0.2s ease !important;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4) !important;
+    }
+    [data-testid="stSidebar"] .stButton>button:hover {
+        background: linear-gradient(135deg, #0E2419 0%, #123323 100%) !important;
+        border-color: #10B981 !important;
+        color: #34D399 !important;
+        box-shadow: 0 0 15px rgba(16, 185, 129, 0.3) !important;
+        transform: translateX(2px) !important;
+    }
+    [data-testid="stSidebar"] .stButton>button[kind="primary"] {
+        background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+        color: #03170E !important;
+        border: none !important;
+        font-weight: 800 !important;
+        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4) !important;
+    }
+    [data-testid="stSidebar"] .stButton>button[kind="primary"] * {
+        color: #03170E !important;
+    }
+
     div[data-testid="stAlert"] {
         background-color: #081C13 !important;
         border: 1px solid rgba(16, 185, 129, 0.4) !important;
@@ -680,26 +860,31 @@ if not st.session_state.is_logged_in:
             st.rerun()
 
     st.markdown("""
-    <div style="text-align:center; padding:1.5rem 0 1rem 0;">
-        <span style="font-size:3.2rem;">♻️</span>
-        <h1 style="color:#10B981; font-weight:900; font-size:2.6rem; margin-bottom:0.1rem; letter-spacing:-0.03em;">
-            ScrapSetu 2.0
+    <div style="background: radial-gradient(circle at 50% 20%, rgba(16, 185, 129, 0.18) 0%, rgba(11, 21, 16, 0.95) 75%); border: 1px solid rgba(16, 185, 129, 0.35); border-radius: 1.5rem; padding: 2.2rem 1.5rem 1.8rem 1.5rem; text-align: center; margin-bottom: 1.5rem; box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(16, 185, 129, 0.25);">
+        <div style="display:inline-flex; align-items:center; justify-content:center; width:64px; height:64px; border-radius:50%; background:rgba(16, 185, 129, 0.15); border:1px solid #10B981; margin-bottom:0.8rem; box-shadow:0 0 25px rgba(16, 185, 129, 0.35);">
+            <span style="font-size:2.2rem;">♻️</span>
+        </div>
+        <h1 style="color:#F4FDF8; font-weight:900; font-size:2.8rem; margin:0 0 0.3rem 0; letter-spacing:-0.03em; text-shadow:0 0 25px rgba(16, 185, 129, 0.35);">
+            ScrapSetu <span style="color:#10B981;">2.0</span>
         </h1>
-        <p style="color:#A7F3D0; font-size:1.05rem; font-weight:600;">
-            ScrapSetu Circular Intelligence | भारत का डिजिटल रीसाइक्लिंग सेतु
+        <p style="color:#6EE7B7; font-size:1.05rem; font-weight:600; margin:0 0 0.8rem 0; letter-spacing:0.02em;">
+            ScrapSetu Circular Intelligence • भारत का डिजिटल रीसाइक्लिंग सेतु
         </p>
+        <div style="display:inline-flex; align-items:center; gap:0.5rem; background:rgba(16, 185, 129, 0.1); border:1px solid rgba(16, 185, 129, 0.3); padding:0.35rem 1rem; border-radius:9999px; font-size:0.8rem; color:#A7F3D0;">
+            <span style="color:#10B981;">●</span> Verified CPCB EPR Network • 3-Point Biometric KYC • 100% Digital UPI Settlements
+        </div>
     </div>
     """, unsafe_allow_html=True)
 
     t1, t2, t3, t4 = st.columns(4)
     with t1:
-        st.metric("Landfill Diversion", "2,845.9 MT", delta="Audited CPCB")
+        st.markdown('''<div class="kpi-card"><div class="kpi-val">2,845.9 MT</div><div class="kpi-lbl">Landfill Diversion</div><div style="font-size:0.75rem; color:#34D399; margin-top:5px; font-weight:700;">↑ Audited CPCB</div></div>''', unsafe_allow_html=True)
     with t2:
-        st.metric("CO₂e Avoided", "4,268 MT", delta="IPCC Model")
+        st.markdown('''<div class="kpi-card"><div class="kpi-val">4,268 MT</div><div class="kpi-lbl">CO₂e Avoided</div><div style="font-size:0.75rem; color:#34D399; margin-top:5px; font-weight:700;">↑ IPCC Model</div></div>''', unsafe_allow_html=True)
     with t3:
-        st.metric("Certified Kabadiwalas", "1,420 Active", delta="3-Point KYC")
+        st.markdown('''<div class="kpi-card"><div class="kpi-val">1,420 Active</div><div class="kpi-lbl">Certified Kabadiwalas</div><div style="font-size:0.75rem; color:#34D399; margin-top:5px; font-weight:700;">↑ 3-Point KYC</div></div>''', unsafe_allow_html=True)
     with t4:
-        st.metric("Direct Citizen Payouts", "₹5.49 Cr", delta="100% Digital UPI")
+        st.markdown('''<div class="kpi-card"><div class="kpi-val">₹5.49 Cr</div><div class="kpi-lbl">Direct Citizen Payouts</div><div style="font-size:0.75rem; color:#34D399; margin-top:5px; font-weight:700;">↑ 100% Digital UPI</div></div>''', unsafe_allow_html=True)
 
     st.write("")
     auth_tab_login, auth_tab_register = st.tabs(["🔐 Sign In (लॉग इन)", "📝 Create Dynamic Account (पंजीकरण)"])
