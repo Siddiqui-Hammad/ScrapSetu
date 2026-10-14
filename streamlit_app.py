@@ -1,5 +1,5 @@
 """
-ScrapSetu 2.0: A Digital Bridge to Sustainable Circular Recycling
+ScrapSetu: A Digital Bridge to Sustainable Circular Recycling
 Streamlit Live Edition — Next-Gen Dynamic Auth, 3-Point KYC, Free Cloud Database & Dedicated Dashboards
 Art Directed by ScrapSetu Circular Intelligence (Luxury Dark Emerald & Obsidian Edition)
 """
@@ -25,7 +25,7 @@ import streamlit.components.v1 as components
 # 1. Page Configuration & Custom Luxury Dark SaaS Styling
 # -------------------------------------------------------------
 st.set_page_config(
-    page_title="ScrapSetu 2.0 | Circular Intelligence Platform",
+    page_title="ScrapSetu | Circular Intelligence Platform",
     page_icon="♻️",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -1052,7 +1052,7 @@ if not st.session_state.is_logged_in:
             st.rerun()
 
     # Luxury Hero Banner
-    hero_title, hero_title_alt = tr("ScrapSetu 2.0", "स्क्रैपसेतु 2.0")
+    hero_title, hero_title_alt = tr("ScrapSetu", "स्क्रैपसेतु")
     hero_sub, hero_sub_alt = tr("ScrapSetu Circular Intelligence", "स्क्रैपसेतु चक्रीय अर्थव्यवस्था")
     hero_tag, hero_tag_alt = tr("Verified CPCB EPR Network • 3-Point Biometric KYC • 100% Digital UPI", "सत्यापित सीपीसीबी नेटवर्क • 3-बिंदु बायोमेट्रिक सत्यापन • 100% डिजिटल यूपीआई")
 
@@ -1264,7 +1264,7 @@ portal_badge_alt = tr(f"{st.session_state.current_role} PORTAL", f"{st.session_s
 st.markdown(f"""
 <div class="top-user-bar">
     <div>
-        <span style="font-size:1.3rem; font-weight:900; letter-spacing:-0.02em; color:#F4FDF8;">ScrapSetu 2.0</span> • 
+        <span style="font-size:1.3rem; font-weight:900; letter-spacing:-0.02em; color:#F4FDF8;">ScrapSetu</span> • 
         <b style="color:#A7F3D0;">{st.session_state.user_name}</b> 
         <span class="user-badge bilingual-hover-tip" data-trans="{portal_badge_alt}" style="margin-left:0.6rem;">{portal_badge_text}</span>
     </div>
@@ -2466,6 +2466,6 @@ if voice_mic_btn or exec_nav_btn:
 st.divider()
 st.markdown("""
 <div style="text-align:center; color:#6B7F74; font-size:0.85rem; padding-bottom:1.5rem;">
-    <b>ScrapSetu 2.0</b> © 2026 • Live Streamlit Edition • Connected to GitHub Repository: <code>Siddiqui-Hammad/ScrapSetu</code>
+    <b>ScrapSetu</b> © 2026 • Live Streamlit Edition • Connected to GitHub Repository: <code>Siddiqui-Hammad/ScrapSetu</code>
 </div>
 """, unsafe_allow_html=True)

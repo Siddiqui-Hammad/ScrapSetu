@@ -1,4 +1,4 @@
-# ScrapSetu 2.0 (स्क्रैपसेतु): AI-Powered Circular Economy Platform
+# ScrapSetu (स्क्रैपसेतु): AI-Powered Circular Economy Platform
 **Smart India Hackathon Edition | Circular Intelligence & Climate-Tech Infrastructure**
 
 [![Next.js](https://img.shields.io/badge/Next.js-14.2_App_Router-black.svg?logo=next.js)](https://nextjs.org/)
@@ -25,7 +25,7 @@ It replaces fragmented, cash-only informal scrap collection with:
 
 ---
 
-## 🌟 ScrapSetu 2.0 Major Innovations
+## 🌟 ScrapSetu Major Innovations
 
 ### 1. 🌌 Luxury Dark Theme (`#070D0A`)
 * **Design System**: Deep obsidian forest canvas (`#070D0A`) paired with elevated obsidian surfaces (`#0B1510`, `#0E1D16`) and subtle glowing emerald borders (`rgba(16, 185, 129, 0.2)`).
@@ -79,7 +79,7 @@ npm test        # Runs 28/28 automated unit tests
 npm run dev     # Starts server on http://localhost:5000
 ```
 
-### 2. Start Next.js 2.0 Frontend
+### 2. Start Next.js Frontend
 ```bash
 cd frontend
 npm install

@@ -12,7 +12,7 @@ html_content = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>ScrapSetu 2.0: Complete Workflow & Technical Architecture</title>
+<title>ScrapSetu: Complete Workflow & Technical Architecture</title>
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
 
@@ -234,13 +234,13 @@ html_content = """<!DOCTYPE html>
 <!-- PAGE 1 -->
 <div class="header-banner">
     <div class="header-tag">Technical Architecture & Complete Workflow Specification</div>
-    <div class="header-title">ScrapSetu 2.0: Circular Intelligence Platform</div>
+    <div class="header-title">ScrapSetu: Circular Intelligence Platform</div>
     <div class="header-subtitle">Comprehensive Technical Approach, End-to-End Operational Lifecycle & System Architecture</div>
 </div>
 
 <h2>📋 1. Executive Summary & Circular Economy Vision</h2>
 <p>
-    <b>ScrapSetu 2.0</b> is a digital bridge and circular-economy intelligence platform designed for India's high-volume recycling ecosystem. It bridges the critical divide between domestic waste generators (households and commercial entities), informal frontline scrap collectors (<i>Kabadiwalas</i>), aggregate scrap pooling hubs, and authorized CPCB/SPCB recycling facilities.
+    <b>ScrapSetu</b> is a digital bridge and circular-economy intelligence platform designed for India's high-volume recycling ecosystem. It bridges the critical divide between domestic waste generators (households and commercial entities), informal frontline scrap collectors (<i>Kabadiwalas</i>), aggregate scrap pooling hubs, and authorized CPCB/SPCB recycling facilities.
 </p>
 
 <div class="grid-3">
@@ -421,7 +421,7 @@ html_content = """<!DOCTYPE html>
 
 <div class="diagram-box">
 +---------------------------------------------------------------------------------------------------+
-|                                        SCRAPSETU 2.0 CLIENT TIERS                                 |
+|                                        SCRAPSETU CLIENT TIERS                                     |
 |  [🏠 Household Resident]    [🛺 Kabadiwala Collector]    [🏢 Commercial Generator]    [🏭 Recycler Mill]  |
 +---------------------------------------------------------------------------------------------------+
                                                   │
@@ -476,7 +476,7 @@ html_content = """<!DOCTYPE html>
         <tr>
             <th>Functional Pillar</th>
             <th>Traditional Scrap Trade</th>
-            <th>ScrapSetu 2.0 Circular Platform</th>
+            <th>ScrapSetu Circular Platform</th>
         </tr>
     </thead>
     <tbody>
@@ -509,7 +509,7 @@ html_content = """<!DOCTYPE html>
 </table>
 
 <div class="footer">
-    <b>ScrapSetu 2.0 Circular Intelligence Platform</b> • Official Engineering Specification & Technical Report • Published October 2026<br>
+    <b>ScrapSetu Circular Intelligence Platform</b> • Official Engineering Specification & Technical Report • Published October 2026<br>
     Connected to Live Repository: <code>https://github.com/Siddiqui-Hammad/ScrapSetu</code>
 </div>
 
