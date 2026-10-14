@@ -1334,111 +1334,43 @@ if current_role == "HOUSEHOLD":
     with hk4:
         st.markdown(f'<div class="kpi-card"><div class="kpi-val">{round(u_kg*1.45, 1)} kg</div><div class="kpi-lbl">{tr_span("CO₂ Emissions Prevented", "बचाया गया CO₂ उत्सर्जन")}</div></div>', unsafe_allow_html=True)
 
-    h_t1 = tr("📦 Book Doorstep Pickup", "📦 डोरस्टेप पिकअप बुक करें")[0]
-    h_t2 = tr("🔍 AI ScrapVision Classifier & Weight Engine", "🔍 एआई स्क्रैप-विजन वर्गीकरण व वजन इंजन")[0]
-    h_t3 = tr("🧾 Digital Waste Passports", "🧾 डिजिटल वेस्ट पासपोर्ट प्रमाण पत्र")[0]
-    h_tab1, h_tab2, h_tab3 = st.tabs([h_t1, h_t2, h_t3])
+    h_t1 = tr("📦 Book Doorstep Pickup (AI ScrapVision & Radar)", "📦 डोरस्टेप पिकअप बुक करें (एआई स्क्रैप-विजन व रडार)")[0]
+    h_t2 = tr("🧾 Digital Waste Passports", "🧾 डिजिटल वेस्ट पासपोर्ट प्रमाण पत्र")[0]
+    h_tab1, h_tab2 = st.tabs([h_t1, h_t2])
 
     with h_tab1:
+        st.markdown("#### 📦 🔍 " + tr("Book Doorstep Scrap Pickup with AI ScrapVision", "एआई स्क्रैप-विजन सहित डोरस्टेप पिकअप बुक करें")[0])
+        st.caption(tr("Capture or upload scrap photo to run real-time ScrapVision AI classification, calculate volumetric weight, and broadcast order to nearest verified collectors with image attached:", "स्क्रैप फोटो अपलोड करें या कैमरे से लें। एआई सामग्री की पहचान करता है, वजन आंका जाता है और फोटो सहित नजदीकी कबाड़ीवाले को ऑर्डर भेजा जाता है:")[0])
+
         h_col1, h_col2 = st.columns([1, 1], gap="large")
+
         with h_col1:
-            st.markdown("#### 📦 " + tr("Schedule Next Pickup", "अगला पिकअप शेड्यूल करें")[0])
-            with st.form("household_book"):
-                cat_choices = [f"{c['icon']} {c['hindi'] if is_hi else c['name']} (₹{c['rate']}/kg)" for c in st.session_state.categories]
-                h_cat = st.selectbox(tr("Scrap Category", "कचरा श्रेणी")[0], cat_choices)
-                h_qty = st.number_input(tr("Estimated Weight (kg)", "अनुमानित वजन (किग्रा)")[0], min_value=1.0, value=25.0, step=1.0)
-                slot_choices = [
-                    tr("Morning (9 AM - 12 PM)", "सुबह (9 बजे - 12 बजे)")[0],
-                    tr("Afternoon (12 PM - 3 PM)", "दोपहर (12 बजे - 3 बजे)")[0],
-                    tr("Evening (3 PM - 6 PM)", "शाम (3 बजे - 6 बजे)")[0]
-                ]
-                h_slot = st.selectbox(tr("Preferred Time Window", "सुविधाजनक समय स्लॉट")[0], slot_choices)
-                h_addr = st.text_input(tr("Pickup Address", "पिकअप का पता")[0], "South Extension II, Block C, New Delhi")
-
-                sel_r = 15.5
-                c_key = "paper"
-                for c in st.session_state.categories:
-                    if c["name"] in h_cat or c["hindi"] in h_cat:
-                        sel_r = c["rate"]
-                        c_key = c["id"]
-                        break
-                expected_payout = round(h_qty * sel_r, 2)
-                st.info(f"💡 {tr('Expected Mandi Value', 'अनुमानित मंडी मूल्य')[0]}: **₹{expected_payout:,.2f}** (@ ₹{sel_r}/kg).")
-
-                if st.form_submit_button(tr("Confirm Booking", "पिकअप बुक करें")[0], type="primary", use_container_width=True):
-                    nid = f"REQ-{len(st.session_state.pickups)+101}"
-                    new_order = {
-                        "id": nid,
-                        "user": st.session_state.user_name,
-                        "role": "HOUSEHOLD",
-                        "phone": "+91 98290 22002",
-                        "area": h_addr,
-                        "lat": 28.5684 + (len(st.session_state.pickups) * 0.002),
-                        "lng": 77.2195 + (len(st.session_state.pickups) * 0.002),
-                        "materials": f"{h_cat.split('(')[0].strip()} ({h_qty}kg)",
-                        "est_weight": h_qty,
-                        "est_val": expected_payout,
-                        "slot": h_slot,
-                        "status": "OPEN",
-                        "assigned_collector": None,
-                        "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-                        "photo_svg": get_scrap_svg(c_key, f"Resident Scrap Photo — {h_cat.split('(')[0].strip()}"),
-                        "ai_vision": f"Doorstep scrap package of {h_cat.split('(')[0].strip()}. Volumetric inspection shows clean segregated materials ready for collector verification.",
-                        "ai_weight_details": f"Calculated: {h_qty} kg | Mandi Benchmark Rate: ₹{sel_r}/kg"
-                    }
-                    st.session_state.pickups.append(new_order)
-                    st.success(tr(f"Pickup {nid} scheduled! Broadcasted to nearest verified collectors.", f"पिकअप {nid} शेड्यूल हुआ! नजदीकी सत्यापित कबाड़ीवालों को भेजा गया।")[0])
-                    st.rerun()
-
-        with h_col2:
-            st.markdown("#### 🗺️ " + tr("Neighborhood Collector Radar Map", "नजदीकी कबाड़ीवाला रडार मैप")[0])
-            m = folium.Map(location=[28.5684, 77.2195], zoom_start=13)
-            folium.Marker([28.5684, 77.2195], tooltip="My Doorstep Location", icon=folium.Icon(color="green", icon="home")).add_to(m)
-            folium.Marker([28.5720, 77.2250], tooltip="Ramu Paswan (Kavach Certified)", icon=folium.Icon(color="blue", icon="truck", prefix="fa")).add_to(m)
-            folium.Marker([28.5610, 77.2110], tooltip="Mohammad Farooq (Mini Truck)", icon=folium.Icon(color="orange", icon="truck", prefix="fa")).add_to(m)
-            st_folium(m, height=270, use_container_width=True)
-
-            st.caption(tr("Active Orders:", "सक्रिय ऑर्डर्स:")[0])
-            for p in reversed(user_pickups):
-                with st.expander(f"{p['id']} - {p['materials']} ({p['status']})"):
-                    st.write(f"**{tr('Status', 'स्थिति')[0]}:** `{p['status']}`")
-                    st.write(f"**{tr('Estimated Valuation', 'अनुमानित मूल्य')[0]}:** ₹{p['est_val']}")
-                    if p.get("receipt_number"):
-                        st.success(tr(f"Receipt #{p['receipt_number']} • Cryptographic SHA-256 Sealed ✓", f"रसीद #{p['receipt_number']} • क्रिप्टोग्राफिक SHA-256 सीलबंद ✓")[0])
-
-    # ---------------- 2. ENHANCED SCRAPVISION AI TAB (NEURAL & COMPUTER VISION) ----------------
-    with h_tab2:
-        st.markdown("#### 🔍 " + tr("ScrapVision AI Material Recognition & Volumetric Weight Engine", "एआई स्क्रैप-विजन सामग्री पहचान व वॉल्यूमेट्रिक वजन इंजन")[0])
-        st.caption(tr("Multimodal neural vision model describes visual scene details, calculates volumetric weight, and estimates live Mandi payout:", "मल्टीमॉडल न्यूरल विजन मॉडल दृश्य का विश्लेषण करता है, वजन की गणना करता है और लाइव मंडी भाव बताता है:")[0])
-
-        sv_c1, sv_c2 = st.columns([1, 1], gap="large")
-        with sv_c1:
-            st.markdown("##### 1. " + tr("Capture or Select Scrap Photo", "स्क्रैप फोटो चुनें या अपलोड करें")[0])
-            sample_choices = [
-                tr("🧴 Transparent Optical PET Bottles & Containers", "🧴 पारदर्शी पीईटी पानी व पेय की बोतलें")[0],
-                tr("📦 Baled Corrugated Kraft Cardboard & Cartons", "📦 बंडल किया हुआ क्राफ्ट गत्ता व कार्टन")[0],
-                tr("✨ Stripped Millberry Pure Copper Wire", "✨ छिला हुआ शुद्ध मिलबेरी तांबे का तार")[0],
-                tr("💻 Telecom Server Boards & Component E-Waste", "💻 टेलीकॉम सर्वर बोर्ड व इलेक्ट्रॉनिक ई-कचरा")[0]
-            ]
-            sample_choice = st.selectbox(tr("Choose High-Resolution Scrap Sample:", "उच्च-रिज़ॉल्यूशन स्क्रैप नमूना चुनें:")[0], sample_choices)
-
+            st.markdown("##### 1. " + tr("Scrap Photo Input & Visual Inspection", "स्क्रैप फोटो व दृश्य निरीक्षण")[0])
             source_choices = [
-                tr("Neural Demo Preset", "न्यूरल डेमो नमूना")[0],
                 tr("Upload Custom Scrap Photo", "कस्टम फोटो अपलोड करें")[0],
-                tr("Live Camera Snapshot", "लाइव कैमरा स्नैपशॉट")[0]
+                tr("Live Camera Snapshot", "लाइव कैमरा स्नैपशॉट")[0],
+                tr("Neural Demo Preset", "न्यूरल डेमो नमूना")[0]
             ]
             input_method = st.radio(tr("Photo Input Source:", "फोटो इनपुट स्रोत:")[0], source_choices, horizontal=True)
 
             up_img = None
-            if input_method == source_choices[1]:
-                up_img = st.file_uploader(tr("Upload Scrap Photo (JPG/PNG)", "स्क्रैप फोटो अपलोड करें")[0], type=["jpg", "jpeg", "png", "webp"])
-            elif input_method == source_choices[2]:
+            sample_choice = ""
+            if input_method == source_choices[0]:
+                up_img = st.file_uploader(tr("Upload Scrap Photo (JPG/PNG/WEBP)", "स्क्रैप फोटो अपलोड करें")[0], type=["jpg", "jpeg", "png", "webp"])
+            elif input_method == source_choices[1]:
                 up_img = st.camera_input(tr("Capture Scrap Pile with Camera", "कैमरे से स्क्रैप का फोटो लें")[0])
+            else:
+                sample_choices = [
+                    tr("🧴 Transparent Optical PET Bottles & Containers", "🧴 पारदर्शी पीईटी पानी व पेय की बोतलें")[0],
+                    tr("📦 Baled Corrugated Kraft Cardboard & Cartons", "📦 बंडल किया हुआ क्राफ्ट गत्ता व कार्टन")[0],
+                    tr("✨ Stripped Millberry Pure Copper Wire", "✨ छिला हुआ शुद्ध मिलबेरी तांबे का तार")[0],
+                    tr("💻 Telecom Server Boards & Component E-Waste", "💻 टेलीकॉम सर्वर बोर्ड व इलेक्ट्रॉनिक ई-कचरा")[0]
+                ]
+                sample_choice = st.selectbox(tr("Choose High-Resolution Scrap Sample:", "उच्च-रिज़ॉल्यूशन स्क्रैप नमूना चुनें:")[0], sample_choices)
 
+            # Dynamic AI Computer Vision Analysis
             current_photo_uri = None
-
             if up_img is not None:
-                # Real image processing with PIL
                 img_bytes = up_img.getvalue()
                 b64_img = base64.b64encode(img_bytes).decode("utf-8")
                 mime = getattr(up_img, "type", None) or ("image/png" if img_bytes.startswith(b"\x89PNG") else "image/jpeg")
@@ -1460,7 +1392,7 @@ if current_role == "HOUSEHOLD":
                         calc_wt = round(max(2.5, min(30.0, (w * h) / 250000.0)), 1)
                         rate_val = 685.0
                         obs_text = tr(
-                            f"Neural spectral analysis detected stripped electrolytic copper wire coils (R={int(r_avg)}, G={int(g_avg)}, B={int(b_avg)}). Resolution {w}x{h} px. Surface clean, zero PVC insulation burning. Volumetric density 8.92 g/cm³ with estimated lot weight {calc_wt} kg.",
+                            f"Neural spectral analysis detected stripped electrolytic copper wire coils (R={int(r_avg)}, G={int(g_avg)}, B={int(b_avg)}). Resolution {w}x{h} px. Surface clean, zero PVC burning residue. Volumetric density 8.92 g/cm³ with estimated lot weight {calc_wt} kg.",
                             f"न्यूरल स्पेक्ट्रल विश्लेषण में शुद्ध तांबे का तार देखा गया (R={int(r_avg)}, G={int(g_avg)}, B={int(b_avg)})। रिज़ॉल्यूशन {w}x{h} पिक्सल। पीवीसी अवशेष शून्य। आयतन घनत्व 8.92 g/cm³ और अनुमानित वजन {calc_wt} किग्रा।"
                         )[0]
                         comp_breakdown = tr("• 98.8% Electrolytic Copper Wire\n• 1.2% Alloy Strands & Dust", "• 98.8% शुद्ध तांबे का तार\n• 1.2% मिश्र धातु व धूल")[0]
@@ -1506,6 +1438,9 @@ if current_role == "HOUSEHOLD":
                     obs_text = tr("Processed uploaded image. Neural boundary detection identified recyclable polymer scrap.", "अपलोड की गई फोटो का विश्लेषण पूर्ण। पुनर्चक्रण योग्य प्लास्टिक सामग्री पहचानी गई।")[0]
                     comp_breakdown = tr("• 94.0% PET Clear Flakes\n• 6.0% Mixed Polymer Residue", "• 94.0% पीईटी फ्लेक्स\n• 6.0% मिश्रित प्लास्टिक अवशेष")[0]
             else:
+                if not sample_choice:
+                    sample_choice = tr("🧴 Transparent Optical PET Bottles & Containers", "🧴 पारदर्शी पीईटी पानी व पेय की बोतलें")[0]
+
                 if "PET" in sample_choice or "बोतलें" in sample_choice:
                     mat_key = "plastic"
                     mat_name = tr("Rigid Plastics (PET Optical Clear #1)", "कठोर प्लास्टिक (पीईटी ऑप्टिकल ग्रेड 1)")[0]
@@ -1541,11 +1476,12 @@ if current_role == "HOUSEHOLD":
 
                 current_photo_uri = get_scrap_svg(mat_key, sample_choice.split("(")[0].strip())
 
+            # Visual Preview
             st.markdown("##### " + tr("Visual Inspection Preview:", "दृश्य निरीक्षण पूर्वावलोकन:")[0])
             if up_img is not None:
-                st.image(up_img, caption=tr("Customer Uploaded Scrap Photo • AI Analyzed ✓", "ग्राहक द्वारा अपलोड की गई फोटो • एआई विश्लेषित ✓")[0], use_container_width=True)
+                st.image(up_img, caption=tr("Customer Scrap Photo • AI Analyzed ✓", "ग्राहक स्क्रैप फोटो • एआई विश्लेषित ✓")[0], use_container_width=True)
             else:
-                if input_method == source_choices[1]:
+                if input_method == source_choices[0]:
                     st.markdown(f"""
                     <div style="background:rgba(16, 185, 129, 0.05); border:2px dashed rgba(16, 185, 129, 0.4); border-radius:12px; padding:18px; text-align:center; margin-bottom:12px;">
                         <span style="font-size:1.8rem;">📸</span>
@@ -1553,35 +1489,38 @@ if current_role == "HOUSEHOLD":
                             {tr("Waiting for Scrap Photo Upload...", "स्क्रैप फोटो अपलोड की प्रतीक्षा है...")[0]}
                         </div>
                         <div style="color:#94A3B8; font-size:0.8rem; margin-top:2px;">
-                            {tr("Upload a photo above to run real-time neural vision inspection.", "वास्तविक समय एआई निरीक्षण हेतु ऊपर फोटो अपलोड करें।")[0]}
+                            {tr("Upload a photo above or use Camera Snapshot / Demo Preset.", "ऊपर फोटो अपलोड करें या कैमरा / डेमो नमूना चुनें।")[0]}
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
                 img_data_uri = get_scrap_svg(mat_key, sample_choice.split("(")[0].strip())
                 st.markdown(f'<img src="{img_data_uri}" style="width:100%; border-radius:12px; border:1px solid rgba(16, 185, 129, 0.4); margin-bottom:8px; display:block;">', unsafe_allow_html=True)
-                st.caption("ℹ️ " + tr(f"Neural reference sample preview: {sample_choice.split('(')[0].strip()}", f"न्यूरल संदर्भ नमूना पूर्वावलोकन: {sample_choice.split('(')[0].strip()}")[0])
+                st.caption("ℹ️ " + tr(f"Neural sample preview: {sample_choice.split('(')[0].strip()}", f"न्यूरल नमूना पूर्वावलोकन: {sample_choice.split('(')[0].strip()}")[0])
 
-        with sv_c2:
+            # AI Inspection Box
             st.markdown(f"""
-            <div style="background:#062316; border:1px solid rgba(16, 185, 129, 0.45); border-radius:14px; padding:18px; margin-bottom:14px;">
+            <div style="background:#062316; border:1px solid rgba(16, 185, 129, 0.45); border-radius:14px; padding:16px; margin-top:12px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <b style="color:#6EE7B7; font-size:1.15rem;">🤖 {tr("What the AI Vision Model Sees:", "एआई विजन मॉडल का दृश्य विश्लेषण:")[0]}</b>
-                    <span style="background:rgba(16, 185, 129, 0.25); color:#34D399; padding:3px 10px; border-radius:999px; font-weight:800; font-size:12px; border:1px solid #10B981;">
+                    <b style="color:#6EE7B7; font-size:1.05rem;">🤖 {tr("What the AI Vision Model Sees:", "एआई विजन मॉडल का दृश्य विश्लेषण:")[0]}</b>
+                    <span style="background:rgba(16, 185, 129, 0.25); color:#34D399; padding:2px 8px; border-radius:999px; font-weight:800; font-size:11px; border:1px solid #10B981;">
                         {conf}% {tr("Confidence ✓", "सटीकता ✓")[0]}
                     </span>
                 </div>
-                <hr style="margin:10px 0; border-color:rgba(16, 185, 129, 0.25);">
-                <p style="color:#E2E8F0; font-size:0.92rem; line-height:1.5; margin-bottom:10px;">
+                <hr style="margin:8px 0; border-color:rgba(16, 185, 129, 0.25);">
+                <p style="color:#E2E8F0; font-size:0.88rem; line-height:1.45; margin-bottom:8px;">
                     "{obs_text}"
                 </p>
-                <div style="background:#091A12; border:1px solid rgba(16, 185, 129, 0.2); border-radius:8px; padding:10px; font-size:0.85rem; color:#A7F3D0;">
+                <div style="background:#091A12; border:1px solid rgba(16, 185, 129, 0.2); border-radius:8px; padding:8px; font-size:0.82rem; color:#A7F3D0;">
                     <b>{tr("Material Composition:", "सामग्री संरचना:")[0]}</b><br>
                     {comp_breakdown.replace(chr(92)+'n', '<br>')}
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-            st.markdown("##### ⚖️ " + tr("Calculated Volumetric Weight & Real-Time Payout", "गणना किया गया वॉल्यूमेट्रिक वजन व वास्तविक भुगतान")[0])
+        with h_col2:
+            st.markdown("##### 2. " + tr("Confirm Weight, Schedule & Book Doorstep Pickup", "2. वजन की पुष्टि, समय व पिकअप बुकिंग")[0])
+            st.caption(tr("Adjust verified weight if needed, pick your preferred doorstep time slot, and broadcast request with image to nearest verified collector:", "यदि आवश्यक हो तो वजन समायोजित करें, समय स्लॉट चुनें और फोटो सहित नजदीकी सत्यापित कबाड़ीवाले को ऑर्डर भेजें:")[0])
+
             cw_col1, cw_col2 = st.columns(2)
             with cw_col1:
                 st.metric(tr("AI Calculated Weight", "एआई आकलित वजन")[0], f"{calc_wt} kg", delta=tr("±0.3 kg Volumetric", "±0.3 किग्रा आयतन")[0])
@@ -1591,40 +1530,66 @@ if current_role == "HOUSEHOLD":
             fine_wt = st.slider(tr("Fine-Tune / Confirm Actual Weight (kg):", "वजन समायोजित या पुष्टि करें (किग्रा):")[0], min_value=1.0, max_value=100.0, value=float(calc_wt), step=0.5)
             live_payout = round(fine_wt * rate_val, 2)
 
+            slot_choices = [
+                tr("Morning (9 AM - 12 PM)", "सुबह (9 बजे - 12 बजे)")[0],
+                tr("Afternoon (12 PM - 3 PM)", "दोपहर (12 बजे - 3 बजे)")[0],
+                tr("Evening (3 PM - 6 PM)", "शाम (3 बजे - 6 बजे)")[0]
+            ]
+            h_slot = st.selectbox(tr("Preferred Time Window", "सुविधाजनक समय स्लॉट")[0], slot_choices)
+            h_addr = st.text_input(tr("Doorstep Pickup Address", "पिकअप का पता")[0], "South Extension II, Block C, New Delhi")
+
             st.markdown(f"""
-            <div style="background:#091A12; border:1px solid #10B981; border-radius:12px; padding:14px; margin-bottom:14px; text-align:center;">
-                <span style="color:#A1B2A9; font-size:0.85rem;">{tr("Estimated Doorstep Payout:", "अनुमानित डोरस्टेप भुगतान:")[0]}</span><br>
-                <b style="color:#34D399; font-size:2rem; font-family:monospace;">₹{live_payout:,.2f}</b><br>
-                <span style="color:#6EE7B7; font-size:0.8rem;">{tr("100% Guaranteed via TrustWeigh Scale", "डिजिटल कांटे द्वारा 100% सटीक गारंटी")[0]}</span>
+            <div style="background:#091A12; border:1.5px solid #10B981; border-radius:12px; padding:14px; margin:12px 0; text-align:center;">
+                <span style="color:#A1B2A9; font-size:0.85rem;">{tr("Estimated Guaranteed Doorstep Payout:", "अनुमानित गारंटीकृत डोरस्टेप भुगतान:")[0]}</span><br>
+                <b style="color:#34D399; font-size:1.9rem; font-family:monospace;">₹{live_payout:,.2f}</b><br>
+                <span style="color:#6EE7B7; font-size:0.8rem;">{tr("100% Instant Digital UPI / Cash via TrustWeigh Scale", "डिजिटल कांटे द्वारा 100% सटीक गारंटी • तुरंत यूपीआई / नकद")[0]}</span>
             </div>
             """, unsafe_allow_html=True)
 
-            if st.button("🚀 " + tr("Confirm Weight & Book Doorstep Pickup with Photo", "वजन की पुष्टि करें व फोटो सहित पिकअप बुक करें")[0], type="primary", use_container_width=True):
+            final_photo_to_save = current_photo_uri if current_photo_uri else get_scrap_svg(mat_key, sample_choice.split("(")[0].strip())
+
+            if st.button("🚀 " + tr("Confirm & Broadcast Doorstep Pickup with Photo", "फोटो सहित डोरस्टेप पिकअप बुक करें")[0], type="primary", use_container_width=True):
                 nid = f"REQ-{len(st.session_state.pickups)+101}"
-                new_ai_order = {
+                new_order = {
                     "id": nid,
                     "user": st.session_state.user_name,
                     "role": "HOUSEHOLD",
                     "phone": "+91 98290 22002",
-                    "area": "South Extension II, Block C, New Delhi",
+                    "area": h_addr,
                     "lat": 28.5684 + (len(st.session_state.pickups) * 0.002),
                     "lng": 77.2195 + (len(st.session_state.pickups) * 0.002),
                     "materials": f"{mat_name.split('(')[0].strip()} ({fine_wt}kg)",
                     "est_weight": fine_wt,
                     "est_val": live_payout,
-                    "slot": tr("Morning (9 AM - 12 PM)", "सुबह (9 बजे - 12 बजे)")[0],
+                    "slot": h_slot,
                     "status": "OPEN",
                     "assigned_collector": None,
                     "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-                    "photo_svg": current_photo_uri if current_photo_uri else get_scrap_svg(mat_key, sample_choice.split("(")[0].strip()),
+                    "photo_svg": final_photo_to_save,
                     "ai_vision": obs_text,
-                    "ai_weight_details": f"Calculated: {fine_wt} kg | Payout: ₹{live_payout:,.2f} | Confidence: {conf}%"
+                    "ai_weight_details": f"Calculated: {fine_wt} kg | Payout: ₹{live_payout:,.2f} | Mandi Rate: ₹{rate_val}/kg | Confidence: {conf}%"
                 }
-                st.session_state.pickups.append(new_ai_order)
-                st.success(tr(f"Pickup {nid} booked with AI scrap photo & volumetric weight attached! Verified collectors can now inspect it on their terminal.", f"पिकअप {nid} बुक हो गया! कबाड़ीवाले अब इसे अपने टर्मिनल पर फोटो सहित देख सकते हैं।")[0])
+                st.session_state.pickups.append(new_order)
+                st.success(tr(f"Pickup {nid} scheduled with scrap photo attached! Nearest verified collectors will see the photo and location on their terminal.", f"पिकअप {nid} फोटो सहित शेड्यूल हुआ! नजदीकी सत्यापित कबाड़ीवालों को फोटो और लोकेशन भेज दी गई है।")[0])
                 st.rerun()
 
-    with h_tab3:
+            st.markdown("---")
+            st.markdown("##### 🗺️ " + tr("Neighborhood Collector Radar Map", "नजदीकी कबाड़ीवाला रडार मैप")[0])
+            m = folium.Map(location=[28.5684, 77.2195], zoom_start=13)
+            folium.Marker([28.5684, 77.2195], tooltip="My Doorstep Location", icon=folium.Icon(color="green", icon="home")).add_to(m)
+            folium.Marker([28.5720, 77.2250], tooltip="Ramu Paswan (Kavach Certified)", icon=folium.Icon(color="blue", icon="truck", prefix="fa")).add_to(m)
+            folium.Marker([28.5610, 77.2110], tooltip="Mohammad Farooq (Mini Truck)", icon=folium.Icon(color="orange", icon="truck", prefix="fa")).add_to(m)
+            st_folium(m, height=230, use_container_width=True)
+
+            st.caption(tr("Active Orders:", "सक्रिय ऑर्डर्स:")[0])
+            for p in reversed(user_pickups):
+                with st.expander(f"{p['id']} - {p['materials']} ({p['status']})"):
+                    st.write(f"**{tr('Status', 'स्थिति')[0]}:** `{p['status']}`")
+                    st.write(f"**{tr('Estimated Valuation', 'अनुमानित मूल्य')[0]}:** ₹{p['est_val']}")
+                    if p.get("receipt_number"):
+                        st.success(tr(f"Receipt #{p['receipt_number']} • Cryptographic SHA-256 Sealed ✓", f"रसीद #{p['receipt_number']} • क्रिप्टोग्राफिक SHA-256 सीलबंद ✓")[0])
+
+    with h_tab2:
         st.markdown("#### 🧾 " + tr("Digital Waste Passports", "डिजिटल वेस्ट पासपोर्ट")[0])
         st.caption(tr("Every completed transaction generates an immutable cryptographic SHA-256 seal:", "प्रत्येक पूर्ण लेन-देन पर क्रिप्टोग्राफिक SHA-256 डिजिटल सील जारी होती है:")[0])
         st.markdown(f"""
@@ -2459,7 +2424,7 @@ st.markdown(f"""
 
 nav_options_map = {
     tr("📦 Show Open Scrap Pickups & Photos", "📦 खुले स्क्रैप ऑर्डर्स व फोटो जांच देखें")[0]: {"role": "COLLECTOR"},
-    tr("🔍 Open AI ScrapVision Material & Weight Engine", "🔍 एआई स्क्रैप-विजन वजन व सामग्री इंजन खोलें")[0]: {"role": "HOUSEHOLD"},
+    tr("📦 Book Doorstep Pickup with AI ScrapVision & Radar", "📦 डोरस्टेप पिकअप व एआई स्क्रैप-विजन बुक करें")[0]: {"role": "HOUSEHOLD"},
     tr("🎯 Open Smart Buyer Matching & Recycler Offers", "🎯 स्मार्ट खरीदार मिलान व रीसाइक्लर ऑफर खोलें")[0]: {"role": "COLLECTOR"},
     tr("🤝 Show Collaborative Scrap Pooling Groups", "🤝 सहयोगात्मक स्क्रैप पूलिंग ग्रुप खोलें")[0]: {"role": "COLLECTOR"},
     tr("📜 View Digital Scrap Passport & Traceability", "📜 डिजिटल स्क्रैप पासपोर्ट व ट्रैसेबिलिटी देखें")[0]: {"role": "COLLECTOR"},
