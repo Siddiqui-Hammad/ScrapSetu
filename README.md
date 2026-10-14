@@ -17,7 +17,7 @@
 It replaces fragmented, cash-only informal scrap collection with:
 1. **Intelligent Material Identification & Volumetric Weight Estimation** (ScrapVision AI).
 2. **Transparent Fair Mandi Pricing** with instant UPI bank settlements (TrustWeigh).
-3. **Biometric Face-Matching KYC** (Aadhaar & Driving Licence vs Live Camera Selfie).
+3. **Service Provider Biometric KYC** (Aadhaar & Driving Licence vs Live Camera Selfie for field collectors).
 4. **Collector Visual Inspection Workflow** (customer scrap photos visible before job acceptance).
 5. **Bilingual Hover Translation Tooltips** (instant English ↔ Hindi context across all touchpoints).
 6. **Luxury Dark Climate-Tech Aesthetics** (Obsidian Forest `#070D0A` with emerald/teal ambient lighting).
@@ -45,8 +45,9 @@ It replaces fragmented, cash-only informal scrap collection with:
 * Nearby jobs in the Collector Portal display customer-uploaded scrap photo thumbnails and AI weight badges (`AI Weight: ~15.0 kg`).
 * **Interactive Lightbox Modal**: Collectors can inspect the full-resolution photo, read the AI's composition analysis, verify the address and payout, and accept the job with complete certainty before traveling.
 
-### 5. 🛡️ AI Biometric KYC Photo Matching (Aadhaar / DL vs Live Selfie)
-* Verifies collectors and recyclers by matching ID card photos against live camera selfies.
+### 5. 🛡️ Service Provider 3-Point KYC (Aadhaar / DL vs Live Selfie)
+* **Field Service Providers Only**: Frontline Collectors (Kabadiwalas) entering residential doorsteps must pass 3-point biometric KYC (UIDAI Masked Aadhaar + Parivahan DL + Live Camera Selfie).
+* **Zero-Friction for Households & Businesses**: Waste generators and recyclers enjoy instant onboarding without personal identity verification or document uploads.
 * Features anti-spoofing detection, 68 facial coordinate landmark checks, inter-pupillary distance alignment, and instant OCR data extraction.
 
 ### 6. 🤝 Smart Buyer Matching & Collaborative Pooling

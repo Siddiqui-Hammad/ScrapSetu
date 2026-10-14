@@ -445,7 +445,7 @@ html_content = """<!DOCTYPE html>
                                                   ▼
 +---------------------------------------------------------------------------------------------------+
 |                                 TRUST, SAFETY & COMPLIANCE ENGINE                                 |
-|  • 3-Point KYC Dossier (UIDAI Masked Aadhaar • Parivahan DL • 68-Point Facial Geometry Match)    |
+|  • Service Provider 3-Point KYC (UIDAI Masked Aadhaar • Parivahan DL • 68-Point Facial Match)  |
 |  • Digital Scrap Passport (8-Stage Verification State Machine • Weighbridge Discrepancy Audit)    |
 |  • Cryptographic SHA-256 Merkle Hashing for CPCB & SPCB Regulatory Auditing                       |
 +---------------------------------------------------------------------------------------------------+

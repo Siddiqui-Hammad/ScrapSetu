@@ -1142,15 +1142,15 @@ if not st.session_state.is_logged_in:
                     st.rerun()
 
     with auth_tab_register:
-        st.markdown("#### " + tr("Dynamic Multi-Role Registration Portal with 3-Point KYC", "3-बिंदु पहचान सत्यापन सहित बहु-भूमिका पंजीकरण पोर्टल")[0])
-        st.caption(tr("Select your role to reveal tailored compliance onboarding:", "अपनी भूमिका चुनें:")[0])
+        st.markdown("#### " + tr("Dynamic Multi-Role Registration Portal", "बहु-भूमिका पंजीकरण पोर्टल")[0])
+        st.caption(tr("Select your role below. Note: Mandatory 3-Point KYC is required ONLY for frontline Service Providers (Collectors) for doorstep safety; households, commercial generators, and recyclers enjoy instant onboarding.", "अपनी भूमिका चुनें। नोट: अनिवार्य 3-बिंदु पहचान सत्यापन केवल फील्ड सेवा प्रदाताओं (कबाड़ीवालों) के लिए आवश्यक है; घरेलू नागरिकों और व्यवसायों का पंजीकरण तुरंत हो जाता है।")[0])
         
         role_reg_keys = ["HOUSEHOLD", "COLLECTOR", "BUSINESS", "RECYCLER", "ADMIN"]
         role_reg_labels = {
-            "HOUSEHOLD": tr("🏠 Household Citizen / Resident", "🏠 घरेलू नागरिक / निवासी")[0],
-            "COLLECTOR": tr("🛺 Kabadiwala / Collector Partner", "🛺 कबाड़ीवाला संग्रह साथी")[0],
-            "BUSINESS": tr("🏢 Commercial Waste Generator (Malls, IT Parks)", "🏢 वाणिज्यिक अपशिष्ट जनरेटर")[0],
-            "RECYCLER": tr("🏭 Recycling Facility / Wholesale Mill", "🏭 रीसाइक्लिंग कारखाना")[0],
+            "HOUSEHOLD": tr("🏠 Household Citizen / Resident (No KYC Required - Instant Access)", "🏠 घरेलू नागरिक / निवासी (केवाईसी की आवश्यकता नहीं - तुरंत सक्रिय)")[0],
+            "COLLECTOR": tr("🛺 Kabadiwala / Collector (Field Service Provider - 3-Point KYC Mandatory)", "🛺 कबाड़ीवाला संग्रह साथी (सेवा प्रदाता - 3-बिंदु सत्यापन अनिवार्य)")[0],
+            "BUSINESS": tr("🏢 Commercial Waste Generator (Malls, IT Parks - GST Onboarding)", "🏢 वाणिज्यिक अपशिष्ट जनरेटर (जीएसटी ऑनबोर्डिंग)")[0],
+            "RECYCLER": tr("🏭 Recycling Facility / Wholesale Mill (CPCB License)", "🏭 रीसाइक्लिंग कारखाना (सीपीसीबी लाइसेंस)")[0],
             "ADMIN": tr("🛡️ Platform Governance Authority", "🛡️ प्लेटफॉर्म प्रशासनिक प्राधिकरण")[0]
         }
         chosen_role = st.selectbox(
@@ -1178,7 +1178,7 @@ if not st.session_state.is_logged_in:
                     reg_pin = st.text_input(tr("Pincode", "पिनकोड")[0], "110091")
 
             elif chosen_role == "COLLECTOR":
-                st.info(tr("🛺 Kabadiwala Profile: Mobile terminal, EcoRoute TSP navigation, and TrustWeigh digital scale.", "🛺 कबाड़ीवाला प्रोफ़ाइल: मोबाइल टर्मिनल, इको-रूट टीएसपी नेविगेशन, और डिजिटल तौल पैमाना।")[0])
+                st.info(tr("🛺 Field Service Provider Profile: Mobile terminal, EcoRoute TSP navigation, and TrustWeigh digital scale.", "🛺 फील्ड सेवा प्रदाता प्रोफ़ाइल: मोबाइल टर्मिनल, इको-रूट टीएसपी नेविगेशन, और डिजिटल तौल पैमाना।")[0])
                 cv1, cv2, cv3 = st.columns(3)
                 with cv1:
                     reg_veh = st.selectbox(tr("Vehicle Type", "वाहन का प्रकार")[0], [tr("E-Rickshaw Loader", "ई-रिक्शा लोडर")[0], tr("Three-Wheeler Tempo", "थ्री-व्हीलर टेम्पो")[0], tr("Mini Truck", "छोटा हाथी (मिनी ट्रक)")[0], tr("Cycle Rickshaw", "साइकिल रिक्शा")[0]])
@@ -1207,44 +1207,60 @@ if not st.session_state.is_logged_in:
             elif chosen_role == "ADMIN":
                 st.info(tr("🛡️ Platform Administrator: Regulatory verification queue, Mandi rate authority, and cloud database connectivity.", "🛡️ प्लेटफॉर्म प्रशासक: सत्यापन कतार, मंडी दर प्राधिकरण, और क्लाउड डेटाबेस।")[0])
 
-            st.markdown("##### 3. " + tr("Mandatory 3-Point KYC Verification Dossier", "अनिवार्य 3-बिंदु पहचान सत्यापन दस्तावेज")[0])
-            k_c1, k_c2, k_c3 = st.columns(3)
-            with k_c1:
-                st.markdown("**1. 📄 " + tr("Aadhaar Card", "आधार कार्ड")[0] + "**")
-                u_aadh_no = st.text_input(tr("Aadhaar Number (12 Digits)", "आधार संख्या (12 अंक)")[0], "5482-9182-4912")
-                u_aadh_file = st.file_uploader(tr("Upload Aadhaar", "आधार अपलोड करें")[0], type=["pdf", "png", "jpg", "jpeg"], key="reg_aadh")
-            with k_c2:
-                st.markdown("**2. 🪪 " + tr("Driving Licence", "ड्राइविंग लाइसेंस")[0] + "**")
-                u_dl_no = st.text_input(tr("Driving Licence Number", "ड्राइविंग लाइसेंस संख्या")[0], "DL-04-2022-00455")
-                u_dl_file = st.file_uploader(tr("Upload Driving Licence", "लाइसेंस अपलोड करें")[0], type=["pdf", "png", "jpg", "jpeg"], key="reg_dl")
-            with k_c3:
-                st.markdown("**3. 🤳 " + tr("Live Camera Selfie", "लाइव कैमरा सेल्फी")[0] + "**")
-                u_selfie = st.camera_input(tr("Take Live Selfie:", "लाइव सेल्फी लें:")[0])
+            # 3. KYC Verification Section — ONLY FOR FIELD SERVICE PROVIDERS (COLLECTORS)
+            if chosen_role == "COLLECTOR":
+                st.markdown("##### 3. 🛡️ " + tr("Mandatory 3-Point KYC Verification Dossier (Service Providers Only)", "अनिवार्य 3-बिंदु पहचान सत्यापन (केवल सेवा प्रदाताओं के लिए)")[0])
+                st.warning(tr("⚠️ Mandatory Security Compliance: Because Field Service Providers enter residential households and drive commercial transport vehicles, 3-point verification (Aadhaar + Driving Licence + Live Camera Selfie) is strictly mandatory to obtain platform accreditation.", "⚠️ अनिवार्य सुरक्षा अनुपालन: क्योंकि फील्ड सेवा प्रदाता आवासीय घरों में जाते हैं और वाणिज्यिक वाहन चलाते हैं, इसलिए प्लेटफॉर्म मान्यता प्राप्त करने के लिए 3-बिंदु सत्यापन (आधार + ड्राइविंग लाइसेंस + लाइव सेल्फी) अनिवार्य है।")[0])
+                k_c1, k_c2, k_c3 = st.columns(3)
+                with k_c1:
+                    st.markdown("**1. 📄 " + tr("Aadhaar Card", "आधार कार्ड")[0] + "**")
+                    u_aadh_no = st.text_input(tr("Aadhaar Number (12 Digits)", "आधार संख्या (12 अंक)")[0], "5482-9182-4912")
+                    u_aadh_file = st.file_uploader(tr("Upload Aadhaar", "आधार अपलोड करें")[0], type=["pdf", "png", "jpg", "jpeg"], key="reg_aadh")
+                with k_c2:
+                    st.markdown("**2. 🪪 " + tr("Driving Licence", "ड्राइविंग लाइसेंस")[0] + "**")
+                    u_dl_no = st.text_input(tr("Driving Licence Number", "ड्राइविंग लाइसेंस संख्या")[0], "DL-04-2022-00455")
+                    u_dl_file = st.file_uploader(tr("Upload Driving Licence", "लाइसेंस अपलोड करें")[0], type=["pdf", "png", "jpg", "jpeg"], key="reg_dl")
+                with k_c3:
+                    st.markdown("**3. 🤳 " + tr("Live Camera Selfie", "लाइव कैमरा सेल्फी")[0] + "**")
+                    u_selfie = st.camera_input(tr("Take Live Selfie:", "लाइव सेल्फी लें:")[0])
 
-            reg_submit = st.form_submit_button("🚀 " + tr("Complete 3-Point Registration & Enter Portal", "पंजीकरण पूरा करें व पोर्टल में प्रवेश करें")[0], type="primary", use_container_width=True)
+                reg_submit = st.form_submit_button("🚀 " + tr("Submit Service Provider Dossier & Register", "सेवा प्रदाता दस्तावेज जमा करें व पंजीकरण पूरा करें")[0], type="primary", use_container_width=True)
+            else:
+                st.markdown("##### 3. " + tr("Verification Policy", "सत्यापन नीति")[0])
+                st.success(tr(
+                    "✅ Zero-Friction Registration: No KYC required for Household Citizens, Commercial Generators, or Recyclers! Your account will be activated immediately with basic contact details. 3-Point KYC verification (Aadhaar + DL + Biometric Selfie) is strictly reserved for frontline Service Providers visiting residential doorsteps.",
+                    "✅ आसान व त्वरित पंजीकरण: घरेलू नागरिकों, वाणिज्यिक जनरेटरों या खरीदारों के लिए कोई व्यक्तिगत केवाईसी आवश्यक नहीं है! आपका खाता तुरंत सक्रिय हो जाएगा। 3-बिंदु केवाईसी केवल घर-घर जाने वाले सेवा प्रदाताओं (कबाड़ीवालों) के लिए ही अनिवार्य है।"
+                )[0])
+
+                reg_submit = st.form_submit_button("🚀 " + tr("Complete Instant Registration & Enter Portal", "तुरंत पंजीकरण पूरा करें व पोर्टल में प्रवेश करें")[0], type="primary", use_container_width=True)
+
             if reg_submit:
                 st.session_state.is_logged_in = True
                 st.session_state.current_role = chosen_role
                 st.session_state.user_name = reg_name
                 st.session_state.user_email = reg_email
 
-                new_kyc_entry = {
-                    "id": f"KYC-{chosen_role[:3]}-{len(st.session_state.kyc_records)+1:03d}",
-                    "name": reg_name,
-                    "role": chosen_role,
-                    "phone": reg_phone,
-                    "vehicle": reg_veh_no if chosen_role == "COLLECTOR" else "N/A",
-                    "aadhaar_num": u_aadh_no,
-                    "dl_num": u_dl_no,
-                    "aadhaar_status": "Uploaded (Masked UIDAI Document)",
-                    "dl_status": "Uploaded (State Transport Authority)",
-                    "selfie_status": "Live Biometric Match 98.4% ✓",
-                    "status": "APPROVED ✓" if chosen_role in ["HOUSEHOLD", "ADMIN"] else "PENDING REVIEW ⏳",
-                    "applied_date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-                    "reviewed_by": "Deepak Verma (Admin)" if chosen_role in ["HOUSEHOLD", "ADMIN"] else None,
-                }
-                st.session_state.kyc_records.append(new_kyc_entry)
-                st.success(tr("Registration successful! Welcome to your dashboard.", "पंजीकरण सफल! आपके डैशबोर्ड में स्वागत है।")[0])
+                if chosen_role == "COLLECTOR":
+                    new_kyc_entry = {
+                        "id": f"KYC-COL-{len(st.session_state.kyc_records)+1:03d}",
+                        "name": reg_name,
+                        "role": "COLLECTOR",
+                        "phone": reg_phone,
+                        "vehicle": reg_veh_no,
+                        "aadhaar_num": u_aadh_no,
+                        "dl_num": u_dl_no,
+                        "aadhaar_status": "Uploaded (Masked UIDAI Document)",
+                        "dl_status": "Uploaded (State Transport Authority)",
+                        "selfie_status": "Live Biometric Match 98.4% ✓",
+                        "status": "PENDING REVIEW ⏳",
+                        "applied_date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
+                        "reviewed_by": None,
+                    }
+                    st.session_state.kyc_records.append(new_kyc_entry)
+                    st.success(tr("Service Provider Registered! 3-Point KYC dossier submitted for Admin review.", "सेवा प्रदाता पंजीकृत! 3-बिंदु सत्यापन समीक्षा हेतु जमा किया गया।")[0])
+                else:
+                    st.success(tr("Registration successful! Welcome to your instant portal.", "पंजीकरण सफल! आपके पोर्टल में स्वागत है।")[0])
+
                 st.rerun()
 
     st.stop()
@@ -2049,7 +2065,7 @@ elif current_role == "ADMIN":
     with ak4:
         st.markdown(f'<div class="kpi-card"><div class="kpi-val">0 Disputes</div><div class="kpi-lbl">{tr_span("Dispute Status: Normal", "विवाद स्थिति: सामान्य")}</div></div>', unsafe_allow_html=True)
 
-    at1_name = tr("📋 3-Point KYC Verification Queue", "📋 3-बिंदु पहचान सत्यापन कतार")[0]
+    at1_name = tr("📋 Service Provider KYC Queue", "📋 सेवा प्रदाता पहचान सत्यापन कतार")[0]
     at2_name = tr("🤖 AI Photo Matching & Biometrics", "🤖 एआई फोटो मिलान व बायोमेट्रिक्स")[0]
     at3_name = tr("📈 Mandi Benchmark Rates", "📈 मंडी बेंचमार्क दरें")[0]
     at4_name = tr("🛡️ EcoShield Anomaly Audit", "🛡️ इको-शील्ड विसंगति ऑडिट")[0]
@@ -2061,8 +2077,8 @@ elif current_role == "ADMIN":
     ])
 
     with a_tab1:
-        st.markdown("#### 📋 " + tr("3-Point KYC Verification Queue", "3-बिंदु पहचान सत्यापन कतार")[0])
-        st.caption(tr("Review uploaded Government Aadhaar Cards, Driving Licences, and Live Biometric Selfies:", "अपलोड किए गए आधार कार्ड, ड्राइविंग लाइसेंस, और लाइव सेल्फी की समीक्षा करें:")[0])
+        st.markdown("#### 📋 " + tr("Service Provider 3-Point KYC Verification Queue", "सेवा प्रदाता 3-बिंदु पहचान सत्यापन कतार")[0])
+        st.caption(tr("Review Government Aadhaar Cards, Driving Licences, and Live Biometric Selfies for Field Service Providers (Collectors):", "फील्ड सेवा प्रदाताओं (कबाड़ीवालों) के आधार, ड्राइविंग लाइसेंस और बायोमेट्रिक सेल्फी की समीक्षा करें:")[0])
 
         kyc_df = pd.DataFrame([
             {
