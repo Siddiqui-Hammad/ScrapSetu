@@ -28,6 +28,10 @@ import {
   Users,
   Mic,
   Maximize2,
+  Camera,
+  Eye,
+  X,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { MapLibreMap } from '@/components/maps/MapLibreMap';
@@ -48,38 +52,54 @@ export default function CollectorPortalPage() {
   const [isWeighModalOpen, setIsWeighModalOpen] = useState(false);
   const [isVoiceModalOpen, setIsVoiceModalOpen] = useState(false);
   const [selectedJobForWeigh, setSelectedJobForWeigh] = useState<any>(null);
+  const [selectedJobForPhotoInspection, setSelectedJobForPhotoInspection] = useState<any>(null);
 
-  // Exact 3 Nearby Jobs matching Mockup Row 2 Panel 2
+  // Exact 3 Nearby Jobs with verified customer uploaded scrap photos
   const [nearbyJobs, setNearbyJobs] = useState([
     {
       id: 'JOB-001',
       customer: 'Priya Sharma',
-      address: '12th Main, Indiranagar',
+      address: '12th Main, Indiranagar, Bangalore',
       distance: '2.1 km',
-      materials: '15 kg Plastic & Paper',
+      materials: '15 kg Plastic (PET Bottles) & Paper',
       estVal: 375,
       phone: '+91 98765 43210',
       status: 'AVAILABLE', // AVAILABLE, ACCEPTED, COMPLETED
+      photoUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="260" viewBox="0 0 400 260"><rect width="400" height="260" rx="16" fill="%230f241a"/><rect x="20" y="20" width="360" height="220" rx="12" fill="%2316382a" stroke="%2310b981" stroke-width="2"/><text x="200" y="85" font-family="sans-serif" font-size="44" text-anchor="middle">🍾 📦 🥤</text><text x="200" y="130" font-family="sans-serif" font-size="15" font-weight="bold" fill="%23ffffff" text-anchor="middle">PET Bottles &amp; Newspaper Bundle</text><text x="200" y="160" font-family="sans-serif" font-size="12" font-weight="bold" fill="%236ee7b7" text-anchor="middle">AI Verified Weight: ~15.0 kg</text><rect x="60" y="185" width="280" height="28" rx="6" fill="%23047857"/><text x="200" y="204" font-family="monospace" font-size="11" font-weight="bold" fill="%23ffffff" text-anchor="middle">CUSTOMER UPLOADED • 10:45 AM</text></svg>',
+      photoThumbnailLabel: 'PET Bottles & Paper (15 kg)',
+      aiDescription: 'I can see 15 kg of sorted transparent PET drink bottles and dry corrugated cartons tied with plastic strapping. Material is clean with zero liquid or organic contamination.',
+      aiWeight: '15.0 kg',
+      aiBreakdown: 'Plastic PET: 72% • Newspaper: 28%',
     },
     {
       id: 'JOB-002',
       customer: 'TechCorp Office',
-      address: 'Koramangala 4th Block',
+      address: 'Koramangala 4th Block, Bangalore',
       distance: '3.4 km',
-      materials: '40 kg E-Waste & Paper',
+      materials: '40 kg E-Waste & Heavy Cardboard',
       estVal: 1200,
       phone: '+91 98110 77007',
       status: 'AVAILABLE',
+      photoUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="260" viewBox="0 0 400 260"><rect width="400" height="260" rx="16" fill="%230f241a"/><rect x="20" y="20" width="360" height="220" rx="12" fill="%2316382a" stroke="%2338bdf8" stroke-width="2"/><text x="200" y="85" font-family="sans-serif" font-size="44" text-anchor="middle">🖥️ ⚡ 📦</text><text x="200" y="130" font-family="sans-serif" font-size="15" font-weight="bold" fill="%23ffffff" text-anchor="middle">E-Waste Motherboards &amp; PC Towers</text><text x="200" y="160" font-family="sans-serif" font-size="12" font-weight="bold" fill="%237dd3fc" text-anchor="middle">AI Verified Weight: ~40.0 kg</text><rect x="60" y="185" width="280" height="28" rx="6" fill="%230284c7"/><text x="200" y="204" font-family="monospace" font-size="11" font-weight="bold" fill="%23ffffff" text-anchor="middle">OFFICE LOT • VERIFIED DISPATCH</text></svg>',
+      photoThumbnailLabel: 'E-Waste Motherboards & Towers (40 kg)',
+      aiDescription: 'I can see 2 dismantled desktop CPU towers, green motherboards with gold pins, and 6 corrugated shipping boxes from an IT office upgrade.',
+      aiWeight: '40.0 kg',
+      aiBreakdown: 'E-Waste PCB: 58% • Steel Chassis: 42%',
     },
     {
       id: 'JOB-003',
       customer: 'Amit Patel',
-      address: 'HSR Layout Sector 2',
+      address: 'HSR Layout Sector 2, Bangalore',
       distance: '5.2 km',
-      materials: '25 kg Metal & Glass',
+      materials: '25 kg Copper Wiring, Metal & Glass',
       estVal: 650,
       phone: '+91 98220 99881',
       status: 'AVAILABLE',
+      photoUrl: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="260" viewBox="0 0 400 260"><rect width="400" height="260" rx="16" fill="%230f241a"/><rect x="20" y="20" width="360" height="220" rx="12" fill="%2316382a" stroke="%23f59e0b" stroke-width="2"/><text x="200" y="85" font-family="sans-serif" font-size="44" text-anchor="middle">⚡ 🍾 🔨</text><text x="200" y="130" font-family="sans-serif" font-size="15" font-weight="bold" fill="%23ffffff" text-anchor="middle">Copper Wiring &amp; Metal Scraps</text><text x="200" y="160" font-family="sans-serif" font-size="12" font-weight="bold" fill="%23fde047" text-anchor="middle">AI Verified Weight: ~25.0 kg</text><rect x="60" y="185" width="280" height="28" rx="6" fill="%23d97706"/><text x="200" y="204" font-family="monospace" font-size="11" font-weight="bold" fill="%23ffffff" text-anchor="middle">HIGH-VALUE COPPER SCANNED</text></svg>',
+      photoThumbnailLabel: 'Copper Wiring & Metal Rods (25 kg)',
+      aiDescription: 'I can see coiled copper electric wires, steel household pipes, and glass beverage bottles. High density lot with excellent scrap value.',
+      aiWeight: '25.0 kg',
+      aiBreakdown: 'Copper Wire: 45% • Ferrous Iron: 40% • Glass: 15%',
     },
   ]);
 
@@ -434,6 +454,33 @@ export default function CollectorPortalPage() {
                           </div>
                         </div>
 
+                        {/* Customer Uploaded Scrap Photo Banner */}
+                        <div
+                          onClick={() => setSelectedJobForPhotoInspection(job)}
+                          className="mt-3 p-2.5 rounded-xl bg-black/40 border border-emerald-500/20 hover:border-emerald-400 cursor-pointer transition-all flex items-center justify-between gap-3 group"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-12 h-12 rounded-lg bg-zinc-900 overflow-hidden shrink-0 border border-emerald-500/30 flex items-center justify-center">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img src={job.photoUrl} alt="Scrap preview" className="w-full h-full object-cover" />
+                            </div>
+                            <div>
+                              <div className="text-xs font-bold text-white group-hover:text-emerald-300 transition-colors flex items-center gap-1.5">
+                                <Camera className="w-3.5 h-3.5 text-emerald-400" />
+                                <span>{job.photoThumbnailLabel}</span>
+                              </div>
+                              <div className="text-[10px] text-zinc-400">
+                                AI Weight: <strong className="text-emerald-400">{job.aiWeight}</strong> • Click to view full photo
+                              </div>
+                            </div>
+                          </div>
+
+                          <span className="text-[10px] font-bold text-emerald-400 bg-emerald-950/80 px-2 py-1 rounded-md border border-emerald-500/30 flex items-center gap-1 shrink-0">
+                            <Eye className="w-3 h-3" />
+                            <span>View Photo</span>
+                          </span>
+                        </div>
+
                         <div className="mt-3 pt-3 border-t border-white/10 flex items-center justify-between gap-2">
                           <a
                             href={`tel:${job.phone}`}
@@ -580,6 +627,93 @@ export default function CollectorPortalPage() {
         onClose={() => setIsVoiceModalOpen(false)}
         onExecuteAction={handleVoiceAction}
       />
+
+      {/* Customer Uploaded Scrap Photo Inspection Modal */}
+      {selectedJobForPhotoInspection && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div className="bg-[#0B1510] text-zinc-100 rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-emerald-500/40 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <div>
+                <h3 className="font-black text-white text-base flex items-center gap-2">
+                  <Camera className="w-5 h-5 text-emerald-400" />
+                  <span>Customer Uploaded Scrap Inspection</span>
+                </h3>
+                <p className="text-xs text-zinc-400">
+                  Customer: <strong>{selectedJobForPhotoInspection.customer}</strong> ({selectedJobForPhotoInspection.distance})
+                </p>
+              </div>
+              <button
+                onClick={() => setSelectedJobForPhotoInspection(null)}
+                className="p-1.5 rounded-full text-zinc-400 hover:text-white hover:bg-white/10"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Photo Preview Container */}
+            <div className="rounded-2xl overflow-hidden bg-zinc-950 border border-emerald-500/30 flex items-center justify-center p-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={selectedJobForPhotoInspection.photoUrl}
+                alt="Scrap item photo"
+                className="max-h-60 w-full object-contain rounded-xl"
+              />
+            </div>
+
+            {/* AI Vision Analysis Details */}
+            <div className="p-3.5 rounded-2xl bg-[#102018] border border-emerald-500/30 space-y-2 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="font-extrabold text-emerald-300 flex items-center gap-1.5">
+                  <Eye className="w-4 h-4 text-emerald-400" />
+                  <span>AI Visual Inspection &amp; Weight:</span>
+                </span>
+                <span className="font-mono font-bold text-white bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-500/30">
+                  {selectedJobForPhotoInspection.aiWeight}
+                </span>
+              </div>
+              <p className="text-zinc-300 leading-relaxed font-medium">
+                &ldquo;{selectedJobForPhotoInspection.aiDescription}&rdquo;
+              </p>
+              <div className="text-[11px] text-zinc-400 font-mono pt-1 border-t border-white/10">
+                Composition: <strong className="text-white">{selectedJobForPhotoInspection.aiBreakdown}</strong>
+              </div>
+            </div>
+
+            {/* Address & Payout */}
+            <div className="flex items-center justify-between p-3 rounded-2xl bg-black/40 border border-white/10 text-xs">
+              <div>
+                <div className="text-[10px] text-zinc-400">Pickup Address:</div>
+                <div className="font-bold text-white">{selectedJobForPhotoInspection.address}</div>
+              </div>
+              <div className="text-right">
+                <div className="text-[10px] text-zinc-400">Net Collector Payout:</div>
+                <div className="text-lg font-black font-mono text-emerald-400">₹{selectedJobForPhotoInspection.estVal}</div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-3 pt-2">
+              <Button
+                variant="outline"
+                onClick={() => setSelectedJobForPhotoInspection(null)}
+                className="flex-1 border-white/10 text-zinc-300 hover:text-white bg-white/5 text-xs font-bold h-11 rounded-xl"
+              >
+                Close Preview
+              </Button>
+              <Button
+                onClick={() => {
+                  handleAcceptJob(selectedJobForPhotoInspection.id);
+                  setSelectedJobForPhotoInspection(null);
+                }}
+                className="flex-2 bg-emerald-500 hover:bg-emerald-400 text-forest-950 font-black text-xs h-11 rounded-xl shadow-lg gap-1.5"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Accept Pickup Job (₹{selectedJobForPhotoInspection.estVal})</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

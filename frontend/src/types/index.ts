@@ -211,10 +211,18 @@ export interface ScrapVisionPrediction {
   hindiName: string;
   confidence: number;
   explanation: string;
+  visualDescription?: string;
+  estimatedWeightKg?: number;
+  weightConfidenceRange?: { minKg: number; maxKg: number };
+  weightCalculationRationale?: string;
+  estimatedTotalValueInr?: number;
+  detectedItemCount?: number;
   suggestedGrade: string;
   estimatedPriceRange: { min: number; max: number; unit: string };
   isExternalAiUsed: boolean;
   requiresUserConfirmation: true;
+  materialBreakdown?: Array<{ label: string; percentage: number; confidence: number; color?: string }>;
+  boundingBoxes?: Array<{ label: string; box: [number, number, number, number]; confidence: number }>;
 }
 
 export interface GreenLedgerMetrics {

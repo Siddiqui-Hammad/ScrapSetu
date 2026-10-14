@@ -38,4 +38,7 @@ Thumbs.db
 # Python bytecode
 __pycache__/
 *.py[cod]
+
+# TypeScript build info
+*.tsbuildinfo
 *$py.class

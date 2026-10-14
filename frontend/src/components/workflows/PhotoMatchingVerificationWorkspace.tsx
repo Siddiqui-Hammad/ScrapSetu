@@ -193,9 +193,9 @@ export const PhotoMatchingVerificationWorkspace: React.FC = () => {
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-zinc-200/90 shadow-xl overflow-hidden space-y-6">
+    <div className="bg-[#0B1510] rounded-3xl border border-emerald-500/25 shadow-2xl overflow-hidden space-y-6 text-zinc-100">
       {/* Top Banner */}
-      <div className="bg-gradient-to-r from-forest-950 via-forest-900 to-emerald-950 text-white p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-gradient-to-r from-[#060D09] via-forest-950 to-emerald-950 text-white p-6 sm:p-8 flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-emerald-500/20">
         <div className="space-y-2">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold border border-emerald-400/30">
             <Scan className="w-3.5 h-3.5" />
@@ -210,32 +210,32 @@ export const PhotoMatchingVerificationWorkspace: React.FC = () => {
         </div>
 
         {/* Quick Demo Preset Buttons */}
-        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/15 space-y-2.5 shrink-0">
-          <div className="text-[11px] font-bold text-emerald-300 uppercase tracking-wider flex items-center gap-1.5">
+        <div className="bg-white/5 backdrop-blur-md rounded-2xl p-4 border border-emerald-500/20 space-y-2.5 shrink-0">
+          <div className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5" />
             <span>One-Click Test Presets</span>
           </div>
           <div className="flex flex-col gap-1.5">
             <button
               onClick={() => loadPreset('AADHAAR_MATCH')}
-              className="text-left px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition-all flex items-center justify-between gap-2"
+              className="text-left px-3 py-1.5 rounded-lg bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-500/20 text-white text-xs font-bold transition-all flex items-center justify-between gap-2"
             >
               <span>1. Aadhaar Card Match (Ramesh Kumar)</span>
-              <span className="text-[10px] text-emerald-400 bg-emerald-950/60 px-1.5 py-0.5 rounded">Match ✓</span>
+              <span className="text-[10px] text-emerald-400 bg-emerald-950/80 px-1.5 py-0.5 rounded border border-emerald-500/30">Match ✓</span>
             </button>
             <button
               onClick={() => loadPreset('DL_MATCH')}
-              className="text-left px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition-all flex items-center justify-between gap-2"
+              className="text-left px-3 py-1.5 rounded-lg bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-500/20 text-white text-xs font-bold transition-all flex items-center justify-between gap-2"
             >
               <span>2. Commercial DL Match (Shyam Sundar)</span>
-              <span className="text-[10px] text-blue-300 bg-blue-950/60 px-1.5 py-0.5 rounded">DL ✓</span>
+              <span className="text-[10px] text-teal-300 bg-teal-950/80 px-1.5 py-0.5 rounded border border-teal-500/30">DL ✓</span>
             </button>
             <button
               onClick={() => loadPreset('MISMATCH')}
-              className="text-left px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition-all flex items-center justify-between gap-2"
+              className="text-left px-3 py-1.5 rounded-lg bg-emerald-950/40 hover:bg-emerald-900/60 border border-emerald-500/20 text-white text-xs font-bold transition-all flex items-center justify-between gap-2"
             >
               <span>3. Mismatch Test (Wrong Selfie)</span>
-              <span className="text-[10px] text-rose-300 bg-rose-950/60 px-1.5 py-0.5 rounded">Fail ✗</span>
+              <span className="text-[10px] text-rose-300 bg-rose-950/80 px-1.5 py-0.5 rounded border border-rose-500/30">Fail ✗</span>
             </button>
           </div>
         </div>
@@ -245,22 +245,22 @@ export const PhotoMatchingVerificationWorkspace: React.FC = () => {
         {/* Step 1: Upload / Capture Dual Workspace */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Panel 1: Document Upload (Aadhaar or DL) */}
-          <div className="bg-zinc-50 rounded-2xl p-5 border border-zinc-200/90 space-y-4">
-            <div className="flex items-center justify-between border-b border-zinc-200/70 pb-3">
+          <div className="bg-[#0E1D16] rounded-2xl p-5 border border-emerald-500/20 space-y-4">
+            <div className="flex items-center justify-between border-b border-emerald-500/15 pb-3">
               <div className="flex items-center gap-2">
-                <FileText className="w-4 h-4 text-forest-900" />
-                <h3 className="font-extrabold text-sm text-zinc-950">1. ID Document (Aadhaar / DL)</h3>
+                <FileText className="w-4 h-4 text-emerald-400" />
+                <h3 className="font-extrabold text-sm text-white">1. ID Document (Aadhaar / DL)</h3>
               </div>
               <div className="flex items-center gap-1 text-[11px] font-bold">
                 <button
                   onClick={() => setDocTypeHint('AADHAAR')}
-                  className={`px-2 py-0.5 rounded-md ${docTypeHint === 'AADHAAR' ? 'bg-forest-900 text-white' : 'text-zinc-600 bg-zinc-200/70'}`}
+                  className={`px-2.5 py-1 rounded-md transition-all ${docTypeHint === 'AADHAAR' ? 'bg-emerald-600 text-forest-950 font-black' : 'text-zinc-400 bg-zinc-900 border border-zinc-800'}`}
                 >
                   Aadhaar
                 </button>
                 <button
                   onClick={() => setDocTypeHint('DRIVING_LICENCE')}
-                  className={`px-2 py-0.5 rounded-md ${docTypeHint === 'DRIVING_LICENCE' ? 'bg-forest-900 text-white' : 'text-zinc-600 bg-zinc-200/70'}`}
+                  className={`px-2.5 py-1 rounded-md transition-all ${docTypeHint === 'DRIVING_LICENCE' ? 'bg-emerald-600 text-forest-950 font-black' : 'text-zinc-400 bg-zinc-900 border border-zinc-800'}`}
                 >
                   DL
                 </button>
@@ -268,19 +268,19 @@ export const PhotoMatchingVerificationWorkspace: React.FC = () => {
             </div>
 
             {/* Document Preview or Upload Box */}
-            <div className="relative min-h-[200px] rounded-xl border-2 border-dashed border-zinc-300 bg-white flex flex-col items-center justify-center p-4 overflow-hidden">
+            <div className="relative min-h-[200px] rounded-xl border-2 border-dashed border-emerald-500/30 bg-[#070D0A] flex flex-col items-center justify-center p-4 overflow-hidden">
               {docPreview ? (
                 <div className="relative w-full flex flex-col items-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={docPreview} alt="Uploaded Document" className="max-h-[190px] object-contain rounded-lg shadow-2xs" />
-                  <div className="mt-2 text-[11px] font-mono text-zinc-500 font-bold">{docName}</div>
+                  <div className="mt-2 text-[11px] font-mono text-emerald-400 font-bold">{docName}</div>
                 </div>
               ) : (
                 <div className="text-center space-y-2">
-                  <div className="w-12 h-12 rounded-full bg-emerald-50 text-forest-900 flex items-center justify-center mx-auto">
+                  <div className="w-12 h-12 rounded-full bg-emerald-950/60 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto">
                     <Upload className="w-6 h-6" />
                   </div>
-                  <div className="text-xs font-bold text-zinc-800">Upload Aadhaar Card or Driving Licence</div>
+                  <div className="text-xs font-bold text-zinc-200">Upload Aadhaar Card or Driving Licence</div>
                   <div className="text-[10px] text-zinc-500">Supports PNG, JPG, or SVG up to 10MB</div>
                 </div>
               )}
@@ -294,7 +294,7 @@ export const PhotoMatchingVerificationWorkspace: React.FC = () => {
             <div className="flex items-center justify-between gap-2">
               <label className="cursor-pointer">
                 <input type="file" accept="image/*" onChange={handleDocFileUpload} className="hidden" />
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-zinc-300 hover:bg-zinc-100 text-xs font-bold text-zinc-800 transition-all shadow-2xs">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-emerald-500/30 hover:bg-white/10 text-xs font-bold text-zinc-200 transition-all shadow-2xs">
                   <Upload className="w-3.5 h-3.5" />
                   <span>Choose File</span>
                 </span>
@@ -302,7 +302,7 @@ export const PhotoMatchingVerificationWorkspace: React.FC = () => {
 
               <button
                 onClick={() => loadPreset('AADHAAR_MATCH')}
-                className="text-xs font-bold text-forest-900 hover:text-emerald-700 underline"
+                className="text-xs font-bold text-emerald-400 hover:text-emerald-300 underline"
               >
                 Load Sample Aadhaar
               </button>
@@ -310,26 +310,26 @@ export const PhotoMatchingVerificationWorkspace: React.FC = () => {
           </div>
 
           {/* Panel 2: Live Photograph (Selfie / Camera) */}
-          <div className="bg-zinc-50 rounded-2xl p-5 border border-zinc-200/90 space-y-4">
-            <div className="flex items-center justify-between border-b border-zinc-200/70 pb-3">
+          <div className="bg-[#0E1D16] rounded-2xl p-5 border border-emerald-500/20 space-y-4">
+            <div className="flex items-center justify-between border-b border-emerald-500/15 pb-3">
               <div className="flex items-center gap-2">
-                <Camera className="w-4 h-4 text-forest-900" />
-                <h3 className="font-extrabold text-sm text-zinc-950">2. Live Photograph (Live Selfie)</h3>
+                <Camera className="w-4 h-4 text-emerald-400" />
+                <h3 className="font-extrabold text-sm text-white">2. Live Photograph (Live Selfie)</h3>
               </div>
-              <Badge variant="outline" className="text-[10px] bg-emerald-50 text-emerald-800 border-emerald-200">
+              <Badge variant="outline" className="text-[10px] bg-emerald-950/80 text-emerald-300 border-emerald-500/30">
                 Anti-Spoofing Enabled
               </Badge>
             </div>
 
             {/* Live Camera Stream or Preview Box */}
-            <div className="relative min-h-[200px] rounded-xl border-2 border-dashed border-zinc-300 bg-white flex flex-col items-center justify-center p-4 overflow-hidden">
+            <div className="relative min-h-[200px] rounded-xl border-2 border-dashed border-emerald-500/30 bg-[#070D0A] flex flex-col items-center justify-center p-4 overflow-hidden">
               {isCameraActive ? (
                 <div className="relative w-full flex flex-col items-center">
                   <video ref={videoRef} autoPlay playsInline className="w-full max-h-[190px] object-cover rounded-lg" />
                   <Button
                     size="sm"
                     onClick={captureCameraPhoto}
-                    className="mt-2 bg-emerald-700 hover:bg-emerald-800 text-white font-bold"
+                    className="mt-2 bg-emerald-600 hover:bg-emerald-500 text-forest-950 font-black"
                   >
                     <Camera className="w-3.5 h-3.5 mr-1.5" />
                     Snap Photo Now
@@ -339,24 +339,24 @@ export const PhotoMatchingVerificationWorkspace: React.FC = () => {
                 <div className="relative w-full flex flex-col items-center">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={livePreview} alt="Live Photograph" className="max-h-[190px] object-contain rounded-lg shadow-2xs" />
-                  <div className="mt-2 text-[11px] font-bold text-emerald-800 flex items-center gap-1">
+                  <div className="mt-2 text-[11px] font-bold text-emerald-400 flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" />
                     <span>Live Biometric Selfie Loaded</span>
                   </div>
                 </div>
               ) : (
                 <div className="text-center space-y-2">
-                  <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-800 flex items-center justify-center mx-auto">
+                  <div className="w-12 h-12 rounded-full bg-emerald-950/60 text-emerald-400 border border-emerald-500/30 flex items-center justify-center mx-auto">
                     <UserCheck className="w-6 h-6" />
                   </div>
-                  <div className="text-xs font-bold text-zinc-800">Capture Live Selfie or Upload Photo</div>
+                  <div className="text-xs font-bold text-zinc-200">Capture Live Selfie or Upload Photo</div>
                   <div className="text-[10px] text-zinc-500">Camera must show clear facial features without goggles</div>
                 </div>
               )}
 
               {/* Biometric alignment grid overlay */}
               {isAnalyzing && (
-                <div className="absolute inset-0 bg-emerald-950/20 backdrop-blur-[1px] flex items-center justify-center">
+                <div className="absolute inset-0 bg-emerald-950/40 backdrop-blur-[1px] flex items-center justify-center">
                   <div className="w-32 h-32 rounded-full border-2 border-emerald-400 border-dashed animate-spin flex items-center justify-center">
                     <div className="w-24 h-24 rounded-full border-2 border-teal-300 animate-ping" />
                   </div>
@@ -370,15 +370,15 @@ export const PhotoMatchingVerificationWorkspace: React.FC = () => {
                   size="sm"
                   variant="outline"
                   onClick={startCamera}
-                  className="bg-white border-zinc-300 text-xs font-bold text-zinc-800 h-8"
+                  className="bg-white/5 border-emerald-500/30 text-xs font-bold text-zinc-200 hover:bg-white/10 h-8"
                 >
-                  <Camera className="w-3.5 h-3.5 mr-1" />
+                  <Camera className="w-3.5 h-3.5 mr-1 text-emerald-400" />
                   <span>Use Webcam</span>
                 </Button>
                 <label className="cursor-pointer">
                   <input type="file" accept="image/*" onChange={handleLiveFileUpload} className="hidden" />
-                  <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white border border-zinc-300 hover:bg-zinc-100 text-xs font-bold text-zinc-800 transition-all shadow-2xs">
-                    <Upload className="w-3 h-3" />
+                  <span className="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white/5 border border-emerald-500/30 hover:bg-white/10 text-xs font-bold text-zinc-200 transition-all shadow-2xs">
+                    <Upload className="w-3 h-3 text-emerald-400" />
                     <span>Upload</span>
                   </span>
                 </label>
@@ -386,7 +386,7 @@ export const PhotoMatchingVerificationWorkspace: React.FC = () => {
 
               <button
                 onClick={() => loadPreset('AADHAAR_MATCH')}
-                className="text-xs font-bold text-forest-900 hover:text-emerald-700 underline"
+                className="text-xs font-bold text-emerald-400 hover:text-emerald-300 underline"
               >
                 Load Sample Selfie
               </button>
@@ -395,14 +395,14 @@ export const PhotoMatchingVerificationWorkspace: React.FC = () => {
         </div>
 
         {/* Verification Action Bar */}
-        <div className="bg-zinc-100/90 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 border border-zinc-200">
+        <div className="bg-[#070D0A] rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 border border-emerald-500/20">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-forest-900 text-white flex items-center justify-center font-bold">
+            <div className="w-9 h-9 rounded-xl bg-emerald-500 text-forest-950 flex items-center justify-center font-bold">
               <Scan className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-extrabold text-xs text-zinc-950">AI Facial Biometric Matching Protocol</div>
-              <div className="text-[11px] text-zinc-500">
+              <div className="font-extrabold text-xs text-white">AI Facial Biometric Matching Protocol</div>
+              <div className="text-[11px] text-zinc-400">
                 Cross-validates 68 facial coordinate landmarks, inter-pupillary distance, and document security watermark
               </div>
             </div>
@@ -412,7 +412,7 @@ export const PhotoMatchingVerificationWorkspace: React.FC = () => {
             size="lg"
             onClick={runAiVerification}
             disabled={isAnalyzing || !docPreview || !livePreview}
-            className="w-full sm:w-auto bg-forest-900 hover:bg-forest-950 text-white font-extrabold px-8 h-12 shadow-md gap-2"
+            className="w-full sm:w-auto bg-emerald-500 hover:bg-emerald-400 text-forest-950 font-black px-8 h-12 shadow-lg shadow-emerald-950/50 gap-2 transition-all"
           >
             {isAnalyzing ? (
               <>
@@ -421,7 +421,7 @@ export const PhotoMatchingVerificationWorkspace: React.FC = () => {
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4 text-emerald-300" />
+                <Sparkles className="w-4 h-4 text-forest-950 fill-forest-950" />
                 <span>Run Biometric Photo Match</span>
               </>
             )}
@@ -429,52 +429,52 @@ export const PhotoMatchingVerificationWorkspace: React.FC = () => {
         </div>
 
         {errorMsg && (
-          <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-bold flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
+          <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-500/30 text-amber-200 text-xs font-bold flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
             <span>{errorMsg}</span>
           </div>
         )}
 
         {/* Step 2: Verification Analysis Results Panel */}
         {analysisResult && (
-          <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-md space-y-6 animate-in fade-in duration-300">
+          <div className="rounded-2xl border border-emerald-500/30 bg-[#070D0A] p-6 shadow-2xl space-y-6 animate-in fade-in duration-300">
             {/* Header Status */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-100 pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-emerald-500/15 pb-4">
               <div className="flex items-center gap-3">
                 <div
                   className={`w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-white shadow-md ${
-                    analysisResult.isMatch ? 'bg-forest-900' : 'bg-rose-700'
+                    analysisResult.isMatch ? 'bg-emerald-600 text-forest-950' : 'bg-rose-700 text-white'
                   }`}
                 >
                   {analysisResult.isMatch ? <ShieldCheck className="w-6 h-6" /> : <XCircle className="w-6 h-6" />}
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-black text-zinc-950">
+                    <h3 className="text-lg font-black text-white">
                       {analysisResult.isMatch ? 'KYC Biometric Verification Approved' : 'Biometric Match Rejected'}
                     </h3>
                     <Badge variant={analysisResult.isMatch ? 'kyc' : 'danger'}>
                       {analysisResult.matchVerdict}
                     </Badge>
                   </div>
-                  <p className="text-xs text-zinc-500 font-medium mt-0.5">
+                  <p className="text-xs text-zinc-400 font-medium mt-0.5">
                     {analysisResult.verdictDescription}
                   </p>
                 </div>
               </div>
 
               {/* Big Score Badge */}
-              <div className="flex items-center gap-4 bg-zinc-50 px-4 py-2 rounded-xl border border-zinc-200/80">
+              <div className="flex items-center gap-4 bg-[#0E1D16] px-4 py-2 rounded-xl border border-emerald-500/20">
                 <div className="text-right">
                   <div className="text-[10px] uppercase tracking-wider font-bold text-zinc-400">Match Confidence</div>
-                  <div className="text-2xl font-black font-mono text-forest-900">
+                  <div className="text-2xl font-black font-mono text-emerald-400">
                     {analysisResult.matchScore}%
                   </div>
                 </div>
-                <div className="w-px h-8 bg-zinc-200" />
+                <div className="w-px h-8 bg-emerald-500/20" />
                 <div className="text-right">
                   <div className="text-[10px] uppercase tracking-wider font-bold text-zinc-400">Liveness Check</div>
-                  <div className="text-2xl font-black font-mono text-emerald-700">
+                  <div className="text-2xl font-black font-mono text-teal-300">
                     {analysisResult.livenessScore}%
                   </div>
                 </div>
@@ -484,64 +484,64 @@ export const PhotoMatchingVerificationWorkspace: React.FC = () => {
             {/* Extracted Details Grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {/* Card 1: Document Metadata */}
-              <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200/80 space-y-2">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1">
+              <div className="p-4 rounded-xl bg-[#0E1D16] border border-emerald-500/20 space-y-2">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
                   <FileText className="w-3.5 h-3.5" />
                   <span>OCR Extracted Document Data</span>
                 </div>
-                <div className="text-sm font-black text-zinc-950">
+                <div className="text-sm font-black text-white">
                   {analysisResult.extractedDocument.documentType === 'AADHAAR' ? 'Aadhaar Card (UIDAI)' : 'Driving Licence (Parivahan)'}
                 </div>
-                <div className="text-xs font-mono font-bold text-forest-900 bg-white p-2 rounded-lg border border-zinc-200">
+                <div className="text-xs font-mono font-bold text-emerald-300 bg-[#070D0A] p-2 rounded-lg border border-emerald-500/20">
                   ID: {analysisResult.extractedDocument.documentNumber}
                 </div>
-                <div className="text-[11px] text-zinc-600 space-y-0.5">
-                  <div>Name: <span className="font-bold text-zinc-900">{analysisResult.extractedDocument.fullName}</span></div>
-                  <div>DOB: <span className="font-bold text-zinc-900">{analysisResult.extractedDocument.dob}</span></div>
-                  <div>State: <span className="font-bold text-zinc-900">{analysisResult.extractedDocument.addressState}</span></div>
+                <div className="text-[11px] text-zinc-300 space-y-0.5">
+                  <div>Name: <span className="font-bold text-white">{analysisResult.extractedDocument.fullName}</span></div>
+                  <div>DOB: <span className="font-bold text-white">{analysisResult.extractedDocument.dob}</span></div>
+                  <div>State: <span className="font-bold text-white">{analysisResult.extractedDocument.addressState}</span></div>
                 </div>
               </div>
 
               {/* Card 2: Biometric Facial Landmark Analysis */}
-              <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200/80 space-y-2">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1">
+              <div className="p-4 rounded-xl bg-[#0E1D16] border border-emerald-500/20 space-y-2">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
                   <Scan className="w-3.5 h-3.5" />
                   <span>Biometric Coordinate Alignment</span>
                 </div>
                 <div className="space-y-1.5 text-xs">
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-600">Inter-Pupillary Distance:</span>
-                    <span className="font-bold text-emerald-800">Aligned (1.00x) ✓</span>
+                    <span className="text-zinc-400">Inter-Pupillary Distance:</span>
+                    <span className="font-bold text-emerald-400">Aligned (1.00x) ✓</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-600">Nose-Mouth Golden Ratio:</span>
-                    <span className="font-mono font-bold text-zinc-900">{analysisResult.facialLandmarks.noseMouthRatio}</span>
+                    <span className="text-zinc-400">Nose-Mouth Golden Ratio:</span>
+                    <span className="font-mono font-bold text-white">{analysisResult.facialLandmarks.noseMouthRatio}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-600">Facial Symmetry Index:</span>
-                    <span className="font-mono font-bold text-zinc-900">{analysisResult.facialLandmarks.symmetryIndex}</span>
+                    <span className="text-zinc-400">Facial Symmetry Index:</span>
+                    <span className="font-mono font-bold text-white">{analysisResult.facialLandmarks.symmetryIndex}</span>
                   </div>
                   <div className="flex justify-between items-center">
-                    <span className="text-zinc-600">Ambient Lighting Quality:</span>
-                    <span className="font-bold text-emerald-700">{analysisResult.facialLandmarks.lightingQuality}</span>
+                    <span className="text-zinc-400">Ambient Lighting Quality:</span>
+                    <span className="font-bold text-teal-300">{analysisResult.facialLandmarks.lightingQuality}</span>
                   </div>
                 </div>
               </div>
 
               {/* Card 3: Tamper-Proof Audit Seal */}
-              <div className="p-4 rounded-xl bg-zinc-50 border border-zinc-200/80 space-y-2">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1">
+              <div className="p-4 rounded-xl bg-[#0E1D16] border border-emerald-500/20 space-y-2">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
                   <Lock className="w-3.5 h-3.5" />
                   <span>Digital Cryptographic Audit Seal</span>
                 </div>
-                <div className="text-xs font-mono break-all bg-white p-2.5 rounded-lg border border-zinc-200 text-zinc-700 font-semibold leading-relaxed">
+                <div className="text-xs font-mono break-all bg-[#070D0A] p-2.5 rounded-lg border border-emerald-500/20 text-emerald-200 font-semibold leading-relaxed">
                   {analysisResult.biometricAuditHash}
                 </div>
-                <div className="text-[10px] text-zinc-500 font-medium">
+                <div className="text-[10px] text-zinc-400 font-medium">
                   Timestamp: {analysisResult.verifiedAt.replace('T', ' ').slice(0, 19)} UTC
                 </div>
-                <div className="text-[11px] font-bold text-forest-900 flex items-center gap-1 pt-1">
-                  <Award className="w-3.5 h-3.5 text-emerald-600" />
+                <div className="text-[11px] font-bold text-emerald-400 flex items-center gap-1 pt-1">
+                  <Award className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Doorstep Collection Clearance Granted</span>
                 </div>
               </div>

@@ -4,51 +4,51 @@
 
 @layer base {
   :root {
-    --background: 40 20% 98%;
-    --foreground: 240 10% 3.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
-    --primary: 158 84% 17%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 152 40% 96%;
-    --secondary-foreground: 161 80% 15%;
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
-    --accent: 152 40% 96%;
-    --accent-foreground: 161 80% 15%;
+    --background: 156 30% 4%; /* #070D0A deep obsidian forest */
+    --foreground: 150 20% 98%; /* #f4fdf8 crisp light */
+    --card: 156 25% 6%; /* #0B1510 elevated obsidian card */
+    --card-foreground: 150 20% 98%;
+    --popover: 156 25% 6%;
+    --popover-foreground: 150 20% 98%;
+    --primary: 158 84% 39%; /* #10b981 emerald */
+    --primary-foreground: 156 30% 4%;
+    --secondary: 156 20% 12%; /* #13251c */
+    --secondary-foreground: 150 20% 98%;
+    --muted: 156 20% 12%;
+    --muted-foreground: 150 10% 65%;
+    --accent: 158 84% 39%;
+    --accent-foreground: 156 30% 4%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 158 84% 17%;
+    --border: 156 20% 16%; /* #1a3327 */
+    --input: 156 20% 16%;
+    --ring: 158 84% 39%;
     --radius: 0.875rem;
   }
 }
 
 body {
-  color: #18181b;
-  background-color: #fafaf9;
+  color: #f4fdf8;
+  background-color: #070D0A;
   font-family: -apple-system, BlinkMacSystemFont, 'Plus Jakarta Sans', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Subtle elevation cards */
+/* Subtle elevation cards - dark luxury styling */
 .circular-card {
-  background: #ffffff;
-  border: 1px solid rgba(228, 228, 231, 0.8);
+  background: #0B1510;
+  border: 1px solid rgba(16, 185, 129, 0.15);
   border-radius: 1rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 2px 6px -1px rgba(0, 0, 0, 0.3);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .circular-card:hover {
   border-color: rgba(16, 185, 129, 0.4);
-  box-shadow: 0 10px 25px -5px rgba(6, 78, 59, 0.06), 0 8px 10px -6px rgba(6, 78, 59, 0.03);
+  box-shadow: 0 10px 30px -5px rgba(16, 185, 129, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
 }
 
-/* Operational high-density table */
+/* Operational high-density table - dark mode */
 .ops-table {
   width: 100%;
   border-collapse: separate;
@@ -56,21 +56,21 @@ body {
   font-size: 0.8125rem;
 }
 .ops-table th {
-  background: #f4f4f5;
-  color: #52525b;
+  background: #0f1e16;
+  color: #a1b2a9;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 0.625rem 0.875rem;
-  border-bottom: 1px solid #e4e4e7;
+  border-bottom: 1px solid #1a3327;
 }
 .ops-table td {
   padding: 0.75rem 0.875rem;
-  border-bottom: 1px solid #f4f4f5;
-  color: #18181b;
+  border-bottom: 1px solid #14281e;
+  color: #f4fdf8;
 }
 .ops-table tr:hover td {
-  background: #f8fafc;
+  background: #13251c;
 }
 
 /* Custom scrollbars */
@@ -79,12 +79,12 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #070D0A;
 }
 ::-webkit-scrollbar-thumb {
-  background: #d4d4d8;
+  background: #1a3327;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #a1a1aa;
+  background: #10b981;
 }
