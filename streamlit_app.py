@@ -1385,6 +1385,13 @@ if current_role == "HOUSEHOLD":
                 sample_choice = st.selectbox(tr("Choose High-Resolution Scrap Sample:", "उच्च-रिज़ॉल्यूशन स्क्रैप नमूना चुनें:")[0], sample_choices)
 
             # Dynamic AI Computer Vision Analysis
+            mat_key = "plastic"
+            mat_name = tr("Rigid Plastics (PET Optical Clear #1)", "कठोर प्लास्टिक (पीईटी ऑप्टिकल ग्रेड 1)")[0]
+            conf = 98.4
+            calc_wt = 5.4
+            rate_val = 32.0
+            obs_text = tr("Recyclable material detected by AI vision.", "एआई विज़न द्वारा पुनर्चक्रण योग्य सामग्री पहचानी गई।")[0]
+            comp_breakdown = tr("• 94.0% Recyclable Polymers\n• 6.0% Mixed Residue", "• 94.0% पुनर्चक्रण योग्य पॉलीमर\n• 6.0% मिश्रित अवशेष")[0]
             current_photo_uri = None
             if up_img is not None:
                 img_bytes = up_img.getvalue()
@@ -1582,7 +1589,7 @@ if current_role == "HOUSEHOLD":
                     "assigned_collector": None,
                     "created_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
                     "photo_svg": final_photo_to_save,
-                    "ai_vision": f"{obs_en}\n\n(हिंदी: {obs_hi})",
+                    "ai_vision": obs_text,
                     "ai_weight_details": f"Calculated: {fine_wt} kg | Payout: ₹{live_payout:,.2f} | Mandi Rate: ₹{rate_val}/kg | Confidence: {conf}%"
                 }
                 st.session_state.pickups.append(new_order)
