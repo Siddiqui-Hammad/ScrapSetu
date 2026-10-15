@@ -955,6 +955,45 @@ if "recycler_offers" not in st.session_state:
         {"mill": "Apex Metal Alloys & Smelting", "cat": "Copper Wire (Millberry)", "rate": 695.0, "min_lot": 20, "location": "Mayapuri Metal Cluster"},
     ]
 
+# Collaborative Scrap Pooling Consignments (Session State Persistent)
+if "pools_data" not in st.session_state:
+    st.session_state.pools_data = [
+        {
+            "id": "POOL-001",
+            "name": tr("Indiranagar PET Plastic Bulk Pool", "इंदिरानगर PET प्लास्टिक बल्क पूल")[0],
+            "cat": "Plastic (PET)",
+            "target": 1000,
+            "pledged": 640,
+            "rate": 34.0,
+            "solo": 28.0,
+            "deadline": tr("Tomorrow 5 PM", "कल शाम 5 बजे")[0],
+            "hub": tr("Indiranagar Recovery Yard", "इंदिरानगर रिकवरी यार्ड")[0],
+            "status": "OPEN",
+        },
+        {
+            "id": "POOL-002",
+            "name": tr("Koramangala Cardboard Mega Lot", "कोरमंगला कार्डबोर्ड व गत्ता मेगा लॉट")[0],
+            "cat": "Cardboard",
+            "target": 2000,
+            "pledged": 1750,
+            "rate": 18.5,
+            "solo": 14.0,
+            "deadline": tr("In 2 Days", "2 दिन में")[0],
+            "hub": tr("Koramangala 4th Block Yard", "कोरमंगला 4th ब्लॉक यार्ड")[0],
+            "status": "OPEN",
+        },
+    ]
+
+# Company Regional Yard Inventory Space & Collector Vehicle Load
+if "company_hub_inventory" not in st.session_state:
+    st.session_state.company_hub_inventory = {
+        "max_hub_capacity": 5000.0,
+    }
+
+if "collector_vehicle_load" not in st.session_state:
+    st.session_state.collector_vehicle_load = 187.5
+    st.session_state.collector_max_capacity = 250.0
+
 # KYC Partner Verifications
 if "kyc_records" not in st.session_state:
     st.session_state.kyc_records = [
@@ -1971,7 +2010,10 @@ elif current_role == "COLLECTOR":
 
     kc1, kc2, kc3, kc4 = st.columns(4)
     with kc1:
-        st.markdown(f'<div class="kpi-card"><div class="kpi-val">187.5 / 250 kg</div><div class="kpi-lbl">{tr_span("Daily Vehicle Capacity (75%)", "दैनिक वाहन क्षमता (75%)")}</div></div>', unsafe_allow_html=True)
+        cur_v_load = st.session_state.get("collector_vehicle_load", 187.5)
+        max_v_cap = st.session_state.get("collector_max_capacity", 250.0)
+        v_pct = int((cur_v_load / max_v_cap) * 100) if max_v_cap > 0 else 0
+        st.markdown(f'<div class="kpi-card"><div class="kpi-val">{cur_v_load:.1f} / {max_v_cap:.0f} kg</div><div class="kpi-lbl">{tr_span(f"Vehicle Payload Used ({v_pct}%)", f"दैनिक वाहन भार ({v_pct}%)")}</div></div>', unsafe_allow_html=True)
     with kc2:
         st.markdown(f'<div class="kpi-card"><div class="kpi-val">₹6,895.00</div><div class="kpi-lbl">{tr_span("Today Collections Settled", "आज का कुल संग्रह निपटान")}</div></div>', unsafe_allow_html=True)
     with kc3:
@@ -2058,6 +2100,10 @@ elif current_role == "COLLECTOR":
                         tgt["est_val"] = w_tot
                         tgt["receipt_number"] = r_no
                         tgt["receipt_hash"] = r_h
+                        st.session_state.collector_vehicle_load = min(
+                            st.session_state.collector_max_capacity,
+                            round(st.session_state.collector_vehicle_load + w_net, 1)
+                        )
                         st.session_state.audit_logs.append({
                             "action": "COMPLETE_TRANSACTION",
                             "user": st.session_state.user_name,
@@ -2160,41 +2206,118 @@ elif current_role == "COLLECTOR":
 
     # ---------------- 3. COLLABORATIVE SCRAP POOLING TAB ----------------
     with col_tab_pool:
-        st.markdown("#### " + tr("Collaborative Scrap Pooling", "सहयोगात्मक स्क्रैप पूलिंग")[0])
+        st.markdown("#### " + tr("Collaborative Scrap Pooling & Company Hub Inventory", "सहयोगात्मक स्क्रैप पूलिंग व कंपनी हब इन्वेंटरी")[0])
         st.caption(tr("Combine scrap lots with neighboring collectors to satisfy bulk buyer minimums and earn +15% to +25% bonus rates:", "छोटे कबाड़ीवाले आपस में स्क्रैप मिलाकर बड़ी बल्क लॉट बनाते हैं और सीधा रीसाइक्लर से +15% से +25% तक प्रीमियम दर पाते हैं:")[0])
+
+        # Dynamic Company Hub Yard Inventory Space KPIs
+        total_hub_target = sum(p["target"] for p in st.session_state.pools_data)
+        total_hub_pledged = sum(p["pledged"] for p in st.session_state.pools_data)
+        max_company_space = st.session_state.company_hub_inventory["max_hub_capacity"]
+        total_inventory_occupied = total_hub_pledged
+        total_inventory_free = max(0.0, max_company_space - total_inventory_occupied)
+        company_inventory_pct = int(min(100.0, (total_inventory_occupied / max_company_space) * 100))
+
+        inv_k1, inv_k2, inv_k3 = st.columns(3)
+        with inv_k1:
+            st.markdown(f'<div class="kpi-card"><div class="kpi-val">{total_inventory_occupied:,.1f} / {max_company_space:,.0f} kg</div><div class="kpi-lbl">{tr_span(f"Company Hub Storage Occupied ({company_inventory_pct}%)", f"कंपनी हब इन्वेंटरी स्पेस ({company_inventory_pct}% भरा)")}</div></div>', unsafe_allow_html=True)
+        with inv_k2:
+            st.markdown(f'<div class="kpi-card"><div class="kpi-val">{total_inventory_free:,.1f} kg Free</div><div class="kpi-lbl">{tr_span("Available Yard Storage Capacity", "उपलब्ध यार्ड भंडारण क्षमता")}</div></div>', unsafe_allow_html=True)
+        with inv_k3:
+            total_pool_val = sum(p["pledged"] * p["rate"] for p in st.session_state.pools_data)
+            st.markdown(f'<div class="kpi-card"><div class="kpi-val">₹{total_pool_val:,.2f}</div><div class="kpi-lbl">{tr_span("Consolidated Consignment Valuation", "एकत्रित बल्क कबाड़ मूल्य")}</div></div>', unsafe_allow_html=True)
+
+        st.markdown("<br>", unsafe_allow_html=True)
 
         pool_c1, pool_c2 = st.columns([1, 1], gap="large")
         with pool_c1:
             st.markdown("##### " + tr("Active Pooling Consignments", "सक्रिय पूलिंग ग्रुप")[0])
-            pools_data = [
-                {"id": "POOL-001", "name": tr("Indiranagar PET Plastic Bulk Pool", "इंदिरानगर PET प्लास्टिक बल्क पूल")[0], "cat": "Plastic (PET)", "target": 1000, "pledged": 640, "rate": 34.0, "solo": 28.0, "deadline": tr("Tomorrow 5 PM", "कल शाम 5 बजे")[0], "hub": tr("Indiranagar Recovery Yard", "इंदिरानगर रिकवरी यार्ड")[0]},
-                {"id": "POOL-002", "name": tr("Koramangala Cardboard Mega Lot", "कोरमंगला कार्डबोर्ड व गत्ता मेगा लॉट")[0], "cat": "Cardboard", "target": 2000, "pledged": 1750, "rate": 18.5, "solo": 14.0, "deadline": tr("In 2 Days", "2 दिन में")[0], "hub": tr("Koramangala 4th Block Yard", "कोरमंगला 4th ब्लॉक यार्ड")[0]},
-            ]
 
-            for p in pools_data:
-                pct = int((p["pledged"] / p["target"]) * 100)
-                rem = p["target"] - p["pledged"]
+            for p in st.session_state.pools_data:
+                pct = int(min(100.0, (p["pledged"] / p["target"]) * 100))
+                rem = max(0, p["target"] - p["pledged"])
                 bonus = p["rate"] - p["solo"]
+                is_complete = p["pledged"] >= p["target"]
                 with st.container(border=True):
-                    st.markdown(f"**{p['name']}** (`{p['id']}`)")
+                    head_col1, head_col2 = st.columns([3, 1])
+                    with head_col1:
+                        st.markdown(f"**{p['name']}** (`{p['id']}`)")
+                    with head_col2:
+                        if is_complete:
+                            st.markdown("<span style='background:rgba(16, 185, 129, 0.2); color:#34D399; font-weight:800; font-size:11px; padding:2px 8px; border-radius:4px; border:1px solid #10B981;'>100% COMPLETE</span>", unsafe_allow_html=True)
+                        else:
+                            st.markdown(f"<span style='background:rgba(56, 189, 248, 0.2); color:#38BDF8; font-weight:700; font-size:11px; padding:2px 8px; border-radius:4px; border:1px solid #38BDF8;'>{rem} kg OPEN</span>", unsafe_allow_html=True)
                     st.caption(f"{tr('Material', 'सामग्री')[0]}: **{p['cat']}** • {tr('Hub', 'हब')[0]}: {p['hub']} • {tr('Deadline', 'समय सीमा')[0]}: {p['deadline']}")
-                    st.progress(pct / 100)
+                    st.progress(pct / 100.0)
                     st.write(f"{tr('Progress', 'प्रगति')[0]}: **{p['pledged']} / {p['target']} kg ({pct}%)** • {tr('Remaining', 'शेष')[0]}: **{rem} kg**")
                     st.markdown(f"{tr('Bulk Rate', 'बल्क दर')[0]}: **₹{p['rate']}/kg** *({tr('Solo Rate', 'अकेले बेचने पर दर')[0]}: ₹{p['solo']}/kg, {tr('Pool Bonus', 'पूलिंग बोनस')[0]}: +₹{bonus}/kg)*")
 
         with pool_c2:
             st.markdown("##### " + tr("Pledge Scrap to Pool", "अपने स्क्रैप का योगदान दें")[0])
-            with st.form("pledge_form"):
-                p_choice = st.selectbox(tr("Select Pooling Group:", "चुनें पूलिंग ग्रुप:")[0], [f"{p['id']} — {p['name']}" for p in pools_data])
-                pl_kg = st.number_input(tr("Pledged Weight (kg):", "योगदान वजन (किग्रा):")[0], min_value=10, max_value=500, value=50, step=5)
-                
-                est_p = pl_kg * 34.0
-                est_b = pl_kg * 6.0
-                st.info(f"**{tr('Expected Payout', 'अनुमानित भुगतान')[0]}:** ₹{est_p:,.2f} | **{tr('Pooling Extra Bonus', 'पूलिंग अतिरिक्त बोनस')[0]}:** +₹{est_b:,.2f}")
-                st.caption(tr("Fairness Guarantee: Your contribution is locked and can be withdrawn anytime before 100% target completion.", "निष्पक्षता गारंटी: आपका योगदान सुरक्षित रहेगा। 100% पूरा होने से पहले कभी भी वापस ले सकते हैं।")[0])
-                
-                if st.form_submit_button(tr("Lock Pledge into Pool", "पूल में स्क्रैप लॉक करें")[0], type="primary", use_container_width=True):
-                    st.success(tr(f"Successfully pledged {pl_kg} kg! Your pool allocation share is 14.2%.", f"सफलतापूर्वक {pl_kg} किग्रा स्क्रैप पूल में जोड़ा गया! आपकी हिस्सेदारी 14.2% आरक्षित हुई।")[0])
+            pool_options = [f"{p['id']} — {p['name']}" for p in st.session_state.pools_data]
+            p_choice = st.selectbox(tr("Select Pooling Group:", "चुनें पूलिंग ग्रुप:")[0], pool_options)
+            chosen_p = next((p for p in st.session_state.pools_data if p["id"] in p_choice), st.session_state.pools_data[0])
+            rem_kg_open = max(0, chosen_p["target"] - chosen_p["pledged"])
+
+            default_val = min(rem_kg_open if rem_kg_open > 0 else 50, 360)
+            pl_kg = st.number_input(tr("Pledged Weight (kg):", "योगदान वजन (किग्रा):")[0], min_value=5, max_value=max(1000, chosen_p["target"]), value=default_val, step=5)
+
+            est_p = pl_kg * chosen_p["rate"]
+            est_b = pl_kg * (chosen_p["rate"] - chosen_p["solo"])
+
+            if rem_kg_open > 0:
+                preview_share_of_rem = min(100.0, (pl_kg / rem_kg_open) * 100)
+            else:
+                preview_share_of_rem = 100.0
+            preview_share_of_total = min(100.0, (pl_kg / chosen_p["target"]) * 100)
+
+            st.info(f"**{tr('Expected Payout', 'अनुमानित भुगतान')[0]}:** ₹{est_p:,.2f} | **{tr('Pooling Extra Bonus', 'पूलिंग अतिरिक्त बोनस')[0]}:** +₹{est_b:,.2f} (@ ₹{chosen_p['rate']}/kg)")
+
+            st.markdown(f"""
+            <div style="background:#091A12; border:1px solid rgba(16, 185, 129, 0.3); border-radius:8px; padding:10px; font-size:12px; color:#A7F3D0; margin-bottom:10px;">
+                <b>{tr("Calculated Allocation Share Preview:", "गणना की गई पूल हिस्सेदारी पूर्वावलोकन:")[0]}</b><br>
+                • {tr("Fulfillment of Open Deficit:", "खुले लक्ष्य की पूर्ति:")[0]} <b>{preview_share_of_rem:.1f}%</b> ({pl_kg} kg / {rem_kg_open} kg)<br>
+                • {tr("Total Pool Equity Share:", "कुल पूल में व्यक्तिगत हिस्सेदारी:")[0]} <b>{preview_share_of_total:.1f}%</b> ({pl_kg} kg / {chosen_p['target']} kg)
+            </div>
+            """, unsafe_allow_html=True)
+
+            st.caption(tr("Fairness Guarantee: Your contribution is locked and can be withdrawn anytime before 100% target completion.", "निष्पक्षता गारंटी: आपका योगदान सुरक्षित रहेगा। 100% पूरा होने से पहले कभी भी वापस ले सकते हैं।")[0])
+
+            if st.button(tr("Lock Pledge into Pool", "पूल में स्क्रैप लॉक करें")[0], type="primary", use_container_width=True):
+                rem_needed = max(0, chosen_p["target"] - chosen_p["pledged"])
+                if rem_needed > 0:
+                    fulfillment_rem_pct = round(min(100.0, (pl_kg / rem_needed) * 100.0), 1)
+                else:
+                    fulfillment_rem_pct = 100.0
+
+                chosen_p["pledged"] = min(chosen_p["target"], chosen_p["pledged"] + pl_kg)
+                new_pledged = chosen_p["pledged"]
+                new_pct = int(min(100.0, (new_pledged / chosen_p["target"]) * 100))
+                allocation_share_pct = round((pl_kg / chosen_p["target"]) * 100.0, 1)
+
+                # Offload collector vehicle payload to company yard
+                st.session_state.collector_vehicle_load = max(0.0, round(st.session_state.collector_vehicle_load - min(pl_kg, st.session_state.collector_vehicle_load), 1))
+
+                # Log to audit ledger
+                st.session_state.audit_logs.insert(0, {
+                    "action": "POOL_PLEDGE",
+                    "user": st.session_state.user_name,
+                    "details": f"Pledged {pl_kg}kg to {chosen_p['id']} ({allocation_share_pct}% bulk share, {fulfillment_rem_pct}% remaining fulfilled)",
+                    "time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
+                })
+
+                if pl_kg >= rem_needed and rem_needed > 0:
+                    msg = tr(
+                        f"Successfully pledged {pl_kg} kg! You fulfilled 100% of the remaining requirement ({pl_kg}/{rem_needed} kg). Your overall bulk pool allocation share is {allocation_share_pct}%. Pool {chosen_p['id']} is now 100% fulfilled and locked for mill dispatch!",
+                        f"सफलतापूर्वक {pl_kg} किग्रा स्क्रैप पूल में जोड़ा गया! आपने शेष लक्ष्य का 100% पूरा किया ({pl_kg}/{rem_needed} किग्रा)। कुल पूल में आपकी हिस्सेदारी {allocation_share_pct}% है। पूल {chosen_p['id']} 100% पूरा हुआ और रीसाइक्लर डिस्पैच के लिए तैयार है!"
+                    )[0]
+                else:
+                    msg = tr(
+                        f"Successfully pledged {pl_kg} kg! Fulfilled {fulfillment_rem_pct}% of open requirement. Your overall bulk pool allocation share is {allocation_share_pct}% ({pl_kg}/{chosen_p['target']} kg).",
+                        f"सफलतापूर्वक {pl_kg} किग्रा स्क्रैप पूल में जोड़ा गया! शेष आवश्यकता का {fulfillment_rem_pct}% पूरा हुआ। कुल पूल में आपकी हिस्सेदारी {allocation_share_pct}% है।"
+                    )[0]
+
+                st.success(msg)
+                st.rerun()
 
     # ---------------- 4. SCRAP PASSPORT TAB ----------------
     with col_tab_pass:
